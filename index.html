@@ -245,7 +245,7 @@ textarea.fi{resize:vertical;min-height:78px}
               <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px" id="pt-si"></div>
               <div class="fg"><label class="fl">Monto (S/)</label><input type="number" class="fi" id="pt-m" placeholder="0.00" oninput="calcPts()" min="0" step="0.5"></div>
               <div class="fg"><label class="fl">Descripción (opcional)</label><input type="text" class="fi" id="pt-d" placeholder="Waffle + Frappé"></div>
-              <div class="pr" id="pt-prev" style="display:none"><div><div class="tsm tm">A sumar</div><div class="pb2" id="pt-c">+0</div></div><div style="margin-left:auto"><div class="tsm tm">Total</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--gd)" id="pt-tp">0</div></div></div>
+              <div class="pr" id="pt-prev" style="display:none"><div><div class="tsm tm">A sumar</div><div class="pb2" id="pt-c">+0</div></div><div style="margin:0 auto"><div class="tsm tm">Sello</div><div style="font-size:13px;font-weight:500;color:var(--t2)" id="pt-sello">1/10</div></div><div style="margin-left:auto"><div class="tsm tm">Total</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--gd)" id="pt-tp">0</div></div></div>
               <button class="btn bp" style="width:100%;justify-content:center;margin-top:12px" onclick="regPuntos()">Registrar venta</button>
             </div>
           </div>
@@ -299,6 +299,10 @@ textarea.fi{resize:vertical;min-height:78px}
             <div class="fg"><label class="fl">Bono cumpleaños (pts)</label><input type="number" class="fi" id="cp-bc" min="0"></div>
             <div class="fg"><label class="fl">Mínimo para VIP</label><input type="number" class="fi" id="cp-vip" min="1"></div>
             <div class="fg"><label class="fl">Días para Dormido</label><input type="number" class="fi" id="cp-dorm" min="1"></div>
+            <hr class="dv">
+            <div class="st" style="font-size:13.5px">Tarjeta de sellos ☕</div>
+            <div class="fg"><label class="fl">Visitas para consumo gratis</label><input type="number" class="fi" id="cp-sellos" min="2" max="20" placeholder="10"></div>
+            <div style="font-size:11.5px;color:var(--t3);margin-top:-8px;margin-bottom:10px">Cada visita = 1 sello. Al completar la tarjeta → 1 consumo gratis.</div>
             <button class="btn bp" style="width:100%;justify-content:center" onclick="saveCfg()">Guardar cambios</button>
           </div>
           <div class="cv">
@@ -614,8 +618,8 @@ document.addEventListener('click',e=>{if(!e.target.closest('.um'))document.getEl
 
 // ===================== CONFIG =====================
 async function ldCfg(){const{data}=await SB.from('config').select('*').single();if(data){CFG=data;document.getElementById('sb-nm').textContent=CFG.nombre||'Dopamina';document.getElementById('sb-ft').textContent=(CFG.nombre||'Dopamina')+' · '+(CFG.ciudad||'Lima');}}
-function rdCfg(){document.getElementById('cp-pps').value=CFG.pts_por_sol||1;document.getElementById('cp-bv').value=CFG.pts_bienvenida||20;document.getElementById('cp-bc').value=CFG.pts_cumple||50;document.getElementById('cp-vip').value=CFG.vip_min||500;document.getElementById('cp-dorm').value=CFG.dormido_dias||30;document.getElementById('cp-nm').value=CFG.nombre||'';document.getElementById('cp-wa').value=CFG.whatsapp||'';document.getElementById('cp-ci').value=CFG.ciudad||'';ldRwCfg();}
-async function saveCfg(){const data={id:1,nombre:document.getElementById('cp-nm').value,whatsapp:document.getElementById('cp-wa').value,ciudad:document.getElementById('cp-ci').value,pts_por_sol:parseFloat(document.getElementById('cp-pps').value)||1,pts_bienvenida:parseInt(document.getElementById('cp-bv').value)||20,pts_cumple:parseInt(document.getElementById('cp-bc').value)||50,vip_min:parseInt(document.getElementById('cp-vip').value)||500,dormido_dias:parseInt(document.getElementById('cp-dorm').value)||30};showLo(true);await SB.from('config').upsert(data,{onConflict:'id'});await ldCfg();showLo(false);toast2('✓ Configuración guardada');}
+function rdCfg(){document.getElementById('cp-pps').value=CFG.pts_por_sol||1;document.getElementById('cp-bv').value=CFG.pts_bienvenida||20;document.getElementById('cp-bc').value=CFG.pts_cumple||50;document.getElementById('cp-vip').value=CFG.vip_min||500;document.getElementById('cp-dorm').value=CFG.dormido_dias||30;document.getElementById('cp-sellos').value=CFG.sellos_meta||10;document.getElementById('cp-nm').value=CFG.nombre||'';document.getElementById('cp-wa').value=CFG.whatsapp||'';document.getElementById('cp-ci').value=CFG.ciudad||'';ldRwCfg();}
+async function saveCfg(){const data={id:1,nombre:document.getElementById('cp-nm').value,whatsapp:document.getElementById('cp-wa').value,ciudad:document.getElementById('cp-ci').value,pts_por_sol:parseFloat(document.getElementById('cp-pps').value)||1,pts_bienvenida:parseInt(document.getElementById('cp-bv').value)||20,pts_cumple:parseInt(document.getElementById('cp-bc').value)||50,vip_min:parseInt(document.getElementById('cp-vip').value)||500,dormido_dias:parseInt(document.getElementById('cp-dorm').value)||30,sellos_meta:parseInt(document.getElementById('cp-sellos').value)||10};showLo(true);await SB.from('config').upsert(data,{onConflict:'id'});await ldCfg();showLo(false);toast2('✓ Configuración guardada');}
 
 // ===================== SEG =====================
 function getSeg(c){if((c.puntos||0)>=(CFG.vip_min||500))return'VIP';if(c.ultima_visita&&(new Date()-new Date(c.ultima_visita))/86400000>=(CFG.dormido_dias||30))return'Dormido';if(c.created_at&&(new Date()-new Date(c.created_at))/86400000<=7)return'Nuevo';return'Regular';}
@@ -703,6 +707,28 @@ async function verPerf(id){
   ${c.ultima_visita?`<div><span class="tm tsm">Última visita:</span> ${fmtD(c.ultima_visita)}</div>`:''}
 </div>
 ${c.comentarios?`<div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:9px 12px;font-size:12.5px;margin-bottom:14px;color:#7a5900">💬 ${c.comentarios}</div>`:''}
+${(()=>{
+  const meta=10;
+  const sellos=c.sellos_activos||0;
+  const stamps=Array.from({length:meta},(_,i)=>
+    `<div style="width:34px;height:34px;border-radius:50%;border:2px solid ${i<sellos?'#4CAF7D':'#e8e8e2'};background:${i<sellos?'#4CAF7D':'#f9f9f7'};display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s">
+      ${i<sellos?'☕':''}
+    </div>`
+  ).join('');
+  const pct=Math.round((sellos/meta)*100);
+  return `<div style="border:1.5px solid #e8e8e2;border-radius:12px;padding:14px 16px;margin-bottom:14px;background:#fafaf8">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px">Tarjeta de sellos</div>
+      <div style="font-size:11px;color:var(--t2)">${sellos}/${meta} · ${c.total_canjes_sello||0} gratis ganados</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">${stamps}</div>
+    <div style="background:#e8e8e2;border-radius:20px;height:5px;overflow:hidden">
+      <div style="background:#4CAF7D;height:100%;width:${pct}%;border-radius:20px;transition:width .4s"></div>
+    </div>
+    ${sellos===0?`<div style="text-align:center;font-size:11.5px;color:var(--t3);margin-top:7px">Primera visita registrada = primer sello 🎯</div>`:''}
+    ${sellos>=meta-1&&sellos<meta?`<div style="text-align:center;font-size:11.5px;color:#e67e22;font-weight:500;margin-top:7px">¡Un sello más y gana su consumo gratis! 🔥</div>`:''}
+  </div>`;
+})()}
 ${dsp.length>0?`<div style="background:var(--gb);border-radius:9px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--gd);margin-bottom:7px">Recompensas disponibles</div><div style="display:flex;flex-wrap:wrap;gap:6px">${dsp.map(r=>`<button class="btn bsm" style="background:white;border:1px solid var(--g);color:var(--gd)" onclick="cjPf(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.nombre} (${r.puntos_requeridos}pts)</button>`).join('')}</div></div>`:''}
 <div class="st" style="font-size:12.5px">Historial</div>
 ${(h||[]).length===0?'<div class="tm tsm">Sin actividad</div>':(h||[]).map(x=>`<div class="hi"><div class="hd ${x.tipo==='compra'?'hc':x.tipo==='canje'?'hj':'hb'}"></div><div style="flex:1;font-size:12.5px">${x.descripcion||''}</div><div class="tm tsm">${fmtD(x.created_at)}</div></div>`).join('')}
@@ -722,8 +748,63 @@ async function preSel(id){const{data:c}=await SB.from('clientes').select('*').eq
   if(dsp.length){document.getElementById('cj-s').style.display='block';document.getElementById('cj-e').style.display='none';document.getElementById('rw-disp').innerHTML=dsp.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gr)"><div><div style="font-weight:500;font-size:12.5px">${r.nombre}</div><div class="tm tsm">${r.descripcion||''}</div></div><button class="btn bsm" style="background:#fdf7dc;border:none;color:#7a6200" onclick="cjPts(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.puntos_requeridos}pts</button></div>`).join('');}
   else{document.getElementById('cj-s').style.display='none';document.getElementById('cj-e').style.display='block';document.getElementById('cj-e').textContent='Sin recompensas para '+c.nombre+'.';}
 }
-function calcPts(){if(!PTC)return;const m=parseFloat(document.getElementById('pt-m').value)||0;const p=Math.floor(m*(CFG.pts_por_sol||1));if(m>0){document.getElementById('pt-prev').style.display='flex';document.getElementById('pt-c').textContent='+'+p;document.getElementById('pt-tp').textContent=((PTC.puntos||0)+p).toLocaleString()+' pts';}else document.getElementById('pt-prev').style.display='none';}
-async function regPuntos(){if(!PTC)return;const m=parseFloat(document.getElementById('pt-m').value)||0;if(m<=0){toast2('⚠ Monto requerido',true);return;}const p=Math.floor(m*(CFG.pts_por_sol||1));const d=document.getElementById('pt-d').value||'Compra S/ '+m.toFixed(2);showLo(true);await SB.from('clientes').update({puntos:(PTC.puntos||0)+p,ultima_visita:new Date().toISOString()}).eq('id',PTC.id);await SB.from('historial').insert({cliente_id:PTC.id,tipo:'compra',descripcion:d+' · +'+p+'pts',puntos:p,monto:m});showLo(false);toast2('✓ +'+p+' pts para '+PTC.nombre);document.getElementById('pt-m').value='';document.getElementById('pt-d').value='';preSel(PTC.id);}
+function calcPts(){
+  if(!PTC)return;
+  const m=parseFloat(document.getElementById('pt-m').value)||0;
+  const p=Math.floor(m*(CFG.pts_por_sol||1));
+  const sellosMax=CFG.sellos_meta||10;
+  const sellosAhora=(PTC.sellos_activos||0)+1;
+  if(m>0){
+    document.getElementById('pt-prev').style.display='flex';
+    document.getElementById('pt-c').textContent='+'+p;
+    document.getElementById('pt-tp').textContent=((PTC.puntos||0)+p).toLocaleString()+' pts';
+    const selloEl=document.getElementById('pt-sello');
+    if(selloEl){
+      if(sellosAhora>=sellosMax){
+        selloEl.textContent='🎉 ¡Tarjeta completa! Consumo gratis';
+        selloEl.style.color='var(--g)';selloEl.style.fontWeight='600';
+      } else {
+        selloEl.textContent='Sello '+sellosAhora+'/'+sellosMax;
+        selloEl.style.color='var(--t2)';selloEl.style.fontWeight='400';
+      }
+    }
+  } else {
+    document.getElementById('pt-prev').style.display='none';
+  }
+}
+async function regPuntos(){
+  if(!PTC)return;
+  const m=parseFloat(document.getElementById('pt-m').value)||0;
+  if(m<=0){toast2('⚠ Monto requerido',true);return;}
+  const p=Math.floor(m*(CFG.pts_por_sol||1));
+  const d=document.getElementById('pt-d').value||'Compra S/ '+m.toFixed(2);
+  const sellosMax=CFG.sellos_meta||10;
+  const sellosAhora=(PTC.sellos_activos||0)+1;
+  const ganoGratis=sellosAhora>=sellosMax;
+  const nuevosSellos=ganoGratis?0:sellosAhora;
+  const nuevosCanjes=(PTC.total_canjes_sello||0)+(ganoGratis?1:0);
+  showLo(true);
+  await SB.from('clientes').update({
+    puntos:(PTC.puntos||0)+p,
+    visitas:(PTC.visitas||0)+1,
+    sellos_activos:nuevosSellos,
+    total_canjes_sello:nuevosCanjes,
+    ultima_visita:new Date().toISOString()
+  }).eq('id',PTC.id);
+  await SB.from('historial').insert({cliente_id:PTC.id,tipo:'compra',descripcion:d+' · +'+p+'pts · sello '+(ganoGratis?sellosMax:sellosAhora)+'/'+sellosMax,puntos:p,monto:m});
+  if(ganoGratis){
+    await SB.from('historial').insert({cliente_id:PTC.id,tipo:'canje',descripcion:'🎉 Tarjeta completa — consumo gratis ganado!',puntos:0});
+  }
+  showLo(false);
+  if(ganoGratis){
+    toast2('🎉 ¡'+PTC.nombre+' completó su tarjeta! Consumo GRATIS ganado 🥤');
+  } else {
+    toast2('✓ +'+p+' pts · Sello '+(sellosAhora)+'/'+sellosMax+' para '+PTC.nombre);
+  }
+  document.getElementById('pt-m').value='';
+  document.getElementById('pt-d').value='';
+  preSel(PTC.id);
+}
 async function cjPts(cId,rId,nm,pts){showLo(true);const{data:c}=await SB.from('clientes').select('puntos').eq('id',cId).single();if(!c||(c.puntos||0)<pts){showLo(false);toast2('⚠ Puntos insuficientes',true);return;}await SB.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await SB.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:'Canje: '+nm+' (-'+pts+'pts)',puntos:-pts});showLo(false);toast2('✓ Canje: '+nm);preSel(cId);}
 function rdReglas(){document.getElementById('r-disp').innerHTML=`<div style="display:grid;gap:3px"><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Por S/ 1</span><strong>${CFG.pts_por_sol||1} pto(s)</strong></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Bono bienvenida</span><strong>+${CFG.pts_bienvenida||20} pts</strong></div><div style="display:flex;justify-content:space-between;padding:8px 0"><span class="tm">Bono cumpleaños</span><strong>+${CFG.pts_cumple||50} pts</strong></div></div>`;}
 
