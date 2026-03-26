@@ -745,7 +745,7 @@ async function eliminarUsuario(id,nombre){
   ldUsuarios();
 }
 
-
+async function ldSeg(){
   const el=document.getElementById('mfa-panel');
   if(CU?.mfa_enabled)el.innerHTML=`<div style="display:flex;align-items:center;gap:9px;padding:13px;background:var(--gb);border-radius:9px;margin-bottom:12px"><span style="font-size:22px">🔐</span><div><div style="font-weight:500;font-size:13px">MFA activo</div><div class="tm tsm">Tu cuenta está protegida con doble factor.</div></div></div><button class="btn bdr bsm" onclick="disableMFA()">Desactivar MFA</button>`;
   else el.innerHTML=`<div style="display:flex;align-items:center;gap:9px;padding:13px;background:#fff0f0;border-radius:9px;margin-bottom:12px"><span style="font-size:22px">⚠</span><div><div style="font-weight:500;font-size:13px">MFA no activo</div><div class="tm tsm">Tu cuenta es vulnerable. Activa el doble factor.</div></div></div><button class="btn bp bsm" onclick="enableMFA()">Activar MFA ahora</button>`;
