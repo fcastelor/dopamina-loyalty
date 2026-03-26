@@ -3,570 +3,665 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dopamina — Club de Fidelización</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Dopamina — Acceso seguro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--verde:#3EC97A;--verde-d:#1f8a4c;--verde-bg:#edf9f2;--amarillo:#F5C842;--amarillo-bg:#fdf8e1;--coral:#FF6B6B;--coral-bg:#fff2f2;--morado:#7C5CBF;--morado-bg:#f2eefb;--azul-bg:#edf4ff;--azul:#3B7DD8;--gris:#F6F6F2;--borde:#E4E4DC;--txt:#18181A;--txt2:#52524E;--txt3:#A8A8A0;--blanco:#FFFFFF;--sw:248px;--r:12px;--sh:0 1px 6px rgba(0,0,0,.06)}
+:root{--g:#4CAF7D;--gd:#2d7a52;--gb:#e8f7ef;--y:#F5C842;--r:#FF6B6B;--rb:#fff0f0;--p:#7C5CBF;--pb:#f0ebfa;--gr:#F4F4F0;--b:#e8e8e2;--t:#1a1a18;--t2:#5a5a52;--t3:#9a9a90;--w:#fff;--sw:240px;--rad:14px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--gris);color:var(--txt);display:flex;min-height:100vh;font-size:14px;line-height:1.5}
-#cfg-screen{position:fixed;inset:0;background:var(--gris);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:24px;padding:24px}
-.cfg-card{background:var(--blanco);border-radius:20px;padding:36px 40px;border:1px solid var(--borde);width:100%;max-width:480px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
-.cfg-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--verde);margin-bottom:4px}
-.cfg-note{background:var(--verde-bg);border-radius:9px;padding:12px 16px;font-size:12.5px;color:var(--verde-d);line-height:1.7;margin-bottom:18px}
-.cfg-note a{color:var(--verde-d);font-weight:600}
-.sidebar{width:var(--sw);background:var(--txt);color:white;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100}
-.sb-logo{padding:24px 20px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-.logo-m{font-family:'Syne',sans-serif;font-weight:800;font-size:21px;color:var(--amarillo)}
-.logo-s{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
-.sb-nav{flex:1;padding:14px 10px;overflow-y:auto}
-.nl{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.25);padding:10px 10px 5px}
-.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;cursor:pointer;color:rgba(255,255,255,.55);font-size:13px;transition:all .14s;margin-bottom:1px}
-.ni:hover{background:rgba(255,255,255,.07);color:white}
-.ni.active{background:var(--verde);color:white;font-weight:500}
-.ni-ic{font-size:15px;width:18px;text-align:center;flex-shrink:0}
-.sb-ft{padding:14px 20px;border-top:1px solid rgba(255,255,255,.07);font-size:11px;color:rgba(255,255,255,.25)}
-.online-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--verde);margin-right:5px}
-.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
-.topbar{background:var(--blanco);border-bottom:1px solid var(--borde);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
-.tb-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px}
-.content{padding:24px 28px;flex:1}
+body{font-family:'DM Sans',sans-serif;background:var(--gr);color:var(--t);min-height:100vh;font-size:14px}
+.screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
+.dark-bg{background:#0d1a10}
+.card{background:var(--w);border-radius:20px;padding:38px;width:100%;max-width:420px;box-shadow:0 20px 70px rgba(0,0,0,.28)}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--g)}
+.sub{font-size:12.5px;color:var(--t3);margin-bottom:26px}
+.step{display:none}.step.active{display:block}
+.title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin-bottom:5px}
+.desc{font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.6}
+.err{background:#fff0f0;border:1.5px solid #ffc8c8;border-radius:9px;padding:9px 13px;font-size:13px;color:#b92b2b;margin-bottom:14px;display:none}
+.err.show{display:block}
+.lbl{display:block;font-size:11.5px;font-weight:500;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.inp{width:100%;padding:10px 13px;border:1.5px solid var(--b);border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--w);color:var(--t);outline:none;transition:border .14s;margin-bottom:13px}
+.inp:focus{border-color:var(--g)}
+.pw-w{position:relative}.pw-w .inp{padding-right:42px;margin-bottom:13px}
+.eye{position:absolute;right:11px;top:10px;cursor:pointer;color:var(--t3);font-size:15px;user-select:none}
+.btn-f{width:100%;padding:11px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-g{background:var(--g);color:white}.btn-g:hover{background:var(--gd)}
+.btn-b{background:var(--gr);color:var(--t);border:1px solid var(--b);margin-top:7px}.btn-b:hover{background:var(--b)}
+.mfa-row{display:flex;gap:8px;justify-content:center;margin:18px 0}
+.mfa-d{width:44px;height:52px;border:2px solid var(--b);border-radius:10px;font-size:21px;font-weight:700;text-align:center;font-family:'Syne',sans-serif;outline:none;transition:border .14s}
+.mfa-d:focus{border-color:var(--g)}
+.qr-box{border:1.5px solid var(--b);border-radius:11px;padding:18px;text-align:center;margin:14px 0;background:var(--gr)}
+.sec-box{background:var(--gr);border-radius:8px;padding:9px 13px;font-family:monospace;font-size:12.5px;letter-spacing:2px;color:var(--t);word-break:break-all;border:1px solid var(--b);margin-top:6px}
+.cfg-card{background:var(--w);border-radius:20px;padding:36px 40px;border:1px solid var(--b);width:100%;max-width:480px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+/* APP */
+#app{display:none;min-height:100vh}
+.sb{width:var(--sw);background:var(--t);color:white;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100}
+.sb-lg{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-lm{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--y)}
+.sb-ls{font-size:9.5px;color:rgba(255,255,255,.28);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.sb-nv{flex:1;padding:12px 9px;overflow-y:auto}
+.nl{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.22);padding:9px 9px 4px}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.52);font-size:12.5px;transition:all .13s;margin-bottom:1px}
+.ni:hover{background:rgba(255,255,255,.06);color:white}
+.ni.active{background:var(--g);color:white;font-weight:500}
+.ni-ic{font-size:14px;width:17px;text-align:center;flex-shrink:0}
+.sb-ft{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);font-size:11px;color:rgba(255,255,255,.22)}
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--w);border-bottom:1px solid var(--b);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.tb-t{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.content{padding:22px 26px;flex:1}
 .panel{display:none}.panel.active{display:block}
-.card{background:var(--blanco);border-radius:var(--r);padding:22px;box-shadow:var(--sh);border:1px solid var(--borde)}
-.ct{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:16px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
-.stat{background:var(--blanco);border-radius:var(--r);padding:18px 20px;border:1px solid var(--borde)}
-.sl{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px}
-.sv{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;line-height:1}
-.ss{font-size:11.5px;margin-top:5px}
-.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:20px}
-.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
-.tw{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-thead th{text-align:left;padding:9px 13px;font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--txt3);border-bottom:1px solid var(--borde);font-weight:500}
-tbody tr{border-bottom:1px solid var(--gris);cursor:pointer;transition:background .1s}
-tbody tr:hover{background:var(--gris)}
-tbody td{padding:11px 13px}
-tbody tr:last-child{border-bottom:none}
-.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500}
-.bv{background:var(--amarillo-bg);color:#7a6000}.br{background:var(--verde-bg);color:var(--verde-d)}.bd{background:#f2f2f0;color:var(--txt3)}.bn{background:var(--azul-bg);color:var(--azul)}.bc{background:var(--morado-bg);color:var(--morado)}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .13s;font-family:'DM Sans',sans-serif}
-.bp{background:var(--verde);color:white}.bp:hover{background:var(--verde-d)}
-.bs{background:var(--gris);color:var(--txt);border:1px solid var(--borde)}.bs:hover{background:var(--borde)}
-.bsm{padding:5px 11px;font-size:12px}.bw{background:var(--amarillo-bg);color:#7a6000}.be{background:var(--coral-bg);color:var(--coral)}
-.fg{margin-bottom:16px}
-.fl{display:block;font-size:11.5px;font-weight:500;color:var(--txt2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
-.fi{width:100%;padding:9px 12px;border:1.5px solid var(--borde);border-radius:8px;font-size:13.5px;font-family:'DM Sans',sans-serif;background:var(--blanco);color:var(--txt);outline:none;transition:border .14s}
-.fi:focus{border-color:var(--verde)}.fi::placeholder{color:var(--txt3)}
-select.fi{cursor:pointer}textarea.fi{resize:vertical;min-height:90px}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:200;align-items:center;justify-content:center;padding:20px}
-.overlay.open{display:flex}
-.modal{background:var(--blanco);border-radius:18px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:28px 32px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
-.mh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
-.mt2{font-family:'Syne',sans-serif;font-size:19px;font-weight:700}
-.mx{width:30px;height:30px;border-radius:50%;background:var(--gris);border:none;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;color:var(--txt2)}
-.mx:hover{background:var(--borde)}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--txt);color:white;padding:13px 18px;border-radius:11px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:300;display:none;align-items:center;gap:9px;max-width:300px}
+.cv{background:var(--w);border-radius:var(--rad);padding:20px;box-shadow:0 1px 5px rgba(0,0,0,.05);border:1px solid var(--b)}
+.sg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:18px}
+.sc{background:var(--w);border-radius:var(--rad);padding:17px 19px;border:1px solid var(--b)}
+.sl{font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.sv{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;line-height:1}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.st{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+thead th{text-align:left;padding:8px 11px;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--b);font-weight:500}
+tbody tr{border-bottom:1px solid var(--gr);cursor:pointer;transition:background .1s}
+tbody tr:hover{background:var(--gr)}
+tbody td{padding:10px 11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bg{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.bv{background:#fdf7dc;color:#8a6d00}.br{background:var(--gb);color:var(--gd)}.bd{background:#f5f5f5;color:var(--t3)}.bn{background:#e8f4ff;color:#1565c0}.bc{background:var(--pb);color:var(--p)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;border:none;transition:all .13s;font-family:'DM Sans',sans-serif}
+.bp{background:var(--g);color:white}.bp:hover{background:var(--gd)}
+.bs{background:var(--gr);color:var(--t);border:1px solid var(--b)}.bs:hover{background:var(--b)}
+.bdr{background:var(--rb);color:var(--r)}
+.bsm{padding:5px 10px;font-size:12px}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:11.5px;font-weight:500;color:var(--t2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.fi{width:100%;padding:9px 12px;border:1.5px solid var(--b);border-radius:8px;font-size:13.5px;font-family:'DM Sans',sans-serif;background:var(--w);color:var(--t);outline:none;transition:border .13s}
+.fi:focus{border-color:var(--g)}
+select.fi{cursor:pointer}
+textarea.fi{resize:vertical;min-height:78px}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:200;align-items:center;justify-content:center;padding:20px}
+.mo.open{display:flex}
+.mc{background:var(--w);border-radius:16px;width:100%;max-width:470px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.mt{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.mx{width:28px;height:28px;border-radius:50%;background:var(--gr);border:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--t2)}
+.pr{display:flex;align-items:center;gap:9px;background:var(--gb);border-radius:9px;padding:12px 14px;margin-top:9px}
+.pb2{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--gd)}
+.hi{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--gr)}
+.hi:last-child{border-bottom:none}
+.hd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.hc{background:var(--g)}.hj{background:var(--y)}.hb{background:var(--p)}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;color:white}
+.avl{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;color:white;flex-shrink:0}
+.tabs{display:flex;gap:3px;border-bottom:1.5px solid var(--b);margin-bottom:16px}
+.tab{padding:8px 15px;font-size:13px;font-weight:500;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:all .13s}
+.tab.active{color:var(--g);border-bottom-color:var(--g)}
+.drop-a{border:2px dashed var(--b);border-radius:11px;padding:34px;text-align:center;cursor:pointer;transition:all .13s}
+.drop-a:hover,.drop-a.ov{border-color:var(--g);background:var(--gb)}
+.sb-x{display:flex;align-items:center;gap:7px;background:var(--gr);border:1.5px solid var(--b);border-radius:8px;padding:7px 11px}
+.sb-x input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--t);outline:none;width:185px}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--t);color:white;padding:11px 16px;border-radius:10px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:999;display:none;align-items:center;gap:8px}
 .toast.show{display:flex}
-.ld{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+.lo{display:none;position:fixed;inset:0;background:rgba(255,255,255,.72);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:9px}
+.lo.show{display:flex}
+.spin{width:32px;height:32px;border:3px solid var(--b);border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.segs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
-.sg{border-radius:var(--r);padding:16px;cursor:pointer;transition:transform .13s;border:2px solid transparent}
-.sg:hover{transform:translateY(-2px)}
-.sg-v{background:var(--amarillo-bg)}.sg-r{background:var(--verde-bg)}.sg-d{background:#f5f5f5}.sg-c{background:var(--morado-bg)}
-.sg-ic{font-size:22px;margin-bottom:6px}.sg-nm{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:3px}
-.sg-cnt{font-size:24px;font-weight:700;font-family:'Syne',sans-serif}.sg-ds{font-size:11px;color:var(--txt2);margin-top:3px}
-.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:white;flex-shrink:0}
-.av-lg{width:58px;height:58px;font-size:20px}
-.wa-bg{background:#e5ddd5;border-radius:10px;padding:18px}
-.wa-msg{background:#dcf8c6;border-radius:8px 8px 8px 2px;padding:11px 14px;font-size:13px;line-height:1.6;max-width:85%;white-space:pre-wrap;color:#1a1a1a}
-.hi{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gris)}
-.hi:last-child{border-bottom:none}.hd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.dc{background:var(--verde)}.dk{background:var(--amarillo)}.db{background:var(--morado)}
-.pr{display:flex;align-items:center;gap:12px;background:var(--verde-bg);border-radius:9px;padding:13px 15px;margin-top:10px}
-.pb{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:var(--verde-d)}
-.tabs{display:flex;gap:3px;border-bottom:1.5px solid var(--borde);margin-bottom:18px}
-.tab{padding:9px 16px;font-size:13px;font-weight:500;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:all .13s}
-.tab:hover{color:var(--txt2)}.tab.active{color:var(--verde);border-bottom-color:var(--verde)}
-.empty{text-align:center;padding:48px 20px;color:var(--txt3)}.ei{font-size:40px;margin-bottom:10px}.et{font-size:15px;font-weight:500;color:var(--txt2);margin-bottom:5px}
-.flex{display:flex}.ic{align-items:center}.sb{justify-content:space-between}.g8{gap:8px}.g10{gap:10px}.g12{gap:12px}
-.tsm{font-size:12.5px}.tm{color:var(--txt3)}.tv{color:var(--verde)}.te{color:var(--coral)}.fw5{font-weight:500}
-.div{border:none;border-top:1px solid var(--borde);margin:18px 0}
-.sw{display:flex;align-items:center;gap:7px;background:var(--gris);border:1.5px solid var(--borde);border-radius:8px;padding:7px 12px}
-.sw input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--txt);outline:none;width:200px}
-.sw input::placeholder{color:var(--txt3)}
+.dv{border:none;border-top:1px solid var(--b);margin:16px 0}
+.tm{color:var(--t3)}.tsm{font-size:12px}
+.wa-bg{background:#e5ddd5;border-radius:11px;padding:16px}
+.wa-b{background:#dcf8c6;border-radius:8px 8px 8px 2px;padding:10px 13px;font-size:13px;line-height:1.6;max-width:85%;white-space:pre-wrap;color:#1a1a1a}
+.seg-g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:16px}
+.seg-c{border-radius:11px;padding:14px 13px;cursor:pointer;transition:transform .13s}
+.seg-c:hover{transform:translateY(-2px)}
+.sv-c{background:#fdf7dc}.sr-c{background:var(--gb)}.sd-c{background:#f5f5f5}.sk-c{background:var(--pb)}
+.seg-n{font-family:'Syne',sans-serif;font-weight:700;font-size:12.5px;margin-bottom:3px}
+.seg-v{font-family:'Syne',sans-serif;font-size:21px;font-weight:800}
+.um{position:relative}
+.ub{display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 10px;border-radius:8px;border:1px solid var(--b);font-size:12px;transition:background .13s}
+.ub:hover{background:var(--gr)}
+.ud{position:absolute;right:0;top:calc(100% + 5px);background:var(--w);border:1px solid var(--b);border-radius:10px;padding:5px;min-width:175px;box-shadow:0 8px 24px rgba(0,0,0,.11);display:none;z-index:200}
+.ud.open{display:block}
+.udi{padding:7px 11px;border-radius:6px;cursor:pointer;font-size:12.5px;transition:background .12s}
+.udi:hover{background:var(--gr)}
+.udi.dr{color:var(--r)}
+.ms{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 7px;border-radius:20px;font-weight:500}
+.ms-on{background:#e8f7ef;color:#1a6b3c}.ms-off{background:#fff0f0;color:#b92b2b}
 </style>
 </head>
 <body>
 
-<div id="cfg-screen">
+<div class="lo" id="lo"><div class="spin"></div><div style="font-size:13px;color:var(--t2)">Cargando...</div></div>
+
+<!-- SETUP SUPABASE -->
+<div class="screen" id="cfg-screen" style="background:var(--gr)">
   <div class="cfg-card">
-    <div class="cfg-logo">Dopamina</div>
-    <div style="font-size:13px;color:var(--txt3);margin-bottom:22px">Club de Fidelización · Configuración inicial</div>
-    <div class="cfg-note">
-      1. Crea cuenta gratis en <a href="https://supabase.com" target="_blank">supabase.com</a><br>
-      2. Crea un proyecto nuevo<br>
-      3. Ejecuta el archivo <strong>schema.sql</strong> en SQL Editor<br>
-      4. Ve a <strong>Project Settings → API</strong> y copia los datos:
+    <div class="logo" style="margin-bottom:2px">Dopamina</div>
+    <div class="sub" style="margin-bottom:18px">Configuración inicial de base de datos</div>
+    <div class="err" id="cfg-err"></div>
+    <div class="fg"><label class="fl">Supabase URL</label><input type="text" class="fi" id="sb-url" placeholder="https://xxxx.supabase.co"></div>
+    <div class="fg"><label class="fl">Anon Public Key</label><input type="text" class="fi" id="sb-key" placeholder="eyJhbGci..."></div>
+    <button class="btn-f btn-g" onclick="conectarSB()">Conectar →</button>
+    <div style="margin-top:12px;padding:11px 13px;background:var(--gb);border-radius:8px;font-size:12px;color:var(--gd);line-height:1.7">
+      Disponible en <strong>Supabase → Settings → API Keys → Legacy anon</strong>
     </div>
-    <div class="fg"><label class="fl">Supabase Project URL</label><input type="text" class="fi" id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co"></div>
-    <div class="fg"><label class="fl">Supabase Anon Key</label><input type="text" class="fi" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></div>
-    <div id="cfg-err" class="te tsm mt8" style="display:none"></div>
-    <button class="btn bp mt8" style="width:100%;justify-content:center" id="btn-conn" onclick="conectar()">Conectar base de datos</button>
-    <div class="div"></div>
-    <div style="font-size:11.5px;color:var(--txt2);margin-bottom:8px">También necesitas ejecutar en Supabase SQL Editor:</div>
-    <button class="btn bs bsm" onclick="dlSchema()">⇩ Descargar schema.sql</button>
   </div>
 </div>
 
-<nav class="sidebar">
-  <div class="sb-logo"><div class="logo-m">Dopamina</div><div class="logo-s">Club Fidelización</div></div>
-  <div class="sb-nav">
-    <div class="nl">Principal</div>
-    <div class="ni active" onclick="nav('dashboard')"><span class="ni-ic">▦</span>Dashboard</div>
-    <div class="ni" onclick="nav('clientes')"><span class="ni-ic">◎</span>Clientes</div>
-    <div class="ni" onclick="nav('puntos')"><span class="ni-ic">◈</span>Registrar puntos</div>
-    <div class="ni" onclick="nav('campanas')"><span class="ni-ic">◷</span>Campañas WhatsApp</div>
-    <div class="nl">Herramientas</div>
-    <div class="ni" onclick="nav('importar')"><span class="ni-ic">⇪</span>Importar CSV</div>
-    <div class="ni" onclick="nav('qr')"><span class="ni-ic">▣</span>QR de registro</div>
-    <div class="ni" onclick="nav('config')"><span class="ni-ic">◌</span>Configuración</div>
-  </div>
-  <div class="sb-ft"><span class="online-dot"></span>Conectado · Supabase</div>
-</nav>
+<!-- AUTH -->
+<div class="screen dark-bg" id="auth-screen" style="display:none">
+  <div class="card">
+    <div class="logo">Dopamina</div>
+    <div class="sub">Sistema de fidelización · Acceso protegido</div>
 
-<div class="main">
-  <div class="topbar">
-    <div class="tb-title" id="tb-title">Dashboard</div>
-    <div class="flex ic g10">
-      <div class="sw"><span style="color:var(--txt3)">⌕</span><input type="text" placeholder="Buscar cliente..." id="sg" oninput="buscGlobal(this.value)"></div>
-      <button class="btn bp" onclick="openM('m-nuevo')">+ Nuevo cliente</button>
+    <!-- Login -->
+    <div class="step active" id="s-login">
+      <div class="title">Iniciar sesión</div>
+      <div class="desc">Ingresa tus credenciales de administrador</div>
+      <div class="err" id="l-err"></div>
+      <div class="fg"><label class="lbl">Correo</label><input type="email" class="inp" id="l-email" placeholder="admin@dopamina.pe" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="fg"><label class="lbl">Contraseña</label>
+        <div class="pw-w"><input type="password" class="inp" id="l-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"><span class="eye" onclick="tPw('l-pw',this)">👁</span></div>
+      </div>
+      <button class="btn-f btn-g" onclick="doLogin()">Continuar →</button>
+      <div id="lock-info" style="display:none;margin-top:11px;padding:9px 13px;background:#fff0f0;border-radius:8px;font-size:12px;color:#b92b2b"></div>
+    </div>
+
+    <!-- MFA verify -->
+    <div class="step" id="s-mfa">
+      <div class="title">Verificación en dos pasos</div>
+      <div class="desc">Ingresa el código de 6 dígitos de tu app (Google Authenticator, Authy)</div>
+      <div class="err" id="m-err"></div>
+      <div class="mfa-row" id="mfa-inp"></div>
+      <button class="btn-f btn-g" onclick="doMFA()">Verificar →</button>
+      <button class="btn-f btn-b" onclick="goStep('s-login')">← Volver</button>
+    </div>
+
+    <!-- Setup MFA -->
+    <div class="step" id="s-setup">
+      <div class="title">Activa el doble factor</div>
+      <div class="desc">Escanea el QR con Google Authenticator o Authy antes de continuar.</div>
+      <div class="err" id="su-err"></div>
+      <div class="qr-box">
+        <canvas id="qr-canvas" width="170" height="170" style="margin:0 auto;display:block;border-radius:6px"></canvas>
+        <div style="font-size:11.5px;color:var(--t2);margin-top:10px">O escribe este código manualmente:</div>
+        <div class="sec-box" id="sec-disp"></div>
+      </div>
+      <div style="font-size:12.5px;color:var(--t2);margin-bottom:12px">Confirma con el código que aparece en la app:</div>
+      <div class="mfa-row" id="setup-inp"></div>
+      <button class="btn-f btn-g" onclick="doSetupMFA()">Activar y entrar →</button>
+    </div>
+
+    <!-- Crear primer admin -->
+    <div class="step" id="s-crear">
+      <div class="title">Crear administrador</div>
+      <div class="desc">Primera vez. Define las credenciales del administrador principal.</div>
+      <div class="err" id="c-err"></div>
+      <div class="fg"><label class="lbl">Nombre</label><input type="text" class="inp" id="c-nombre" placeholder="Francisco Castelo"></div>
+      <div class="fg"><label class="lbl">Correo</label><input type="email" class="inp" id="c-email" placeholder="admin@dopamina.pe"></div>
+      <div class="fg"><label class="lbl">Contraseña (mín. 8 caracteres)</label>
+        <div class="pw-w"><input type="password" class="inp" id="c-pw" placeholder="Contraseña segura"><span class="eye" onclick="tPw('c-pw',this)">👁</span></div>
+      </div>
+      <div class="fg"><label class="lbl">Confirmar contraseña</label><input type="password" class="inp" id="c-pw2" placeholder="Repite la contraseña"></div>
+      <button class="btn-f btn-g" onclick="crearAdmin()">Crear cuenta →</button>
     </div>
   </div>
-  <div class="content">
+</div>
 
-    <div class="panel active" id="panel-dashboard">
-      <div class="stats">
-        <div class="stat"><div class="sl">Clientes activos</div><div class="sv" id="st-total">—</div><div class="ss tm" id="st-hoy">cargando...</div></div>
-        <div class="stat"><div class="sl">Puntos emitidos</div><div class="sv" id="st-pts">—</div><div class="ss tv">total acumulado</div></div>
-        <div class="stat"><div class="sl">Cumpleaños mes</div><div class="sv" id="st-cump">—</div><div class="ss" style="color:var(--morado)">enviar campaña</div></div>
-        <div class="stat"><div class="sl">Canjes</div><div class="sv" id="st-can">—</div><div class="ss tm">recompensas usadas</div></div>
-      </div>
-      <div class="g2">
-        <div class="card">
-          <div class="ct">Segmentos</div>
-          <div class="segs">
-            <div class="sg sg-v" onclick="filtSeg('VIP')"><div class="sg-ic">⭐</div><div class="sg-nm">VIP</div><div class="sg-cnt" id="sg-vip">—</div><div class="sg-ds">Top compradores</div></div>
-            <div class="sg sg-r" onclick="filtSeg('Regular')"><div class="sg-ic">◉</div><div class="sg-nm">Regular</div><div class="sg-cnt" id="sg-reg">—</div><div class="sg-ds">Frecuencia media</div></div>
-            <div class="sg sg-d" onclick="filtSeg('Dormido')"><div class="sg-ic">◌</div><div class="sg-nm">Dormido</div><div class="sg-cnt" id="sg-dor">—</div><div class="sg-ds">Sin visitas 30d+</div></div>
-            <div class="sg sg-c" onclick="nav('campanas')"><div class="sg-ic">◆</div><div class="sg-nm">Cumple</div><div class="sg-cnt" id="sg-cum">—</div><div class="sg-ds">Este mes</div></div>
-          </div>
-          <button class="btn bs" style="width:100%" onclick="nav('campanas')">Crear campaña WhatsApp →</button>
-        </div>
-        <div class="card"><div class="ct">Actividad reciente</div><div id="act-list"><div class="tm tsm">Cargando...</div></div></div>
-      </div>
-      <div class="card">
-        <div class="flex sb ic mb16"><div class="ct" style="margin:0">Cumpleaños este mes</div><button class="btn bw bsm" onclick="nav('campanas')">Enviar felicitación WA</button></div>
-        <div id="cump-list"><div class="tm tsm">Cargando...</div></div>
-      </div>
+<!-- APP -->
+<div id="app">
+  <nav class="sb">
+    <div class="sb-lg"><div class="sb-lm" id="sb-nm">Dopamina</div><div class="sb-ls">Club de Fidelización</div></div>
+    <div class="sb-nv">
+      <div class="nl">Principal</div>
+      <div class="ni active" onclick="nav('dashboard')"><span class="ni-ic">▦</span> Dashboard</div>
+      <div class="ni" onclick="nav('clientes')"><span class="ni-ic">◎</span> Clientes</div>
+      <div class="ni" onclick="nav('puntos')"><span class="ni-ic">◈</span> Registrar puntos</div>
+      <div class="ni" onclick="nav('campanas')"><span class="ni-ic">◷</span> Campañas WhatsApp</div>
+      <div class="nl">Herramientas</div>
+      <div class="ni" onclick="nav('importar')"><span class="ni-ic">⇪</span> Importar CSV</div>
+      <div class="ni" onclick="nav('config')"><span class="ni-ic">◌</span> Configuración</div>
+      <div class="ni" onclick="nav('seguridad')"><span class="ni-ic">🔐</span> Seguridad</div>
     </div>
-
-    <div class="panel" id="panel-clientes">
-      <div class="flex sb ic mb16">
-        <div><div class="ct" style="margin:0">Clientes registrados</div><div class="tm tsm mt8" id="cl-cnt">—</div></div>
-        <div class="flex g10">
-          <select class="fi" style="width:auto" id="fil-seg" onchange="renderTbl()">
-            <option value="">Todos</option><option value="VIP">VIP</option><option value="Regular">Regular</option><option value="Dormido">Dormido</option><option value="Nuevo">Nuevo</option>
-          </select>
-          <button class="btn bp" onclick="openM('m-nuevo')">+ Nuevo</button>
-        </div>
-      </div>
-      <div class="card" style="padding:0"><div class="tw"><table>
-        <thead><tr><th>Cliente</th><th>DNI</th><th>Celular</th><th>Puntos</th><th>Segmento</th><th>Última visita</th><th>Acciones</th></tr></thead>
-        <tbody id="tbl"><tr><td colspan="7" style="text-align:center;padding:36px;color:var(--txt3)">Cargando...</td></tr></tbody>
-      </table></div></div>
-    </div>
-
-    <div class="panel" id="panel-puntos">
-      <div class="ct">Registrar venta y asignar puntos</div>
-      <div class="g2">
-        <div class="card">
-          <div class="fg"><label class="fl">Buscar cliente por DNI o nombre</label><input type="text" class="fi" id="pts-q" placeholder="DNI o nombre..." oninput="buscPts(this.value)"></div>
-          <div id="pts-res"></div>
-          <div id="pts-cli" style="display:none">
-            <div class="div"></div>
-            <div class="flex ic g10 mb16" id="pts-cli-info"></div>
-            <div class="fg"><label class="fl">Monto de venta (S/)</label><input type="number" class="fi" id="pts-monto" placeholder="0.00" oninput="calcPts()" min="0" step="0.50"></div>
-            <div class="fg"><label class="fl">Descripción (opcional)</label><input type="text" class="fi" id="pts-desc" placeholder="Waffle proteico + Frappé"></div>
-            <div class="pr" id="pts-prev" style="display:none">
-              <div><div class="tsm tm">Puntos a sumar</div><div class="pb" id="pts-calc">0</div></div>
-              <div style="margin-left:auto"><div class="tsm tm">Nuevo total</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--verde-d)" id="pts-ntot">0</div></div>
+    <div class="sb-ft" id="sb-ft">Dopamina · Lima</div>
+  </nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-t" id="tb-t">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <div class="sb-x"><span style="color:var(--t3)">⌕</span><input type="text" placeholder="Buscar cliente..." id="s-g" oninput="gSearch(this.value)"></div>
+        <button class="btn bp bsm" onclick="openM('m-nc')">+ Nuevo</button>
+        <div class="um">
+          <div class="ub" id="u-btn" onclick="tUM()"><span>👤</span><span id="u-nm">Admin</span><span>▾</span></div>
+          <div class="ud" id="u-dd">
+            <div style="padding:7px 11px;border-bottom:1px solid var(--b);margin-bottom:3px">
+              <div style="font-weight:500;font-size:13px" id="dd-nm">Admin</div>
+              <div style="font-size:11px;color:var(--t3)" id="dd-em">admin@dopamina.pe</div>
+              <div style="margin-top:3px" id="dd-mfa"></div>
             </div>
-            <button class="btn bp" style="width:100%;justify-content:center;margin-top:14px" id="btn-rpts" onclick="regPts()">Registrar y sumar puntos</button>
+            <div class="udi" onclick="nav('seguridad');tUM()">🔐 Seguridad y MFA</div>
+            <div class="udi dr" onclick="logout()">⎋ Cerrar sesión</div>
           </div>
-        </div>
-        <div class="card">
-          <div class="ct">Reglas de puntos</div><div id="reglas"></div>
-          <div class="div"></div>
-          <div class="ct">Canjear recompensa</div>
-          <div id="canje-sec"><div class="tm tsm">Selecciona un cliente.</div></div>
         </div>
       </div>
     </div>
+    <div class="content">
 
-    <div class="panel" id="panel-campanas">
-      <div class="ct">Campañas WhatsApp</div>
-      <div class="tabs">
-        <div class="tab active" onclick="setTab(this,'tc-crear')">Crear mensaje</div>
-        <div class="tab" onclick="setTab(this,'tc-hist')">Historial</div>
-      </div>
-      <div id="tc-crear">
+      <!-- DASHBOARD -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="sg"><div class="sc"><div class="sl">Clientes</div><div class="sv" id="st">—</div></div><div class="sc"><div class="sl">Puntos emitidos</div><div class="sv" id="sp">—</div></div><div class="sc"><div class="sl">Cumpleaños mes</div><div class="sv" id="sk">—</div></div><div class="sc"><div class="sl">Canjes</div><div class="sv" id="sc2">—</div></div></div>
         <div class="g2">
-          <div><div class="card mb20">
-            <div class="fg"><label class="fl">Segmento destino</label>
-              <select class="fi" id="c-seg" onchange="updDest()">
-                <option value="todos">Todos los clientes</option><option value="VIP">VIP</option><option value="Regular">Regulares</option><option value="Dormido">Dormidos</option><option value="Cumpleaños">Cumpleaños este mes</option><option value="Nuevo">Nuevos (7 días)</option>
-              </select>
-              <div class="tsm tm mt8" id="c-dest">— destinatarios</div>
-            </div>
-            <div class="fg"><label class="fl">Tipo de campaña</label>
-              <select class="fi" id="c-tipo" onchange="loadTpl()">
-                <option value="">Personalizado</option><option value="cumple">Felicitación cumpleaños</option><option value="puntos">Notificación puntos</option><option value="promo">Promoción especial</option><option value="reactivar">Reactivar dormido</option><option value="bienvenida">Bienvenida nuevo</option>
-              </select>
-            </div>
-            <div class="fg"><label class="fl">Mensaje · Variables: {nombre} {puntos} {promo}</label><textarea class="fi" id="c-msg" rows="7"></textarea></div>
-            <div style="display:flex;gap:8px">
-              <button class="btn bs" style="flex:1;justify-content:center" onclick="prevCamp()">Vista previa</button>
-              <button class="btn bp" style="flex:1;justify-content:center" onclick="genLinks()">Generar links WA</button>
-            </div>
-          </div></div>
-          <div class="card"><div class="ct">Vista previa</div><div id="c-prev"><div class="empty"><div class="ei">◷</div><div class="et">Sin vista previa</div></div></div></div>
-        </div>
-        <div id="links-sec" style="display:none" class="card">
-          <div class="flex sb ic mb16"><div class="ct" style="margin:0">Links generados</div><span class="tm tsm" id="links-cnt"></span></div>
-          <div id="links-list"></div>
-        </div>
-      </div>
-      <div id="tc-hist" style="display:none"><div id="camp-hist"><div class="empty"><div class="ei">◷</div><div class="et">Sin campañas</div></div></div></div>
-    </div>
-
-    <div class="panel" id="panel-importar">
-      <div class="ct">Importar clientes desde CSV</div>
-      <div class="g2">
-        <div class="card">
-          <div id="drop-area" onclick="document.getElementById('finput').click()"
-            ondragover="event.preventDefault();this.style.background='var(--verde-bg)'"
-            ondragleave="this.style.background=''"
-            ondrop="event.preventDefault();this.style.background='';hFile(event.dataTransfer.files[0])"
-            style="border:2px dashed var(--borde);border-radius:10px;padding:36px;text-align:center;cursor:pointer;transition:all .14s">
-            <div style="font-size:36px;margin-bottom:10px">⇪</div>
-            <div style="font-weight:500;margin-bottom:5px">Arrastra tu CSV aquí</div>
-            <div class="tm tsm">O clic para seleccionar</div>
+          <div class="cv"><div class="st">Segmentos</div>
+            <div class="seg-g"><div class="seg-c sv-c" onclick="nav('clientes')"><div style="font-size:20px;margin-bottom:5px">⭐</div><div class="seg-n">VIP</div><div class="seg-v" id="sg-v">—</div></div><div class="seg-c sr-c" onclick="nav('clientes')"><div style="font-size:20px;margin-bottom:5px">◉</div><div class="seg-n">Regular</div><div class="seg-v" id="sg-r">—</div></div><div class="seg-c sd-c" onclick="nav('clientes')"><div style="font-size:20px;margin-bottom:5px">◌</div><div class="seg-n">Dormido</div><div class="seg-v" id="sg-d">—</div></div><div class="seg-c sk-c" onclick="nav('clientes')"><div style="font-size:20px;margin-bottom:5px">◆</div><div class="seg-n">Cumple</div><div class="seg-v" id="sg-k">—</div></div></div>
+            <button class="btn bs" style="width:100%" onclick="nav('campanas')">Crear campaña WhatsApp →</button>
           </div>
-          <input type="file" id="finput" accept=".csv" style="display:none" onchange="hFile(this.files[0])">
-          <div class="div"></div>
-          <div class="ct" style="font-size:14px">Formato CSV esperado</div>
-          <div class="tw"><table style="font-size:12px"><thead><tr><th>DNI</th><th>Nombre</th><th>Celular</th><th>Puntos</th><th>Nacimiento</th></tr></thead><tbody><tr><td>12345678</td><td>Ana Torres</td><td>999888777</td><td>150</td><td>1995-03-15</td></tr></tbody></table></div>
-          <button class="btn bs bsm mt12" onclick="dlTpl()">⇩ Descargar plantilla CSV</button>
+          <div class="cv"><div class="st">Actividad reciente</div><div id="act-rec"><div class="tm tsm" style="text-align:center;padding:20px 0">Cargando...</div></div></div>
         </div>
-        <div class="card">
-          <div class="ct">Vista previa</div>
-          <div id="imp-prev"><div class="empty" style="padding:30px 0"><div class="ei">⇪</div><div class="et">Carga un archivo</div></div></div>
-          <div id="imp-act" style="display:none;margin-top:14px;gap:10px;flex-direction:column">
-            <div id="imp-sum" class="tsm" style="background:var(--verde-bg);padding:11px 14px;border-radius:8px;color:var(--verde-d)"></div>
-            <button class="btn bp" style="justify-content:center" id="btn-imp" onclick="confImp()">Confirmar importación</button>
+        <div class="cv"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="st" style="margin:0">Cumpleaños este mes</div><button class="btn bsm" style="background:#fdf7dc;color:#7a6200;border:none" onclick="nav('campanas')">Enviar felicitación WA</button></div><div id="cumples-l"><div class="tm tsm">Cargando...</div></div></div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div class="panel" id="panel-clientes">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div><div class="st" style="margin:0">Clientes</div><div class="tm tsm" style="margin-top:3px" id="cl-c">Cargando...</div></div>
+          <div style="display:flex;gap:7px"><select class="fi" style="width:auto" id="f-s" onchange="loadCL()"><option value="">Todos</option><option value="VIP">VIP</option><option value="Regular">Regular</option><option value="Dormido">Dormido</option><option value="Nuevo">Nuevo</option></select><button class="btn bp bsm" onclick="openM('m-nc')">+ Nuevo</button></div>
+        </div>
+        <div class="cv" style="padding:0"><div style="overflow-x:auto"><table>
+          <thead><tr><th style="width:28%">Cliente</th><th style="width:12%">DNI</th><th style="width:14%">Celular</th><th style="width:9%">Puntos</th><th style="width:11%">Segmento</th><th style="width:13%">Última visita</th><th style="width:13%">Acciones</th></tr></thead>
+          <tbody id="tbl-cl"><tr><td colspan="7" style="text-align:center;padding:34px;color:var(--t3)">Cargando...</td></tr></tbody>
+        </table></div></div>
+      </div>
+
+      <!-- PUNTOS -->
+      <div class="panel" id="panel-puntos">
+        <div class="st">Registrar venta</div>
+        <div class="g2">
+          <div class="cv">
+            <div class="fg"><label class="fl">Buscar cliente</label><input type="text" class="fi" id="pt-s" placeholder="DNI o nombre..." oninput="buscarPts(this.value)"></div>
+            <div id="pt-res"></div>
+            <div id="pt-sel" style="display:none">
+              <hr class="dv">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px" id="pt-si"></div>
+              <div class="fg"><label class="fl">Monto (S/)</label><input type="number" class="fi" id="pt-m" placeholder="0.00" oninput="calcPts()" min="0" step="0.5"></div>
+              <div class="fg"><label class="fl">Descripción (opcional)</label><input type="text" class="fi" id="pt-d" placeholder="Waffle + Frappé"></div>
+              <div class="pr" id="pt-prev" style="display:none"><div><div class="tsm tm">A sumar</div><div class="pb2" id="pt-c">+0</div></div><div style="margin-left:auto"><div class="tsm tm">Total</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--gd)" id="pt-tp">0</div></div></div>
+              <button class="btn bp" style="width:100%;justify-content:center;margin-top:12px" onclick="regPuntos()">Registrar venta</button>
+            </div>
+          </div>
+          <div class="cv"><div class="st">Reglas</div><div id="r-disp"></div><hr class="dv"><div class="st">Canjear recompensa</div><div id="cj-s" style="display:none"><div id="rw-disp"></div></div><div id="cj-e" class="tm tsm">Selecciona un cliente para ver recompensas.</div></div>
+        </div>
+      </div>
+
+      <!-- CAMPAÑAS -->
+      <div class="panel" id="panel-campanas">
+        <div class="st">Campañas de WhatsApp</div>
+        <div class="tabs"><div class="tab active" onclick="setTab(this,'tc-c')">Crear</div><div class="tab" onclick="setTab(this,'tc-h')">Historial</div></div>
+        <div id="tc-c">
+          <div class="g2">
+            <div class="cv">
+              <div class="fg"><label class="fl">Segmento</label><select class="fi" id="c-sg" onchange="updDst()"><option value="todos">Todos</option><option value="VIP">VIP</option><option value="Regular">Regular</option><option value="Dormido">Dormido</option><option value="Cumpleaños">Cumpleaños</option><option value="Nuevo">Nuevos</option></select><div class="tm tsm" style="margin-top:5px" id="c-dst">— destinatarios</div></div>
+              <div class="fg"><label class="fl">Plantilla</label><select class="fi" id="c-tp" onchange="ldPlant()"><option value="">Personalizado</option><option value="cumple">Felicitación cumpleaños</option><option value="puntos">Notificación puntos</option><option value="promo">Promoción especial</option><option value="reactivar">Reactivar dormidos</option><option value="bienvenida">Bienvenida</option></select></div>
+              <div class="fg"><label class="fl">Mensaje · {nombre} {puntos} {promo}</label><textarea class="fi" id="c-msg" rows="7"></textarea></div>
+              <div style="display:flex;gap:7px"><button class="btn bs" style="flex:1;justify-content:center" onclick="pvCamp()">Vista previa</button><button class="btn bp" style="flex:1;justify-content:center" onclick="genLinks()">Generar links WA</button></div>
+            </div>
+            <div class="cv" id="c-pv-card"><div class="st">Vista previa</div><div id="c-pv"><div class="tm tsm">Configura el mensaje y presiona Vista previa</div></div></div>
+          </div>
+          <div id="c-lk-s" style="display:none" class="cv"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="st" style="margin:0">Links generados</div><span class="tm tsm" id="c-lk-c"></span></div><div id="c-lk-l"></div></div>
+        </div>
+        <div id="tc-h" style="display:none"><div class="cv"><div id="cp-h"><div class="tm tsm">Cargando...</div></div></div></div>
+      </div>
+
+      <!-- IMPORTAR -->
+      <div class="panel" id="panel-importar">
+        <div class="st">Importar desde CSV</div>
+        <div class="g2">
+          <div class="cv">
+            <div class="drop-a" id="da" onclick="document.getElementById('fi-inp').click()" ondragover="dOv(event)" ondragleave="dLv()" ondrop="dDp(event)"><div style="font-size:36px;margin-bottom:9px">⇪</div><div style="font-weight:500;margin-bottom:3px">Arrastra tu CSV aquí</div><div class="tm tsm">O haz clic para seleccionar</div></div>
+            <input type="file" id="fi-inp" accept=".csv" style="display:none" onchange="hdlFile(this.files[0])">
+            <hr class="dv">
+            <div style="font-weight:500;margin-bottom:5px;font-size:13px">Formato esperado:</div>
+            <code style="font-size:11.5px;background:var(--gr);padding:9px;border-radius:7px;display:block;line-height:1.8">DNI,Nombre,Celular,Puntos,Nacimiento<br>12345678,Ana Torres,999888777,150,1995-03-15</code>
+            <button class="btn bs bsm" style="margin-top:10px" onclick="dlTpl()">⇩ Plantilla CSV</button>
+          </div>
+          <div class="cv"><div class="st">Vista previa</div><div id="ip-prev"><div class="tm tsm">Carga un archivo para previsualizar</div></div><div id="ip-act" style="display:none;margin-top:12px"><div id="ip-sum" style="background:var(--gb);padding:9px 13px;border-radius:8px;font-size:12.5px;color:var(--gd);margin-bottom:9px"></div><button class="btn bp" style="width:100%;justify-content:center" onclick="confImp()">Confirmar importación</button></div></div>
+        </div>
+      </div>
+
+      <!-- CONFIG -->
+      <div class="panel" id="panel-config">
+        <div class="st">Configuración</div>
+        <div class="g2">
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Reglas de puntos</div>
+            <div class="fg"><label class="fl">Puntos por S/ 1</label><input type="number" class="fi" id="cp-pps" min="0.1" step="0.1"></div>
+            <div class="fg"><label class="fl">Bono bienvenida (pts)</label><input type="number" class="fi" id="cp-bv" min="0"></div>
+            <div class="fg"><label class="fl">Bono cumpleaños (pts)</label><input type="number" class="fi" id="cp-bc" min="0"></div>
+            <div class="fg"><label class="fl">Mínimo para VIP</label><input type="number" class="fi" id="cp-vip" min="1"></div>
+            <div class="fg"><label class="fl">Días para Dormido</label><input type="number" class="fi" id="cp-dorm" min="1"></div>
+            <button class="btn bp" style="width:100%;justify-content:center" onclick="saveCfg()">Guardar cambios</button>
+          </div>
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Recompensas</div>
+            <div id="rw-cfg"></div>
+            <button class="btn bs bsm" style="margin-top:10px" onclick="openM('m-nrw')">+ Agregar</button>
+            <hr class="dv">
+            <div class="st" style="font-size:13.5px">Datos del negocio</div>
+            <div class="fg"><label class="fl">Nombre</label><input type="text" class="fi" id="cp-nm"></div>
+            <div class="fg"><label class="fl">WhatsApp</label><input type="text" class="fi" id="cp-wa" placeholder="51999888777"></div>
+            <div class="fg"><label class="fl">Ciudad</label><input type="text" class="fi" id="cp-ci"></div>
+            <button class="btn bp" style="width:100%;justify-content:center" onclick="saveCfg()">Guardar</button>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="panel" id="panel-qr">
-      <div class="ct">QR de registro para tu local</div>
-      <div class="g2">
-        <div class="card" style="text-align:center;padding:36px">
-          <div style="font-size:13px;color:var(--txt3);margin-bottom:14px">Código QR del formulario</div>
-          <div style="width:180px;height:180px;border:3px solid var(--txt);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:70px">▣</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:5px">Club Dopamina</div>
-          <div class="tm tsm mb16">Escanea para acumular puntos</div>
-          <div style="background:var(--gris);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--txt2);margin-bottom:14px">Tu URL de Vercel + /registro</div>
-          <button class="btn bp" onclick="showT('✓ Link copiado')">Copiar link</button>
-        </div>
-        <div class="card">
-          <div class="ct">Vista del formulario (cliente)</div>
-          <div style="background:var(--gris);border-radius:10px;padding:22px">
-            <div style="text-align:center;margin-bottom:18px"><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--verde)">Dopamina</div><div style="font-size:12px;color:var(--txt2);margin-top:3px">Únete al Club de Puntos</div></div>
-            <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" placeholder="12345678" maxlength="8"></div>
-            <div class="fg"><label class="fl">Nombre</label><input type="text" class="fi" placeholder="Tu nombre completo"></div>
-            <div class="fg"><label class="fl">Celular WhatsApp</label><input type="tel" class="fi" placeholder="999 888 777"></div>
-            <div class="fg" style="margin-bottom:0"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi"></div>
+      <!-- SEGURIDAD -->
+      <div class="panel" id="panel-seguridad">
+        <div class="st">Seguridad y acceso</div>
+        <div class="g2">
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Autenticación de dos factores (MFA)</div>
+            <div id="mfa-panel"></div>
+            <hr class="dv">
+            <div class="st" style="font-size:13.5px">Cambiar contraseña</div>
+            <div class="fg"><label class="fl">Contraseña actual</label><input type="password" class="fi" id="pw-a" placeholder="••••••••"></div>
+            <div class="fg"><label class="fl">Nueva contraseña</label><input type="password" class="fi" id="pw-n" placeholder="Mínimo 8 caracteres"></div>
+            <div class="fg"><label class="fl">Confirmar nueva</label><input type="password" class="fi" id="pw-n2" placeholder="Repite la contraseña"></div>
+            <button class="btn bp" onclick="chgPw()">Actualizar contraseña</button>
           </div>
-          <div class="tm tsm mt12">Datos van directo a Supabase al registrarse.</div>
+          <div class="cv"><div class="st" style="font-size:13.5px">Registro de accesos</div><div id="acc-log"><div class="tm tsm">Cargando...</div></div></div>
         </div>
       </div>
-    </div>
 
-    <div class="panel" id="panel-config">
-      <div class="ct">Configuración del programa</div>
-      <div class="g2">
-        <div class="card">
-          <div class="ct" style="font-size:15px">Reglas de puntos</div>
-          <div class="fg"><label class="fl">Puntos por cada S/ 1 gastado</label><input type="number" class="fi" id="cfg-sol" value="1" min="0.1" step="0.1"></div>
-          <div class="fg"><label class="fl">Bono cumpleaños (pts)</label><input type="number" class="fi" id="cfg-cump" value="50"></div>
-          <div class="fg"><label class="fl">Bono bienvenida (pts)</label><input type="number" class="fi" id="cfg-bvda" value="20"></div>
-          <div class="div"></div>
-          <div class="ct" style="font-size:15px">Segmentación</div>
-          <div class="fg"><label class="fl">Puntos mínimos para VIP</label><input type="number" class="fi" id="cfg-vip" value="500"></div>
-          <div class="fg"><label class="fl">Días sin visita = Dormido</label><input type="number" class="fi" id="cfg-dorm" value="30"></div>
-          <button class="btn bp mt8" onclick="saveCfg()">Guardar configuración</button>
-        </div>
-        <div class="card">
-          <div class="ct" style="font-size:15px">Recompensas</div>
-          <div id="rw-list"></div>
-          <button class="btn bs bsm mt12" onclick="openM('m-rw')">+ Agregar recompensa</button>
-          <div class="div"></div>
-          <div class="ct" style="font-size:15px">Negocio</div>
-          <div class="fg"><label class="fl">Nombre del local</label><input type="text" class="fi" id="cfg-nom" value="Dopamina"></div>
-          <div class="fg"><label class="fl">WhatsApp del negocio</label><input type="text" class="fi" id="cfg-wa" placeholder="51999888777"></div>
-          <div class="fg"><label class="fl">Ciudad</label><input type="text" class="fi" id="cfg-ciu" value="Miraflores, Lima"></div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<div class="overlay" id="m-nuevo">
-  <div class="modal">
-    <div class="mh"><div class="mt2">Nuevo cliente</div><button class="mx" onclick="closeM('m-nuevo')">✕</button></div>
-    <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" id="n-dni" placeholder="12345678" maxlength="8"></div>
-    <div class="fg"><label class="fl">Nombre completo *</label><input type="text" class="fi" id="n-nom" placeholder="Nombre y apellido"></div>
-    <div class="fg"><label class="fl">Celular WhatsApp</label><input type="text" class="fi" id="n-cel" placeholder="999888777"></div>
-    <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi" id="n-nac"></div>
-    <div class="fg"><label class="fl">Puntos iniciales</label><input type="number" class="fi" id="n-pts" value="0" min="0"></div>
-    <div style="display:flex;gap:8px;margin-top:6px">
-      <button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-nuevo')">Cancelar</button>
-      <button class="btn bp" style="flex:1;justify-content:center" id="btn-nc" onclick="crearC()">Registrar</button>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="m-perfil">
-  <div class="modal" style="max-width:560px">
-    <div class="mh"><div class="mt2">Perfil de cliente</div><button class="mx" onclick="closeM('m-perfil')">✕</button></div>
-    <div id="perf-cont"></div>
-  </div>
-</div>
+<!-- MODALES -->
+<div class="mo" id="m-nc"><div class="mc"><div class="mh"><div class="mt">Nuevo cliente</div><button class="mx" onclick="closeM('m-nc')">✕</button></div>
+  <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" id="nc-dni" placeholder="12345678" maxlength="8"></div>
+  <div class="fg"><label class="fl">Nombre *</label><input type="text" class="fi" id="nc-nm" placeholder="Nombre y apellido"></div>
+  <div class="fg"><label class="fl">Celular WhatsApp</label><input type="text" class="fi" id="nc-cel" placeholder="999888777"></div>
+  <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi" id="nc-nac"></div>
+  <div class="fg"><label class="fl">Puntos iniciales</label><input type="number" class="fi" id="nc-pts" value="0" min="0"></div>
+  <div style="display:flex;gap:7px"><button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-nc')">Cancelar</button><button class="btn bp" style="flex:1;justify-content:center" onclick="crearCliente()">Registrar</button></div>
+</div></div>
 
-<div class="overlay" id="m-rw">
-  <div class="modal">
-    <div class="mh"><div class="mt2">Nueva recompensa</div><button class="mx" onclick="closeM('m-rw')">✕</button></div>
-    <div class="fg"><label class="fl">Nombre</label><input type="text" class="fi" id="rw-n" placeholder="Waffle gratis"></div>
-    <div class="fg"><label class="fl">Puntos requeridos</label><input type="number" class="fi" id="rw-p" placeholder="200"></div>
-    <div class="fg"><label class="fl">Descripción</label><input type="text" class="fi" id="rw-d" placeholder="1 waffle proteico a elección"></div>
-    <div style="display:flex;gap:8px;margin-top:6px">
-      <button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-rw')">Cancelar</button>
-      <button class="btn bp" style="flex:1;justify-content:center" onclick="crearRw()">Agregar</button>
-    </div>
-  </div>
-</div>
+<div class="mo" id="m-pf"><div class="mc" style="max-width:560px"><div class="mh"><div class="mt">Perfil</div><button class="mx" onclick="closeM('m-pf')">✕</button></div><div id="pf-cont"></div></div></div>
 
-<div class="toast" id="toast"><span id="t-ic">✓</span><span id="t-msg"></span></div>
+<div class="mo" id="m-nrw"><div class="mc"><div class="mh"><div class="mt">Nueva recompensa</div><button class="mx" onclick="closeM('m-nrw')">✕</button></div>
+  <div class="fg"><label class="fl">Nombre</label><input type="text" class="fi" id="rw-nm" placeholder="Waffle gratis"></div>
+  <div class="fg"><label class="fl">Puntos requeridos</label><input type="number" class="fi" id="rw-pts" min="1"></div>
+  <div class="fg"><label class="fl">Descripción</label><input type="text" class="fi" id="rw-desc" placeholder="Detalle"></div>
+  <div style="display:flex;gap:7px"><button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-nrw')">Cancelar</button><button class="btn bp" style="flex:1;justify-content:center" onclick="crearRew()">Agregar</button></div>
+</div></div>
+
+<div class="toast" id="toast"><span id="t-msg"></span></div>
+
 <script>
-let sb=null,CFG={ptsPorSol:1,ptsCumple:50,ptsBienvenida:20,vipMin:500,dormidoDias:30},cache=[],selId=null,impData=[];
-const COLS=['#3EC97A','#7C5CBF','#F5A623','#FF6B6B','#3B7DD8','#14B8A6','#EC4899','#8B5CF6'];
-const TPLS={
-  cumple:`Hola {nombre} 🎂✨\n\n¡Feliz cumpleaños de parte de Dopamina!\n\nTe regalamos *{promo}* en tu visita de hoy 🌿\n\nAdemás sumamos *50 puntos extra* a tu cuenta.\n\n¡Ven a celebrar!\n*Dopamina · Lima*`,
-  puntos:`Hola {nombre} 👋\n\nTienes *{puntos} puntos* en Dopamina.\n\n🥤 Puedes canjear:\n• Frappé gratis (150 pts)\n• Waffle proteico (200 pts)\n• Descuento 20% (100 pts)\n\n¡Te esperamos!\n*Dopamina*`,
-  promo:`¡Hola {nombre}! 🌿\n\nEsta semana en Dopamina:\n\n*{promo}*\n\nVálido hasta el domingo 🔥\n*Dopamina · Miraflores, Lima*`,
-  reactivar:`Hola {nombre} 👋\n\n¡Te extrañamos en Dopamina!\n\nPor eso: *{promo}* en tu próxima visita 💚\n\n*Dopamina · Bar proteico saludable*`,
-  bienvenida:`¡Hola {nombre}! 👋✨\n\nBienvenido/a al *Club Dopamina* 🌿\n\nYa tienes *{puntos} puntos* en tu cuenta.\n\n¡Gracias por unirte!\n*Dopamina · Lima*`
-};
+// ===================== CRYPTO =====================
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+const B32='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+function b32Dec(s){let bits=0,val=0;const out=[];for(const c of s.toUpperCase().replace(/=/g,'')){val=(val<<5)|B32.indexOf(c);bits+=5;if(bits>=8){out.push((val>>>(bits-8))&0xff);bits-=8;}}return new Uint8Array(out);}
+async function genTOTP(sec,ts){const T=Math.floor((ts||Date.now()/1000)/30);const msg=new ArrayBuffer(8);new DataView(msg).setUint32(4,T,false);const key=await crypto.subtle.importKey('raw',b32Dec(sec),{name:'HMAC',hash:'SHA-1'},false,['sign']);const sig=new Uint8Array(await crypto.subtle.sign('HMAC',key,msg));const o=sig[19]&0xf;const code=((sig[o]&0x7f)<<24)|((sig[o+1]&0xff)<<16)|((sig[o+2]&0xff)<<8)|(sig[o+3]&0xff);return String(code%1000000).padStart(6,'0');}
+function mkSecret(){const a=new Uint8Array(20);crypto.getRandomValues(a);return Array.from(a).map(b=>B32[b%32]).join('');}
+async function chkTOTP(sec,code){const n=Date.now()/1000;for(const d of[-1,0,1]){if(await genTOTP(sec,n+d*30)===code)return true;}return false;}
+function mkQR(canvas,text){const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,170,170);};img.src=`https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(text)}`;}
 
-function g(id){return document.getElementById(id)}
-function gv(id){return g(id)?.value||''}
-function sv(id,v){const e=g(id);if(e)e.value=v}
-function st(id,v){const e=g(id);if(e)e.textContent=v}
-function openM(id){g(id).classList.add('open')}
-function closeM(id){g(id).classList.remove('open')}
-document.querySelectorAll('.overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
-let tT;function showT(msg,err){const t=g('toast');st('t-msg',msg);t.style.background=err?'#FF6B6B':'var(--txt)';t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),3500)}
-function inic(n){return(n||'?').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase()}
-function avC(n){return COLS[(n||'').charCodeAt(0)%COLS.length]||COLS[0]}
-function fmtD(iso){if(!iso)return'';return new Date(iso).toLocaleDateString('es-PE',{day:'2-digit',month:'short'})}
-function fmtN(nac){if(!nac)return'';return new Date(nac).toLocaleDateString('es-PE',{day:'2-digit',month:'long'})}
-function seg(c){const h=new Date();if((c.puntos||0)>=CFG.vipMin)return'VIP';if(c.ultima_visita&&Math.floor((h-new Date(c.ultima_visita))/86400000)>=CFG.dormidoDias)return'Dormido';if(c.creado_en&&Math.floor((h-new Date(c.creado_en))/86400000)<=7)return'Nuevo';return'Regular'}
-function esCump(nac){if(!nac)return false;return new Date(nac).getMonth()===new Date().getMonth()}
-function bCls(s){return s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn'}
-function bdLoad(id,on){const b=g(id);if(!b)return;b.disabled=on;if(on){b._o=b.innerHTML;b.innerHTML='<span class="ld"></span> Procesando...'}else b.innerHTML=b._o||b.innerHTML}
+// ===================== STATE =====================
+let SB=null,CFG={},CU=null,PTC=null,IMP=[];
+const SK='dop_sess',SU='sb_url',SK2='sb_key';
+function initSB(u,k){SB=window.supabase.createClient(u,k);}
 
-async function conectar(){
-  const url=gv('sb-url').trim(),key=gv('sb-key').trim();
-  if(!url||!key){g('cfg-err').textContent='Ingresa URL y Key';g('cfg-err').style.display='block';return}
-  bdLoad('btn-conn',true);
-  try{
-    sb=supabase.createClient(url,key);
-    const{error}=await sb.from('clientes').select('id').limit(1);
-    if(error)throw error;
-    localStorage.setItem('dp_sb',JSON.stringify({url,key}));
-    g('cfg-screen').style.display='none';
-    await initApp();
-  }catch(e){g('cfg-err').textContent='Error de conexión: '+(e.message.includes('relation')?'Ejecuta el schema.sql primero':e.message);g('cfg-err').style.display='block';bdLoad('btn-conn',false)}
+// ===================== SETUP =====================
+async function conectarSB(){
+  const u=document.getElementById('sb-url').value.trim(),k=document.getElementById('sb-key').value.trim();
+  if(!u||!k){sErr('cfg-err','Ingresa URL y Key');return;}
+  showLo(true);
+  try{initSB(u,k);const{error}=await SB.from('config').select('id').limit(1);if(error)throw error;
+    localStorage.setItem(SU,u);localStorage.setItem(SK2,k);showLo(false);
+    document.getElementById('cfg-screen').style.display='none';await authFlow();}
+  catch(e){showLo(false);sErr('cfg-err','Error de conexión. Verifica URL/Key y que hayas ejecutado los SQL.');}
 }
 
-window.addEventListener('load',async()=>{
-  const c=localStorage.getItem('dp_sb');
-  if(c){try{const{url,key}=JSON.parse(c);sv('sb-url',url);sv('sb-key',key);sb=supabase.createClient(url,key);const{error}=await sb.from('clientes').select('id').limit(1);if(!error){g('cfg-screen').style.display='none';await initApp();return}}catch{}}
-});
-
-async function initApp(){
-  await loadCfg();await renderDash();await renderTbl();renderReg();await renderRws();updDest()
+// ===================== AUTH =====================
+async function authFlow(){
+  const sess=localStorage.getItem(SK);
+  if(sess){try{const s=JSON.parse(sess);if(new Date(s.expires_at)>new Date()){const{data:u}=await SB.from('admin_users').select('*').eq('id',s.user_id).single();if(u){CU=u;await startApp();return;}}}catch(e){}}
+  localStorage.removeItem(SK);
+  const{data:users}=await SB.from('admin_users').select('id').limit(1);
+  goStep((!users||users.length===0)?'s-crear':'s-login');
+  document.getElementById('auth-screen').style.display='flex';
+  buildMFAInp('mfa-inp',doMFA);buildMFAInp('setup-inp',doSetupMFA);
 }
 
-async function loadCfg(){
-  try{const{data}=await sb.from('configuracion').select('*');if(data){const m=Object.fromEntries(data.map(r=>[r.clave,r.valor]));
-    CFG.ptsPorSol=parseFloat(m.pts_por_sol||'1');CFG.ptsCumple=parseInt(m.pts_cumple||'50');
-    CFG.ptsBienvenida=parseInt(m.pts_bienvenida||'20');CFG.vipMin=parseInt(m.vip_min||'500');CFG.dormidoDias=parseInt(m.dormido_dias||'30');
-    sv('cfg-sol',CFG.ptsPorSol);sv('cfg-cump',CFG.ptsCumple);sv('cfg-bvda',CFG.ptsBienvenida);
-    sv('cfg-vip',CFG.vipMin);sv('cfg-dorm',CFG.dormidoDias);
-    sv('cfg-nom',m.nombre_local||'Dopamina');sv('cfg-wa',m.whatsapp_local||'');sv('cfg-ciu',m.ciudad||'Miraflores, Lima');
-  }}catch{}
+function goStep(id){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+async function crearAdmin(){
+  const nm=document.getElementById('c-nombre').value.trim(),em=document.getElementById('c-email').value.trim(),pw=document.getElementById('c-pw').value,pw2=document.getElementById('c-pw2').value;
+  if(!nm||!em||!pw){sErr('c-err','Completa todos los campos');return;}
+  if(pw.length<8){sErr('c-err','Mínimo 8 caracteres');return;}
+  if(pw!==pw2){sErr('c-err','Las contraseñas no coinciden');return;}
+  showLo(true);const h=await sha256(pw+em);
+  const{data,error}=await SB.from('admin_users').insert({nombre:nm,email:em,password_hash:h}).select().single();
+  showLo(false);if(error){sErr('c-err','Error: '+error.message);return;}
+  CU=data;await iniSetupMFA();
 }
 
-async function saveCfg(){
-  const vals=[['pts_por_sol',gv('cfg-sol')],['pts_cumple',gv('cfg-cump')],['pts_bienvenida',gv('cfg-bvda')],['vip_min',gv('cfg-vip')],['dormido_dias',gv('cfg-dorm')],['nombre_local',gv('cfg-nom')],['whatsapp_local',gv('cfg-wa')],['ciudad',gv('cfg-ciu')]];
-  for(const[clave,valor]of vals)await sb.from('configuracion').upsert({clave,valor},{onConflict:'clave'});
-  await loadCfg();showT('✓ Configuración guardada')
+async function doLogin(){
+  const em=document.getElementById('l-email').value.trim(),pw=document.getElementById('l-pw').value;
+  if(!em||!pw){sErr('l-err','Ingresa correo y contraseña');return;}
+  showLo(true);const h=await sha256(pw+em);
+  const{data:u}=await SB.from('admin_users').select('*').eq('email',em).single();
+  showLo(false);
+  if(!u){sErr('l-err','Correo o contraseña incorrectos');await logAcc(null,em,'login',false,'Usuario no encontrado');return;}
+  if(u.bloqueado_hasta&&new Date(u.bloqueado_hasta)>new Date()){const m=Math.ceil((new Date(u.bloqueado_hasta)-new Date())/60000);sErr('l-err',`Cuenta bloqueada. Intenta en ${m} minutos.`);return;}
+  if(u.password_hash!==h){
+    const i=(u.intentos_fallidos||0)+1;const upd={intentos_fallidos:i};
+    if(i>=5)upd.bloqueado_hasta=new Date(Date.now()+30*60000).toISOString();
+    await SB.from('admin_users').update(upd).eq('id',u.id);
+    await logAcc(u.id,em,'login',false,`Contraseña incorrecta (${i})`);
+    sErr('l-err',i>=5?'Cuenta bloqueada 30 min.':`Contraseña incorrecta. ${5-i} intento(s) restante(s).`);return;
+  }
+  await SB.from('admin_users').update({intentos_fallidos:0,bloqueado_hasta:null}).eq('id',u.id);
+  CU=u;
+  if(!u.mfa_enabled)await iniSetupMFA();
+  else goStep('s-mfa');
 }
 
-async function renderDash(){
-  try{
-    const{data}=await sb.from('clientes').select('*');cache=data||[];
-    const hoy=new Date();
-    st('st-total',cache.length);
-    st('st-pts',cache.reduce((s,c)=>s+(c.puntos||0),0).toLocaleString());
-    const cump=cache.filter(c=>esCump(c.nacimiento));st('st-cump',cump.length);
-    const{count}=await sb.from('historial').select('*',{count:'exact',head:true}).eq('tipo','canje');st('st-can',count||0);
-    const nHoy=cache.filter(c=>c.creado_en&&new Date(c.creado_en).toDateString()===hoy.toDateString()).length;
-    st('st-hoy','↑ '+nHoy+' registrados hoy');
-    const s={VIP:0,Regular:0,Dormido:0};cache.forEach(c=>{const x=seg(c);if(s[x]!==undefined)s[x]++});
-    st('sg-vip',s.VIP);st('sg-reg',s.Regular);st('sg-dor',s.Dormido);st('sg-cum',cump.length);
-    const{data:hist}=await sb.from('historial').select('*,clientes(nombre)').order('creado_en',{ascending:false}).limit(8);
-    const al=g('act-list');
-    if(!hist||!hist.length){al.innerHTML='<div class="empty" style="padding:24px 0"><div class="ei">◎</div><div class="et">Sin actividad</div></div>'}
-    else{al.innerHTML=hist.map(h=>`<div class="hi"><div class="hd ${h.tipo==='compra'?'dc':h.tipo==='canje'?'dk':'db'}"></div><div style="flex:1"><div style="font-size:13px;font-weight:500">${h.clientes?.nombre||'Cliente'}</div><div class="tm tsm">${h.descripcion}</div></div><div class="tm tsm">${fmtD(h.creado_en)}</div></div>`).join('')}
-    const cl=g('cump-list');
-    if(!cump.length){cl.innerHTML='<div class="tm tsm">No hay cumpleaños este mes.</div>'}
-    else{cl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:8px">'+cump.map(c=>`<div style="background:var(--morado-bg);padding:7px 12px;border-radius:8px;font-size:13px"><span style="color:var(--morado)">◆ </span><strong>${c.nombre}</strong><span class="tm" style="margin-left:7px">${fmtN(c.nacimiento)}</span></div>`).join('')+'</div>'}
-  }catch(e){console.error(e)}
+async function iniSetupMFA(){
+  const sec=mkSecret();CU._ps=sec;
+  document.getElementById('sec-disp').textContent=sec.match(/.{1,4}/g).join(' ');
+  mkQR(document.getElementById('qr-canvas'),`otpauth://totp/Dopamina:${encodeURIComponent(CU.email)}?secret=${sec}&issuer=Dopamina`);
+  goStep('s-setup');
 }
 
-async function renderTbl(sf){
-  const f=sf||gv('fil-seg');
-  try{const{data}=await sb.from('clientes').select('*').order('creado_en',{ascending:false});cache=data||[];
-    let l=cache;if(f)l=l.filter(c=>seg(c)===f);
-    st('cl-cnt',l.length+' cliente'+(l.length!==1?'s':''));
-    const tb=g('tbl');
-    if(!l.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--txt3)">No hay clientes.</td></tr>';return}
-    tb.innerHTML=l.map(c=>{const s=seg(c),cm=esCump(c.nacimiento)?` <span class="badge bc" style="font-size:10px">Cumple</span>`:'';
-      return`<tr onclick="verPerf(${c.id})"><td><div class="flex ic g10"><div class="av" style="background:${avC(c.nombre)}">${inic(c.nombre)}</div><div><div class="fw5">${c.nombre}</div>${cm}</div></div></td><td style="font-family:monospace">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong> pts</td><td><span class="badge ${bCls(s)}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'Sin visitas'}</td><td><div class="flex g8" onclick="event.stopPropagation()"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button><button class="btn bs bsm" onclick="envWA(${c.id})">WA</button></div></td></tr>`
-    }).join('')
-  }catch(e){console.error(e)}
+async function doSetupMFA(){
+  const code=getMFA('setup-inp');if(code.length!==6){sErr('su-err','Ingresa los 6 dígitos');return;}
+  showLo(true);const ok=await chkTOTP(CU._ps,code);showLo(false);
+  if(!ok){sErr('su-err','Código incorrecto');clrMFA('setup-inp');return;}
+  await SB.from('admin_users').update({mfa_secret:CU._ps,mfa_enabled:true}).eq('id',CU.id);
+  CU.mfa_enabled=true;CU.mfa_secret=CU._ps;
+  await mkSess();await logAcc(CU.id,CU.email,'login',true,'MFA activado');
+  document.getElementById('auth-screen').style.display='none';await startApp();
 }
 
-async function crearC(){
-  const nom=gv('n-nom').trim();if(!nom){showT('⚠ Ingresa el nombre',true);return}
-  const dni=gv('n-dni'),cel=gv('n-cel'),nac=gv('n-nac'),pts=parseInt(gv('n-pts'))||0;
-  bdLoad('btn-nc',true);
-  try{const ptsTot=pts+CFG.ptsBienvenida;
-    const{data,error}=await sb.from('clientes').insert({dni:dni||null,nombre:nom,celular:cel||null,nacimiento:nac||null,puntos:ptsTot}).select().single();
-    if(error)throw error;
-    if(ptsTot>0)await sb.from('historial').insert({cliente_id:data.id,tipo:'bono',descripcion:`Bienvenida: +${ptsTot} pts`,puntos:ptsTot});
-    closeM('m-nuevo');['n-dni','n-nom','n-cel','n-nac'].forEach(id=>sv(id,''));sv('n-pts','0');
-    showT(`✓ ${nom} registrado con ${ptsTot} pts`);await renderDash();await renderTbl()
-  }catch(e){showT('⚠ '+(e.message.includes('duplicate')?'DNI ya registrado':e.message),true)}
-  bdLoad('btn-nc',false)
+async function doMFA(){
+  const code=getMFA('mfa-inp');if(code.length!==6){sErr('m-err','Ingresa los 6 dígitos');return;}
+  showLo(true);const ok=await chkTOTP(CU.mfa_secret,code);showLo(false);
+  if(!ok){sErr('m-err','Código incorrecto');clrMFA('mfa-inp');return;}
+  await mkSess();await logAcc(CU.id,CU.email,'login',true,'Acceso con MFA');
+  document.getElementById('auth-screen').style.display='none';await startApp();
+}
+
+async function mkSess(){
+  const tok=Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b=>b.toString(16).padStart(2,'0')).join('');
+  const exp=new Date(Date.now()+8*3600000);
+  await SB.from('sesiones').insert({user_id:CU.id,token:tok,expires_at:exp.toISOString()});
+  localStorage.setItem(SK,JSON.stringify({user_id:CU.id,token:tok,expires_at:exp.toISOString()}));
+  await SB.from('admin_users').update({ultimo_acceso:new Date().toISOString()}).eq('id',CU.id);
+}
+
+async function logout(){
+  const s=localStorage.getItem(SK);if(s){try{const p=JSON.parse(s);await SB.from('sesiones').delete().eq('token',p.token);}catch(e){}}
+  await logAcc(CU?.id,CU?.email,'logout',true,'Sesión cerrada');
+  localStorage.removeItem(SK);CU=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  goStep('s-login');document.getElementById('l-email').value='';document.getElementById('l-pw').value='';clrMFA('mfa-inp');
+}
+
+async function logAcc(uid,email,accion,ok,det){try{await SB.from('access_log').insert({user_id:uid||null,email,accion,exitoso:ok,detalle:det});}catch(e){}}
+
+// MFA inputs
+function buildMFAInp(id,cb){const c=document.getElementById(id);c.innerHTML='';for(let i=0;i<6;i++){const inp=document.createElement('input');inp.type='text';inp.maxLength=1;inp.className='mfa-d';inp.inputMode='numeric';inp.dataset.idx=i;inp.addEventListener('input',e=>{const v=e.target.value.replace(/\D/g,'');e.target.value=v;if(v&&i<5)c.children[i+1].focus();if(getMFA(id).length===6&&cb)cb();});inp.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!e.target.value&&i>0)c.children[i-1].focus();if(e.key==='ArrowLeft'&&i>0)c.children[i-1].focus();if(e.key==='ArrowRight'&&i<5)c.children[i+1].focus();});inp.addEventListener('paste',e=>{e.preventDefault();const txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);txt.split('').forEach((ch,idx)=>{if(c.children[idx])c.children[idx].value=ch;});if(txt.length===6&&cb)cb();});c.appendChild(inp);}}
+function getMFA(id){return Array.from(document.getElementById(id).children).map(i=>i.value).join('');}
+function clrMFA(id){Array.from(document.getElementById(id).children).forEach(i=>i.value='');document.getElementById(id).children[0]?.focus();}
+
+// ===================== APP =====================
+async function startApp(){
+  document.getElementById('app').style.display='flex';
+  await ldCfg();rdUI();await ldDash();
+}
+function rdUI(){if(!CU)return;document.getElementById('u-nm').textContent=CU.nombre.split(' ')[0];document.getElementById('dd-nm').textContent=CU.nombre;document.getElementById('dd-em').textContent=CU.email;document.getElementById('dd-mfa').innerHTML=CU.mfa_enabled?'<span class="ms ms-on">🔐 MFA activo</span>':'<span class="ms ms-off">⚠ Sin MFA</span>';}
+function tUM(){document.getElementById('u-dd').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.um'))document.getElementById('u-dd')?.classList.remove('open');});
+
+// ===================== CONFIG =====================
+async function ldCfg(){const{data}=await SB.from('config').select('*').single();if(data){CFG=data;document.getElementById('sb-nm').textContent=CFG.nombre||'Dopamina';document.getElementById('sb-ft').textContent=(CFG.nombre||'Dopamina')+' · '+(CFG.ciudad||'Lima');}}
+function rdCfg(){document.getElementById('cp-pps').value=CFG.pts_por_sol||1;document.getElementById('cp-bv').value=CFG.pts_bienvenida||20;document.getElementById('cp-bc').value=CFG.pts_cumple||50;document.getElementById('cp-vip').value=CFG.vip_min||500;document.getElementById('cp-dorm').value=CFG.dormido_dias||30;document.getElementById('cp-nm').value=CFG.nombre||'';document.getElementById('cp-wa').value=CFG.whatsapp||'';document.getElementById('cp-ci').value=CFG.ciudad||'';ldRwCfg();}
+async function saveCfg(){const data={id:1,nombre:document.getElementById('cp-nm').value,whatsapp:document.getElementById('cp-wa').value,ciudad:document.getElementById('cp-ci').value,pts_por_sol:parseFloat(document.getElementById('cp-pps').value)||1,pts_bienvenida:parseInt(document.getElementById('cp-bv').value)||20,pts_cumple:parseInt(document.getElementById('cp-bc').value)||50,vip_min:parseInt(document.getElementById('cp-vip').value)||500,dormido_dias:parseInt(document.getElementById('cp-dorm').value)||30};showLo(true);await SB.from('config').upsert(data,{onConflict:'id'});await ldCfg();showLo(false);toast2('✓ Configuración guardada');}
+
+// ===================== SEG =====================
+function getSeg(c){if((c.puntos||0)>=(CFG.vip_min||500))return'VIP';if(c.ultima_visita&&(new Date()-new Date(c.ultima_visita))/86400000>=(CFG.dormido_dias||30))return'Dormido';if(c.created_at&&(new Date()-new Date(c.created_at))/86400000<=7)return'Nuevo';return'Regular';}
+function isCumple(n){if(!n)return false;return new Date(n).getMonth()===new Date().getMonth();}
+
+// ===================== DASH =====================
+async function ldDash(){
+  showLo(true);
+  const[{count:tot},{data:all},{data:hist},{count:cj}]=await Promise.all([SB.from('clientes').select('*',{count:'exact',head:true}),SB.from('clientes').select('puntos,nacimiento,created_at,ultima_visita'),SB.from('historial').select('cliente_id,tipo,descripcion,created_at,clientes(nombre)').order('created_at',{ascending:false}).limit(8),SB.from('historial').select('*',{count:'exact',head:true}).eq('tipo','canje')]);
+  document.getElementById('st').textContent=(tot||0).toLocaleString();
+  document.getElementById('sp').textContent=(all||[]).reduce((s,c)=>s+(c.puntos||0),0).toLocaleString();
+  const ck=(all||[]).filter(c=>isCumple(c.nacimiento));
+  document.getElementById('sk').textContent=ck.length;document.getElementById('sc2').textContent=cj||0;
+  const segs={VIP:0,Regular:0,Dormido:0,Nuevo:0};(all||[]).forEach(c=>{const s=getSeg(c);if(segs[s]!==undefined)segs[s]++;});
+  document.getElementById('sg-v').textContent=segs.VIP;document.getElementById('sg-r').textContent=segs.Regular;document.getElementById('sg-d').textContent=segs.Dormido;document.getElementById('sg-k').textContent=ck.length;
+  const ar=document.getElementById('act-rec');ar.innerHTML=(hist||[]).length===0?'<div class="tm tsm" style="text-align:center;padding:18px 0">Sin actividad aún</div>':(hist||[]).map(h=>`<div class="hi"><div class="hd ${h.tipo==='compra'?'hc':h.tipo==='canje'?'hj':'hb'}"></div><div style="flex:1"><div style="font-size:12.5px;font-weight:500">${h.clientes?.nombre||'Cliente'}</div><div class="tm tsm">${h.descripcion||''}</div></div><div class="tm tsm">${fmtD(h.created_at)}</div></div>`).join('');
+  if(ck.length===0)document.getElementById('cumples-l').innerHTML='<div class="tm tsm">Sin cumpleaños este mes.</div>';
+  else{const{data:cc}=await SB.from('clientes').select('nombre,nacimiento').filter('nacimiento','not.is',null);document.getElementById('cumples-l').innerHTML=(cc||[]).filter(c=>isCumple(c.nacimiento)).map(c=>`<span style="background:var(--pb);padding:6px 12px;border-radius:8px;font-size:12.5px;display:inline-block;margin:3px"><strong>${c.nombre}</strong> <span class="tm">${fmtN(c.nacimiento)}</span></span>`).join('');}
+  showLo(false);
+}
+
+// ===================== CLIENTES =====================
+async function loadCL(){
+  showLo(true);const seg=document.getElementById('f-s').value;
+  const{data:all}=await SB.from('clientes').select('*').order('created_at',{ascending:false});
+  let cl=(all||[]);if(seg)cl=cl.filter(c=>getSeg(c)===seg);
+  document.getElementById('cl-c').textContent=cl.length+' cliente'+(cl.length!==1?'s':'');
+  const tb=document.getElementById('tbl-cl');
+  if(!cl.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--t3)">Sin clientes</td></tr>';showLo(false);return;}
+  tb.innerHTML=cl.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';const ck=isCumple(c.nacimiento)?'<span class="bg bc" style="font-size:10px;margin-left:3px">cumple</span>':'';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="font-weight:500">${c.nombre}${ck}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><div style="display:flex;gap:4px"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button><button class="btn bs bsm" onclick="waC(${c.id})">WA</button></div></td></tr>`;}).join('');
+  showLo(false);
+}
+
+async function crearCliente(){
+  const nm=document.getElementById('nc-nm').value.trim();if(!nm){toast2('⚠ Nombre obligatorio',true);return;}
+  const pts=(parseInt(document.getElementById('nc-pts').value)||0)+(CFG.pts_bienvenida||20);
+  showLo(true);const{data,error}=await SB.from('clientes').insert({dni:document.getElementById('nc-dni').value.trim()||null,nombre:nm,celular:document.getElementById('nc-cel').value.trim()||null,nacimiento:document.getElementById('nc-nac').value||null,puntos:pts,created_at:new Date().toISOString()}).select().single();
+  if(error){showLo(false);toast2('⚠ '+(error.message.includes('unique')?'DNI ya registrado':error.message),true);return;}
+  if(pts>0)await SB.from('historial').insert({cliente_id:data.id,tipo:'bono',descripcion:'Bono bienvenida: +'+pts+'pts',puntos:pts});
+  showLo(false);closeM('m-nc');['nc-dni','nc-nm','nc-cel'].forEach(id=>document.getElementById(id).value='');document.getElementById('nc-nac').value='';document.getElementById('nc-pts').value='0';
+  toast2('✓ '+nm+' registrado con '+pts+' pts');ldDash();if(document.getElementById('panel-clientes').classList.contains('active'))loadCL();
 }
 
 async function verPerf(id){
-  const c=cache.find(x=>x.id===id);if(!c)return;
-  const s=seg(c);
-  const{data:hist}=await sb.from('historial').select('*').eq('cliente_id',id).order('creado_en',{ascending:false}).limit(10);
-  const{data:rws}=await sb.from('recompensas').select('*').eq('activo',true).lte('puntos',c.puntos||0);
-  g('perf-cont').innerHTML=`
-    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px">
-      <div class="av av-lg" style="background:${avC(c.nombre)}">${inic(c.nombre)}</div>
-      <div style="flex:1"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700">${c.nombre}</div>
-        <div class="tm tsm mb16">DNI: ${c.dni||'—'} · ${c.celular||'—'}</div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap"><span class="badge ${bCls(s)}">${s}</span>${esCump(c.nacimiento)?'<span class="badge bc">Cumpleaños este mes</span>':''}</div>
-      </div>
-      <div style="text-align:right"><div class="tm tsm">Puntos</div><div style="font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--verde)">${(c.puntos||0).toLocaleString()}</div></div>
-    </div>
-    ${rws&&rws.length?`<div style="background:var(--verde-bg);border-radius:9px;padding:12px 14px;margin-bottom:16px"><div class="tsm" style="text-transform:uppercase;letter-spacing:.8px;color:var(--verde-d);margin-bottom:8px">Recompensas disponibles</div><div style="display:flex;flex-wrap:wrap;gap:7px">${rws.map(r=>`<button class="btn bsm" style="background:white;border:1px solid var(--verde);color:var(--verde-d)" onclick="canjeM(${c.id},${r.id},'${r.nombre}',${r.puntos})">${r.nombre} (${r.puntos} pts)</button>`).join('')}</div></div>`:''}
-    <div class="ct" style="font-size:14px">Historial</div>
-    ${!hist||!hist.length?'<div class="tm tsm">Sin actividad.</div>':hist.map(h=>`<div class="hi"><div class="hd ${h.tipo==='compra'?'dc':h.tipo==='canje'?'dk':'db'}"></div><div style="flex:1;font-size:13px">${h.descripcion}</div><div class="tm tsm">${fmtD(h.creado_en)}</div></div>`).join('')}
-    <div style="display:flex;gap:8px;margin-top:18px">
-      <button class="btn bp bsm" onclick="closeM('m-perfil');nav('puntos');setTimeout(()=>{sv('pts-q','${c.nombre}');buscPts('${c.nombre}')},100)">+ Puntos</button>
-      <button class="btn bs bsm" onclick="envWA(${c.id})">WhatsApp</button>
-      <button class="btn be bsm" onclick="elimC(${c.id})">Eliminar</button>
-    </div>`;
-  openM('m-perfil')
+  showLo(true);const[{data:c},{data:h},{data:rw}]=await Promise.all([SB.from('clientes').select('*').eq('id',id).single(),SB.from('historial').select('*').eq('cliente_id',id).order('created_at',{ascending:false}).limit(10),SB.from('recompensas').select('*').eq('activo',true)]);
+  showLo(false);if(!c)return;
+  const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';
+  const dsp=(rw||[]).filter(r=>r.puntos_requeridos<=(c.puntos||0));
+  document.getElementById('pf-cont').innerHTML=`<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px"><div class="avl" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="flex:1"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">${c.nombre}</div><div class="tm tsm" style="margin:3px 0 7px">DNI: ${c.dni||'—'} · ${c.celular||'—'}</div><span class="bg ${bc}">${s}</span>${isCumple(c.nacimiento)?'<span class="bg bc" style="margin-left:5px">cumpleaños este mes</span>':''}</div><div style="text-align:right"><div class="tm tsm">Puntos</div><div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--g)">${(c.puntos||0).toLocaleString()}</div></div></div>
+${dsp.length>0?`<div style="background:var(--gb);border-radius:9px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--gd);margin-bottom:7px">Recompensas disponibles</div><div style="display:flex;flex-wrap:wrap;gap:6px">${dsp.map(r=>`<button class="btn bsm" style="background:white;border:1px solid var(--g);color:var(--gd)" onclick="cjPf(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.nombre} (${r.puntos_requeridos}pts)</button>`).join('')}</div></div>`:''}
+<div class="st" style="font-size:12.5px">Historial</div>
+${(h||[]).length===0?'<div class="tm tsm">Sin actividad</div>':(h||[]).map(x=>`<div class="hi"><div class="hd ${x.tipo==='compra'?'hc':x.tipo==='canje'?'hj':'hb'}"></div><div style="flex:1;font-size:12.5px">${x.descripcion||''}</div><div class="tm tsm">${fmtD(x.created_at)}</div></div>`).join('')}
+<div style="display:flex;gap:7px;margin-top:16px"><button class="btn bp bsm" onclick="closeM('m-pf');nav('puntos');setTimeout(()=>preSel(${c.id}),150)">+ Puntos</button><button class="btn bs bsm" onclick="waC(${c.id})">WhatsApp</button><button class="btn bdr bsm" onclick="delCl(${c.id})">Eliminar</button></div>`;
+  openM('m-pf');
 }
 
-async function elimC(id){if(!confirm('¿Eliminar cliente?'))return;await sb.from('clientes').delete().eq('id',id);closeM('m-perfil');showT('✓ Eliminado');await renderDash();await renderTbl()}
-async function canjeM(cId,rwId,nom,pts){const c=cache.find(x=>x.id===cId);if(!c||(c.puntos||0)<pts){showT('⚠ Puntos insuficientes',true);return}await sb.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await sb.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:`Canje: ${nom} (-${pts} pts)`,puntos:-pts});showT('✓ Canje: '+nom);await renderTbl();await verPerf(cId)}
-function filtSeg(s){nav('clientes');sv('fil-seg',s);renderTbl(s)}
-function envWA(id){const c=cache.find(x=>x.id===id);if(!c||!c.celular){showT('⚠ Sin celular registrado',true);return}const msg=encodeURIComponent(`Hola ${c.nombre}! Te escribimos desde Dopamina 🌿\nTienes ${c.puntos||0} puntos acumulados. ¡Gracias por ser parte del club!`);const num=(c.celular||'').replace(/\D/g,'');window.open('https://wa.me/'+(num.startsWith('51')?num:'51'+num)+'?text='+msg,'_blank')}
+async function waC(id){const{data:c}=await SB.from('clientes').select('nombre,celular,puntos').eq('id',id).single();if(!c?.celular){toast2('⚠ Sin celular',true);return;}const msg=encodeURIComponent(`Hola ${c.nombre}! Te escribimos desde Dopamina 🌿\nTienes ${c.puntos||0} puntos. ¡Gracias!`);const n=c.celular.replace(/\D/g,'');window.open('https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+msg,'_blank');}
+async function delCl(id){if(!confirm('¿Eliminar este cliente?'))return;showLo(true);await SB.from('clientes').delete().eq('id',id);showLo(false);closeM('m-pf');toast2('✓ Eliminado');ldDash();if(document.getElementById('panel-clientes').classList.contains('active'))loadCL();}
+async function cjPf(cId,rId,nm,pts){showLo(true);const{data:c}=await SB.from('clientes').select('puntos').eq('id',cId).single();if(!c||(c.puntos||0)<pts){showLo(false);toast2('⚠ Puntos insuficientes',true);return;}await SB.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await SB.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:'Canje: '+nm+' (-'+pts+'pts)',puntos:-pts});showLo(false);toast2('✓ Canje: '+nm);verPerf(cId);}
 
-async function buscPts(q){g('pts-cli').style.display='none';selId=null;const r=g('pts-res');if(!q||q.length<2){r.innerHTML='';return}const f=cache.filter(c=>c.nombre.toLowerCase().includes(q.toLowerCase())||(c.dni&&c.dni.includes(q))).slice(0,5);if(!f.length){r.innerHTML='<div class="tm tsm" style="padding:8px 0">Sin resultados.</div>';return}r.innerHTML=f.map(c=>`<div onclick="selPts(${c.id})" class="flex ic g10" style="padding:9px;border-radius:8px;cursor:pointer;border:1px solid var(--borde);margin-bottom:6px;transition:background .1s" onmouseover="this.style.background='var(--gris)'" onmouseout="this.style.background=''"><div class="av" style="background:${avC(c.nombre)}">${inic(c.nombre)}</div><div><div class="fw5">${c.nombre}</div><div class="tm tsm">DNI: ${c.dni||'—'} · ${c.puntos||0} pts</div></div></div>`).join('')}
+// ===================== PUNTOS =====================
+async function buscarPts(q){document.getElementById('pt-sel').style.display='none';PTC=null;const r=document.getElementById('pt-res');if(!q||q.length<2){r.innerHTML='';return;}const{data}=await SB.from('clientes').select('id,nombre,dni,puntos').or(`nombre.ilike.%${q}%,dni.ilike.%${q}%`).limit(5);if(!data?.length){r.innerHTML='<div class="tm tsm" style="padding:7px 0">Sin resultados</div>';return;}r.innerHTML=data.map(c=>`<div onclick="preSel(${c.id})" style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer;border:1px solid var(--b);margin-bottom:4px" onmouseover="this.style.background='var(--gr)'" onmouseout="this.style.background=''"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div><div style="font-weight:500">${c.nombre}</div><div class="tm tsm">DNI:${c.dni||'—'} · ${c.puntos||0}pts</div></div></div>`).join('');}
 
-async function selPts(id){const c=cache.find(x=>x.id===id);if(!c)return;selId=id;g('pts-res').innerHTML='';sv('pts-q',c.nombre);g('pts-cli-info').innerHTML=`<div class="av" style="background:${avC(c.nombre)}">${inic(c.nombre)}</div><div><div class="fw5">${c.nombre}</div><div class="tm tsm">${c.puntos||0} puntos actuales</div></div>`;g('pts-cli').style.display='block';sv('pts-monto','');g('pts-prev').style.display='none';
-  const{data:rws}=await sb.from('recompensas').select('*').eq('activo',true).lte('puntos',c.puntos||0);
-  const cs=g('canje-sec');if(rws&&rws.length){cs.innerHTML=rws.map(r=>`<div class="flex sb ic" style="padding:9px 0;border-bottom:1px solid var(--gris)"><div><div style="font-size:13px;font-weight:500">${r.nombre}</div><div class="tm tsm">${r.descripcion}</div></div><button class="btn bw bsm" onclick="canje(${c.id},${r.id},'${r.nombre}',${r.puntos})">${r.puntos} pts</button></div>`).join('')}else{cs.innerHTML=`<div class="tm tsm">${c.nombre} no tiene suficientes puntos.</div>`}
+async function preSel(id){const{data:c}=await SB.from('clientes').select('*').eq('id',id).single();if(!c)return;PTC=c;document.getElementById('pt-res').innerHTML='';document.getElementById('pt-s').value=c.nombre;document.getElementById('pt-si').innerHTML=`<div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div><div style="font-weight:500">${c.nombre}</div><div class="tm tsm">${c.puntos||0}pts actuales</div></div>`;document.getElementById('pt-sel').style.display='block';document.getElementById('pt-m').value='';document.getElementById('pt-prev').style.display='none';
+  const{data:rw}=await SB.from('recompensas').select('*').eq('activo',true);const dsp=(rw||[]).filter(r=>r.puntos_requeridos<=(c.puntos||0));
+  if(dsp.length){document.getElementById('cj-s').style.display='block';document.getElementById('cj-e').style.display='none';document.getElementById('rw-disp').innerHTML=dsp.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gr)"><div><div style="font-weight:500;font-size:12.5px">${r.nombre}</div><div class="tm tsm">${r.descripcion||''}</div></div><button class="btn bsm" style="background:#fdf7dc;border:none;color:#7a6200" onclick="cjPts(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.puntos_requeridos}pts</button></div>`).join('');}
+  else{document.getElementById('cj-s').style.display='none';document.getElementById('cj-e').style.display='block';document.getElementById('cj-e').textContent='Sin recompensas para '+c.nombre+'.';}
 }
+function calcPts(){if(!PTC)return;const m=parseFloat(document.getElementById('pt-m').value)||0;const p=Math.floor(m*(CFG.pts_por_sol||1));if(m>0){document.getElementById('pt-prev').style.display='flex';document.getElementById('pt-c').textContent='+'+p;document.getElementById('pt-tp').textContent=((PTC.puntos||0)+p).toLocaleString()+' pts';}else document.getElementById('pt-prev').style.display='none';}
+async function regPuntos(){if(!PTC)return;const m=parseFloat(document.getElementById('pt-m').value)||0;if(m<=0){toast2('⚠ Monto requerido',true);return;}const p=Math.floor(m*(CFG.pts_por_sol||1));const d=document.getElementById('pt-d').value||'Compra S/ '+m.toFixed(2);showLo(true);await SB.from('clientes').update({puntos:(PTC.puntos||0)+p,ultima_visita:new Date().toISOString()}).eq('id',PTC.id);await SB.from('historial').insert({cliente_id:PTC.id,tipo:'compra',descripcion:d+' · +'+p+'pts',puntos:p,monto:m});showLo(false);toast2('✓ +'+p+' pts para '+PTC.nombre);document.getElementById('pt-m').value='';document.getElementById('pt-d').value='';preSel(PTC.id);}
+async function cjPts(cId,rId,nm,pts){showLo(true);const{data:c}=await SB.from('clientes').select('puntos').eq('id',cId).single();if(!c||(c.puntos||0)<pts){showLo(false);toast2('⚠ Puntos insuficientes',true);return;}await SB.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await SB.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:'Canje: '+nm+' (-'+pts+'pts)',puntos:-pts});showLo(false);toast2('✓ Canje: '+nm);preSel(cId);}
+function rdReglas(){document.getElementById('r-disp').innerHTML=`<div style="display:grid;gap:3px"><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Por S/ 1</span><strong>${CFG.pts_por_sol||1} pto(s)</strong></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Bono bienvenida</span><strong>+${CFG.pts_bienvenida||20} pts</strong></div><div style="display:flex;justify-content:space-between;padding:8px 0"><span class="tm">Bono cumpleaños</span><strong>+${CFG.pts_cumple||50} pts</strong></div></div>`;}
 
-function calcPts(){if(!selId)return;const c=cache.find(x=>x.id===selId);const m=parseFloat(gv('pts-monto'))||0;const p=Math.floor(m*CFG.ptsPorSol);const pr=g('pts-prev');if(m>0){pr.style.display='flex';st('pts-calc','+'+p);st('pts-ntot',((c.puntos||0)+p).toLocaleString()+' pts')}else pr.style.display='none'}
+// ===================== CAMPAÑAS =====================
+const PLANT={cumple:`Hola {nombre} 🎂✨\n\n¡Feliz cumpleaños de parte de Dopamina!\n\nTe regalamos *{promo}* hoy.\nAdemás, +50 puntos extra 🌿\n\n*Dopamina · Lima*`,puntos:`Hola {nombre} 👋\n\nTienes *{puntos} puntos* en Dopamina 🌿\n\n¡Úsalos en tu próxima visita!\n*Dopamina*`,promo:`¡Hola {nombre}! 🌿\n\nEsta semana:\n*{promo}*\n\n*Dopamina · Miraflores*`,reactivar:`Hola {nombre} 👋\n\n¡Te extrañamos!\n\nTe regalamos *{promo}* 💚\n\n*Dopamina*`,bienvenida:`¡Hola {nombre}! 👋\n\nBienvenido/a al *Club Dopamina* 🌿\n\nYa tienes *{puntos} puntos*. ¡Gracias!\n*Dopamina · Lima*`};
+function ldPlant(){const t=document.getElementById('c-tp').value;if(t&&PLANT[t])document.getElementById('c-msg').value=PLANT[t];}
+async function updDst(){const sg=document.getElementById('c-sg').value;const{data}=await SB.from('clientes').select('id,puntos,nacimiento,created_at,ultima_visita,celular');let l=(data||[]).filter(c=>c.celular);if(sg!=='todos'){if(sg==='Cumpleaños')l=l.filter(c=>isCumple(c.nacimiento));else if(sg==='Nuevo')l=l.filter(c=>c.created_at&&(new Date()-new Date(c.created_at))/86400000<=7);else l=l.filter(c=>getSeg(c)===sg);}document.getElementById('c-dst').textContent=l.length+' destinatarios con celular';}
+async function pvCamp(){const{data}=await SB.from('clientes').select('nombre,puntos').limit(1);const ej=data?.[0]||{nombre:'Ana Torres',puntos:150};let msg=document.getElementById('c-msg').value.replace(/{nombre}/g,ej.nombre).replace(/{puntos}/g,ej.puntos||0).replace(/{promo}/g,'20% de descuento');document.getElementById('c-pv').innerHTML=`<div class="wa-bg"><div class="wa-b">${msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>')}</div><div style="font-size:11px;color:#888;text-align:right;margin-top:4px">Ahora</div></div><div class="tm tsm" style="margin-top:7px">Ejemplo con "${ej.nombre}"</div>`;}
+async function genLinks(){const sg=document.getElementById('c-sg').value;const{data}=await SB.from('clientes').select('id,nombre,celular,puntos,nacimiento,created_at,ultima_visita');let l=(data||[]).filter(c=>c.celular);if(sg!=='todos'){if(sg==='Cumpleaños')l=l.filter(c=>isCumple(c.nacimiento));else if(sg==='Nuevo')l=l.filter(c=>c.created_at&&(new Date()-new Date(c.created_at))/86400000<=7);else l=l.filter(c=>getSeg(c)===sg);}if(!l.length){toast2('⚠ Sin destinatarios',true);return;}const mb=document.getElementById('c-msg').value;const lks=l.map(c=>{let msg=mb.replace(/{nombre}/g,c.nombre||'Cliente').replace(/{puntos}/g,c.puntos||0).replace(/{promo}/g,'20% de descuento');const n=(c.celular||'').replace(/\D/g,'');return{c,url:'https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+encodeURIComponent(msg)};});document.getElementById('c-lk-c').textContent=lks.length+' mensajes';document.getElementById('c-lk-l').innerHTML=lks.map(x=>`<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--gr)"><div class="av" style="background:${aC(x.c.nombre)};width:29px;height:29px;font-size:10px">${ini(x.c.nombre)}</div><div style="flex:1"><div style="font-size:12.5px;font-weight:500">${x.c.nombre}</div><div class="tm tsm">${x.c.celular}</div></div><a href="${x.url}" target="_blank" class="btn bp bsm" style="text-decoration:none">Enviar WA</a></div>`).join('');document.getElementById('c-lk-s').style.display='block';await SB.from('campanas').insert({segmento:sg,tipo:document.getElementById('c-tp').value||'personalizado',mensaje:mb,enviados:lks.length});toast2('✓ '+lks.length+' links generados');}
+async function ldCampHist(){const{data}=await SB.from('campanas').select('*').order('created_at',{ascending:false}).limit(20);const el=document.getElementById('cp-h');if(!data?.length){el.innerHTML='<div class="tm tsm">Sin campañas</div>';return;}el.innerHTML=data.map(c=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--gr)"><div><div style="font-weight:500;font-size:12.5px">${c.tipo||'Personalizada'} · ${c.segmento||'Todos'}</div><div class="tm tsm">${c.enviados} enviados · ${fmtD(c.created_at)}</div></div></div>`).join('');}
 
-async function regPts(){if(!selId)return;const m=parseFloat(gv('pts-monto'))||0;if(m<=0){showT('⚠ Ingresa monto',true);return}const p=Math.floor(m*CFG.ptsPorSol);const d=gv('pts-desc')||`Compra S/ ${m.toFixed(2)}`;const c=cache.find(x=>x.id===selId);bdLoad('btn-rpts',true);
-  try{await sb.from('clientes').update({puntos:(c.puntos||0)+p,ultima_visita:new Date().toISOString()}).eq('id',selId);await sb.from('historial').insert({cliente_id:selId,tipo:'compra',descripcion:`${d} · +${p} pts`,puntos:p,monto:m});showT(`✓ +${p} puntos para ${c.nombre}`);sv('pts-monto','');sv('pts-desc','');g('pts-prev').style.display='none';await renderTbl();await selPts(selId)}
-  catch(e){showT('⚠ Error: '+e.message,true)}bdLoad('btn-rpts',false)
+// ===================== IMPORTAR =====================
+function hdlFile(file){if(!file)return;const r=new FileReader();r.onload=e=>{const ln=e.target.result.split('\n').filter(l=>l.trim());if(ln.length<2){toast2('⚠ Archivo vacío',true);return;}const hd=ln[0].split(',').map(h=>h.trim().toLowerCase().replace(/['"]/g,''));IMP=[];for(let i=1;i<ln.length;i++){const cs=ln[i].split(',').map(c=>c.trim().replace(/['"]/g,''));if(cs.length<2)continue;const o={};hd.forEach((h,idx)=>o[h]=cs[idx]||'');const row={dni:o.dni||'',nombre:o.nombre||'',celular:o.celular||'',puntos:parseInt(o.puntos||'0')||0,nacimiento:o.nacimiento||null};if(row.nombre)IMP.push(row);}shImpPrev();};r.readAsText(file);}
+function shImpPrev(){const p=document.getElementById('ip-prev');if(!IMP.length){p.innerHTML='<div class="tm tsm">No se pudo leer.</div>';return;}p.innerHTML=`<div style="overflow:auto;max-height:250px"><table><thead><tr><th>Nombre</th><th>DNI</th><th>Celular</th><th>Pts</th></tr></thead><tbody>${IMP.slice(0,20).map(r=>`<tr><td>${r.nombre}</td><td>${r.dni||'—'}</td><td>${r.celular||'—'}</td><td>${r.puntos}</td></tr>`).join('')}</tbody></table></div>`;document.getElementById('ip-sum').textContent=IMP.length+' clientes detectados';document.getElementById('ip-act').style.display='block';}
+async function confImp(){if(!IMP.length)return;showLo(true);let n=0,e=0;for(const row of IMP){const{error}=await SB.from('clientes').insert({dni:row.dni||null,nombre:row.nombre,celular:row.celular||null,nacimiento:row.nacimiento||null,puntos:row.puntos,created_at:new Date().toISOString()});if(error)e++;else n++;}showLo(false);IMP=[];document.getElementById('ip-prev').innerHTML='<div class="tm tsm" style="text-align:center;padding:22px">✓ Completado</div>';document.getElementById('ip-act').style.display='none';toast2(`✓ ${n} importados · ${e} errores`);ldDash();}
+function dlTpl(){const csv='DNI,Nombre,Celular,Puntos,Nacimiento\n12345678,Ana Torres,999888777,150,1995-03-15';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='plantilla_dopamina.csv';a.click();}
+function dOv(e){e.preventDefault();document.getElementById('da').classList.add('ov');}
+function dLv(){document.getElementById('da').classList.remove('ov');}
+function dDp(e){e.preventDefault();dLv();const f=e.dataTransfer.files[0];if(f)hdlFile(f);}
+
+// ===================== RECOMPENSAS =====================
+async function ldRwCfg(){const{data}=await SB.from('recompensas').select('*').eq('activo',true);const el=document.getElementById('rw-cfg');if(!el)return;el.innerHTML=(data||[]).map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gr)"><div><div style="font-weight:500;font-size:12.5px">${r.nombre}</div><div class="tm tsm">${r.descripcion||''}</div></div><div style="display:flex;align-items:center;gap:6px"><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--g)">${r.puntos_requeridos}pts</span><button class="btn bdr bsm" onclick="delRw(${r.id})">✕</button></div></div>`).join('');}
+async function crearRew(){const nm=document.getElementById('rw-nm').value.trim();const pts=parseInt(document.getElementById('rw-pts').value)||0;const desc=document.getElementById('rw-desc').value.trim();if(!nm||!pts){toast2('⚠ Completa nombre y puntos',true);return;}showLo(true);await SB.from('recompensas').insert({nombre:nm,puntos_requeridos:pts,descripcion:desc});showLo(false);closeM('m-nrw');ldRwCfg();toast2('✓ Recompensa agregada');}
+async function delRw(id){await SB.from('recompensas').update({activo:false}).eq('id',id);ldRwCfg();}
+
+// ===================== SEGURIDAD =====================
+async function ldSeg(){
+  const el=document.getElementById('mfa-panel');
+  if(CU?.mfa_enabled)el.innerHTML=`<div style="display:flex;align-items:center;gap:9px;padding:13px;background:var(--gb);border-radius:9px;margin-bottom:12px"><span style="font-size:22px">🔐</span><div><div style="font-weight:500;font-size:13px">MFA activo</div><div class="tm tsm">Tu cuenta está protegida con doble factor.</div></div></div><button class="btn bdr bsm" onclick="disableMFA()">Desactivar MFA</button>`;
+  else el.innerHTML=`<div style="display:flex;align-items:center;gap:9px;padding:13px;background:#fff0f0;border-radius:9px;margin-bottom:12px"><span style="font-size:22px">⚠</span><div><div style="font-weight:500;font-size:13px">MFA no activo</div><div class="tm tsm">Tu cuenta es vulnerable. Activa el doble factor.</div></div></div><button class="btn bp bsm" onclick="enableMFA()">Activar MFA ahora</button>`;
+  const{data:logs}=await SB.from('access_log').select('*').order('created_at',{ascending:false}).limit(10);
+  document.getElementById('acc-log').innerHTML=(logs||[]).length===0?'<div class="tm tsm">Sin registros</div>':(logs||[]).map(l=>`<div style="display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid var(--gr)"><span style="font-size:13px">${l.exitoso?'✓':'✕'}</span><div style="flex:1"><div style="font-size:12px;font-weight:500">${l.accion||''}</div><div class="tm tsm">${l.detalle||''}</div></div><div class="tm tsm">${fmtD(l.created_at)}</div></div>`).join('');
 }
+async function chgPw(){const a=document.getElementById('pw-a').value,n=document.getElementById('pw-n').value,n2=document.getElementById('pw-n2').value;if(!a||!n){toast2('⚠ Completa todos los campos',true);return;}if(n.length<8){toast2('⚠ Mínimo 8 caracteres',true);return;}if(n!==n2){toast2('⚠ Las contraseñas no coinciden',true);return;}const ha=await sha256(a+CU.email);if(ha!==CU.password_hash){toast2('⚠ Contraseña actual incorrecta',true);return;}const hn=await sha256(n+CU.email);await SB.from('admin_users').update({password_hash:hn}).eq('id',CU.id);CU.password_hash=hn;['pw-a','pw-n','pw-n2'].forEach(id=>document.getElementById(id).value='');toast2('✓ Contraseña actualizada');await logAcc(CU.id,CU.email,'cambio_pw',true,'Contraseña actualizada');}
+async function enableMFA(){await iniSetupMFA();document.getElementById('auth-screen').style.display='flex';document.getElementById('app').style.display='none';}
+async function disableMFA(){if(!confirm('¿Desactivar MFA? Tu cuenta quedará menos protegida.'))return;await SB.from('admin_users').update({mfa_enabled:false,mfa_secret:null}).eq('id',CU.id);CU.mfa_enabled=false;toast2('MFA desactivado');ldSeg();rdUI();}
 
-async function canje(cId,rwId,nom,pts){const c=cache.find(x=>x.id===cId);if(!c||(c.puntos||0)<pts){showT('⚠ Puntos insuficientes',true);return}await sb.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await sb.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:`Canje: ${nom} (-${pts} pts)`,puntos:-pts});showT('✓ Canje: '+nom);await renderTbl();await selPts(cId)}
+// ===================== BÚSQUEDA =====================
+async function gSearch(q){if(!q||q.length<2)return;nav('clientes');const{data}=await SB.from('clientes').select('*').or(`nombre.ilike.%${q}%,dni.ilike.%${q}%`).limit(30);const tb=document.getElementById('tbl-cl');if(!data?.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--t3)">Sin resultados para "'+q+'"</td></tr>';return;}tb.innerHTML=data.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="font-weight:500">${c.nombre}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button></td></tr>`;}).join('');}
 
-function renderReg(){const e=g('reglas');if(!e)return;e.innerHTML=`<div style="display:grid;gap:0"><div class="flex sb" style="padding:9px 0;border-bottom:1px solid var(--gris)"><span class="tm">Por cada S/ 1</span><strong>${CFG.ptsPorSol} pto${CFG.ptsPorSol!==1?'s':''}</strong></div><div class="flex sb" style="padding:9px 0;border-bottom:1px solid var(--gris)"><span class="tm">Bono bienvenida</span><strong>+${CFG.ptsBienvenida} pts</strong></div><div class="flex sb" style="padding:9px 0"><span class="tm">Bono cumpleaños</span><strong>+${CFG.ptsCumple} pts</strong></div></div>`}
+// ===================== NAV =====================
+function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();}
 
-async function renderRws(){const{data}=await sb.from('recompensas').select('*').eq('activo',true);const e=g('rw-list');if(!e)return;e.innerHTML=(data||[]).map(r=>`<div class="flex sb ic" style="padding:9px 0;border-bottom:1px solid var(--gris)"><div><div style="font-size:13px;font-weight:500">${r.nombre}</div><div class="tm tsm">${r.descripcion}</div></div><div class="flex ic g10"><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--verde)">${r.puntos} pts</span><button class="btn be bsm" onclick="elimRw(${r.id})">✕</button></div></div>`).join('')}
-async function crearRw(){const n=gv('rw-n').trim(),p=parseInt(gv('rw-p'))||0,d=gv('rw-d').trim();if(!n||!p){showT('⚠ Completa nombre y puntos',true);return}await sb.from('recompensas').insert({nombre:n,puntos:p,descripcion:d});closeM('m-rw');await renderRws();showT('✓ Recompensa agregada')}
-async function elimRw(id){await sb.from('recompensas').update({activo:false}).eq('id',id);await renderRws()}
+// ===================== UTILS =====================
+function setTab(el,id){['tc-c','tc-h'].forEach(t=>{const e=document.getElementById(t);if(e)e.style.display='none';});document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).style.display='block';el.classList.add('active');if(id==='tc-h')ldCampHist();}
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+let tT;function toast2(msg,err){const t=document.getElementById('toast');document.getElementById('t-msg').textContent=msg;t.style.background=err?'var(--r)':'var(--t)';t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),3500);}
+function showLo(v){document.getElementById('lo').classList.toggle('show',v);}
+function sErr(id,msg){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),5000);}
+function tPw(id,btn){const inp=document.getElementById(id);inp.type=inp.type==='password'?'text':'password';btn.textContent=inp.type==='password'?'👁':'🙈';}
+function ini(n){if(!n)return'?';return n.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();}
+const CLS=['#4CAF7D','#7C5CBF','#F5A623','#FF6B6B','#1D9E75','#3B82F6','#EC4899','#14B8A6'];
+function aC(n){if(!n)return CLS[0];return CLS[n.charCodeAt(0)%CLS.length];}
+function fmtD(iso){if(!iso)return'';return new Date(iso).toLocaleDateString('es-PE',{day:'2-digit',month:'short'});}
+function fmtN(nac){if(!nac)return'';return new Date(nac).toLocaleDateString('es-PE',{day:'2-digit',month:'long'});}
 
-function getSC(s){let l=cache;const h=new Date();if(s==='todos')return l;if(s==='Cumpleaños')return l.filter(c=>esCump(c.nacimiento));if(s==='Nuevo')return l.filter(c=>c.creado_en&&(h-new Date(c.creado_en))/86400000<=7);return l.filter(c=>seg(c)===s)}
-function updDest(){const s=gv('c-seg');st('c-dest',getSC(s).length+' destinatario'+(getSC(s).length!==1?'s':''))}
-function loadTpl(){const t=gv('c-tipo');if(t&&TPLS[t])sv('c-msg',TPLS[t])}
-function prevCamp(){const s=gv('c-seg'),l=getSC(s),ej=l[0]||{nombre:'Ana Torres',puntos:150};let msg=gv('c-msg').replace(/{nombre}/g,ej.nombre||'Cliente').replace(/{puntos}/g,ej.puntos||0).replace(/{promo}/g,'20% de descuento en tu próxima visita');g('c-prev').innerHTML=`<div class="wa-bg"><div class="wa-msg">${msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>')}</div><div style="font-size:10px;color:#888;text-align:right;margin-top:3px">Ahora · Dopamina</div></div><div class="tm tsm mt8">Con datos de "${ej.nombre}"</div>`}
-
-async function genLinks(){const s=gv('c-seg'),base=gv('c-msg');let lista=getSC(s).filter(c=>c.celular);if(!lista.length){showT('⚠ Sin clientes con celular',true);return}
-  const lks=lista.map(c=>{let msg=base.replace(/{nombre}/g,c.nombre||'Cliente').replace(/{puntos}/g,c.puntos||0).replace(/{promo}/g,'20% de descuento');const n=(c.celular||'').replace(/\D/g,'');return{c,url:'https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+encodeURIComponent(msg)}});
-  st('links-cnt',lks.length+' mensajes');g('links-list').innerHTML=lks.map(l=>`<div class="flex ic g10" style="padding:9px 0;border-bottom:1px solid var(--gris)"><div class="av" style="background:${avC(l.c.nombre)};width:30px;height:30px;font-size:11px">${inic(l.c.nombre)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${l.c.nombre}</div><div class="tm tsm">${l.c.celular}</div></div><a href="${l.url}" target="_blank" class="btn bp bsm" style="text-decoration:none">Enviar WA</a></div>`).join('');
-  await sb.from('campanas').insert({segmento:s,tipo:gv('c-tipo')||'personalizado',enviados:lks.length,mensaje:base});
-  g('links-sec').style.display='block';showT('✓ '+lks.length+' links generados')}
-
-async function renderCampH(){const{data}=await sb.from('campanas').select('*').order('creado_en',{ascending:false}).limit(20);const e=g('camp-hist');if(!data||!data.length){e.innerHTML='<div class="empty"><div class="ei">◷</div><div class="et">Sin campañas</div></div>';return}e.innerHTML=data.map(c=>`<div class="card mb16"><div class="flex sb ic mb12"><div style="font-family:'Syne',sans-serif;font-weight:700">${c.tipo} · ${c.segmento}</div><span class="tm tsm">${fmtD(c.creado_en)}</span></div><div class="tm tsm">${c.enviados} mensajes enviados</div></div>`).join('')}
-
-function hFile(f){if(!f)return;const r=new FileReader();r.onload=e=>{const ls=e.target.result.split('\n').filter(l=>l.trim());if(ls.length<2){showT('⚠ Archivo vacío',true);return}const h=ls[0].split(',').map(x=>x.trim().replace(/['"]/g,'').toLowerCase());impData=[];for(let i=1;i<ls.length;i++){const c=ls[i].split(',').map(x=>x.trim().replace(/['"]/g,''));const o=Object.fromEntries(h.map((hh,j)=>[hh,c[j]||'']));const row={dni:o.dni||'',nombre:o.nombre||o['nombre completo']||'',celular:o.celular||o.whatsapp||'',puntos:parseInt(o.puntos||'0')||0,nacimiento:o.nacimiento||o['fecha de nacimiento']||null};if(row.nombre)impData.push(row)}g('imp-prev').innerHTML=`<div class="tw" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>Nombre</th><th>DNI</th><th>Celular</th><th>Pts</th></tr></thead><tbody>${impData.slice(0,20).map(r=>`<tr><td>${r.nombre}</td><td>${r.dni||'—'}</td><td>${r.celular||'—'}</td><td>${r.puntos}</td></tr>`).join('')}</tbody></table></div>`;g('imp-sum').textContent=`${impData.length} clientes detectados`;g('imp-act').style.display='flex'};r.readAsText(f)}
-
-async function confImp(){if(!impData.length)return;bdLoad('btn-imp',true);let nv=0,act=0;for(const row of impData){if(row.dni){const{data:ex}=await sb.from('clientes').select('id,puntos').eq('dni',row.dni).single();if(ex){await sb.from('clientes').update({puntos:(ex.puntos||0)+row.puntos}).eq('id',ex.id);act++;continue}}await sb.from('clientes').insert({...row,dni:row.dni||null,nacimiento:row.nacimiento||null});nv++}impData=[];g('imp-prev').innerHTML='<div class="empty" style="padding:30px 0"><div class="ei">✓</div><div class="et">Importación completada</div></div>';g('imp-act').style.display='none';showT(`✓ ${nv} nuevos · ${act} actualizados`);await renderDash();await renderTbl();bdLoad('btn-imp',false)}
-function dlTpl(){const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob(['DNI,Nombre,Celular,Puntos,Nacimiento\n12345678,Ana Torres,999888777,150,1995-03-15\n87654321,Carlos Ríos,988777666,80,1990-07-22'],{type:'text/csv'})),download:'plantilla_dopamina.csv'});a.click()}
-
-function dlSchema(){
-  const sql=`-- DOPAMINA LOYALTY SYSTEM - Supabase Schema\nCREATE TABLE clientes (id BIGSERIAL PRIMARY KEY, dni TEXT UNIQUE, nombre TEXT NOT NULL, celular TEXT, nacimiento DATE, puntos INTEGER DEFAULT 0, ultima_visita TIMESTAMPTZ, creado_en TIMESTAMPTZ DEFAULT NOW());\nCREATE TABLE historial (id BIGSERIAL PRIMARY KEY, cliente_id BIGINT REFERENCES clientes(id) ON DELETE CASCADE, tipo TEXT NOT NULL CHECK (tipo IN ('compra','canje','bono')), descripcion TEXT, puntos INTEGER, monto NUMERIC(10,2), creado_en TIMESTAMPTZ DEFAULT NOW());\nCREATE TABLE recompensas (id BIGSERIAL PRIMARY KEY, nombre TEXT NOT NULL, puntos INTEGER NOT NULL, descripcion TEXT, activo BOOLEAN DEFAULT TRUE);\nCREATE TABLE campanas (id BIGSERIAL PRIMARY KEY, segmento TEXT, tipo TEXT, mensaje TEXT, enviados INTEGER DEFAULT 0, creado_en TIMESTAMPTZ DEFAULT NOW());\nCREATE TABLE configuracion (clave TEXT PRIMARY KEY, valor TEXT);\nINSERT INTO recompensas (nombre, puntos, descripcion) VALUES ('Frappe gratis', 150, '1 frappe a eleccion'), ('Waffle proteico', 200, '1 waffle proteico a eleccion'), ('Descuento 20%', 100, '20% off en tu proxima compra');\nINSERT INTO configuracion (clave, valor) VALUES ('pts_por_sol','1'),('pts_cumple','50'),('pts_bienvenida','20'),('vip_min','500'),('dormido_dias','30'),('nombre_local','Dopamina'),('whatsapp_local',''),('ciudad','Miraflores, Lima');\nALTER TABLE clientes ENABLE ROW LEVEL SECURITY;\nALTER TABLE historial ENABLE ROW LEVEL SECURITY;\nALTER TABLE recompensas ENABLE ROW LEVEL SECURITY;\nALTER TABLE campanas ENABLE ROW LEVEL SECURITY;\nALTER TABLE configuracion ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "allow_all_clientes" ON clientes FOR ALL USING (true) WITH CHECK (true);\nCREATE POLICY "allow_all_historial" ON historial FOR ALL USING (true) WITH CHECK (true);\nCREATE POLICY "allow_all_recompensas" ON recompensas FOR ALL USING (true) WITH CHECK (true);\nCREATE POLICY "allow_all_campanas" ON campanas FOR ALL USING (true) WITH CHECK (true);\nCREATE POLICY "allow_all_configuracion" ON configuracion FOR ALL USING (true) WITH CHECK (true);`;
-  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([sql],{type:'text/plain'})),download:'schema.sql'});a.click()
-}
-
-function buscGlobal(q){if(!q||q.length<2)return;nav('clientes');const f=cache.filter(c=>c.nombre.toLowerCase().includes(q.toLowerCase())||(c.dni&&c.dni.includes(q)));const tb=g('tbl');if(!f.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--txt3)">Sin resultados</td></tr>`;return}const tmp=cache;cache=f;renderTbl();cache=tmp}
-
-function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));g('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',qr:'QR de registro',config:'Configuración'};st('tb-title',T[p]||p);document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active')});if(p==='dashboard')renderDash();if(p==='clientes')renderTbl();if(p==='config'){renderRws();loadCfg()}if(p==='puntos')renderReg();if(p==='campanas')updDest()}
-
-function setTab(el,id){['tc-crear','tc-hist'].forEach(t=>{const e=g(t);if(e)e.style.display='none'});document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));g(id).style.display='block';el.classList.add('active');if(id==='tc-hist')renderCampH()}
+// ===================== INICIO =====================
+(async()=>{
+  showLo(true);
+  const u=localStorage.getItem(SU),k=localStorage.getItem(SK2);
+  if(u&&k){try{initSB(u,k);const{error}=await SB.from('config').select('id').limit(1);if(!error){showLo(false);await authFlow();return;}}catch(e){}}
+  showLo(false);document.getElementById('cfg-screen').style.display='flex';
+})();
 </script>
 </body>
 </html>
