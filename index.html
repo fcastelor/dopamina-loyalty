@@ -180,9 +180,10 @@ textarea.fi{resize:vertical;min-height:78px}
       <div class="desc">Escanea el QR con Google Authenticator o Authy antes de continuar.</div>
       <div class="err" id="su-err"></div>
       <div class="qr-box">
-        <canvas id="qr-canvas" width="170" height="170" style="margin:0 auto;display:block;border-radius:6px"></canvas>
-        <div style="font-size:11.5px;color:var(--t2);margin-top:10px">O escribe este código manualmente:</div>
-        <div class="sec-box" id="sec-disp"></div>
+        <div id="qr-div-wrap" style="min-height:170px;display:flex;align-items:center;justify-content:center"></div>
+        <div style="font-size:11.5px;color:var(--t2);margin-top:12px;line-height:1.6">Si el QR no carga: abre Google Authenticator → <b>+</b> → <b>Ingresar clave</b> → pega el código:</div>
+        <div class="sec-box" id="sec-disp" style="font-size:15px;letter-spacing:3px;font-weight:700;padding:12px;cursor:pointer;border:2px dashed #3ec97a" onclick="copiarSecret()" title="Clic para copiar"></div>
+        <div style="font-size:11px;color:#3ec97a;margin-top:4px">👆 Clic para copiar al portapapeles</div>
       </div>
       <div style="font-size:12.5px;color:var(--t2);margin-bottom:12px">Confirma con el código que aparece en la app:</div>
       <div class="mfa-row" id="setup-inp"></div>
@@ -402,7 +403,33 @@ function b32Dec(s){let bits=0,val=0;const out=[];for(const c of s.toUpperCase().
 async function genTOTP(sec,ts){const T=Math.floor((ts||Date.now()/1000)/30);const msg=new ArrayBuffer(8);new DataView(msg).setUint32(4,T,false);const key=await crypto.subtle.importKey('raw',b32Dec(sec),{name:'HMAC',hash:'SHA-1'},false,['sign']);const sig=new Uint8Array(await crypto.subtle.sign('HMAC',key,msg));const o=sig[19]&0xf;const code=((sig[o]&0x7f)<<24)|((sig[o+1]&0xff)<<16)|((sig[o+2]&0xff)<<8)|(sig[o+3]&0xff);return String(code%1000000).padStart(6,'0');}
 function mkSecret(){const a=new Uint8Array(20);crypto.getRandomValues(a);return Array.from(a).map(b=>B32[b%32]).join('');}
 async function chkTOTP(sec,code){const n=Date.now()/1000;for(const d of[-1,0,1]){if(await genTOTP(sec,n+d*30)===code)return true;}return false;}
-function mkQR(canvas,text){const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,170,170);};img.src=`https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(text)}`;}
+// QR Generator embebido (sin dependencia externa)
+function mkQR(canvas,text){
+  const wrap=document.getElementById('qr-div-wrap');
+  if(!wrap)return;
+  wrap.innerHTML='';
+  const div=document.createElement('div');
+  div.id='qr-div';
+  div.style.cssText='display:inline-block;background:#fff;padding:8px;border-radius:8px';
+  wrap.appendChild(div);
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  s.onload=()=>{
+    try{
+      new QRCode(div,{text,width:170,height:170,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.M});
+    }catch(e){wrap.innerHTML='<div style="color:#e74c3c;font-size:12px">QR no disponible.<br>Usa el código manual de abajo.</div>';}
+  };
+  s.onerror=()=>{wrap.innerHTML='<div style="color:#e74c3c;font-size:12px">QR no disponible.<br>Usa el código manual de abajo.</div>';};
+  document.head.appendChild(s);
+}
+function copiarSecret(){
+  const el=document.getElementById('sec-disp');
+  const sec=el.dataset.secret||el.textContent.replace(/\s/g,'');
+  navigator.clipboard.writeText(sec).then(()=>{
+    el.style.background='#d4edda';
+    setTimeout(()=>el.style.background='',1500);
+  }).catch(()=>{ alert('Código: '+sec); });
+}
 
 // ===================== STATE =====================
 let SB=null,CFG={},CU=null,PTC=null,IMP=[];
@@ -467,8 +494,13 @@ async function doLogin(){
 
 async function iniSetupMFA(){
   const sec=mkSecret();CU._ps=sec;
-  document.getElementById('sec-disp').textContent=sec.match(/.{1,4}/g).join(' ');
-  mkQR(document.getElementById('qr-canvas'),`otpauth://totp/Dopamina:${encodeURIComponent(CU.email)}?secret=${sec}&issuer=Dopamina`);
+  const el=document.getElementById('sec-disp');
+  el.textContent=sec.match(/.{1,4}/g).join(' ');
+  el.dataset.secret=sec;
+  // Limpiar QR anterior si existe
+  const wrap=document.getElementById('qr-div-wrap');
+  if(wrap)wrap.innerHTML='';
+  mkQR(null,`otpauth://totp/Dopamina:${encodeURIComponent(CU.email)}?secret=${sec}&issuer=Dopamina`);
   goStep('s-setup');
 }
 
