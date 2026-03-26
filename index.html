@@ -164,32 +164,7 @@ textarea.fi{resize:vertical;min-height:78px}
       <div id="lock-info" style="display:none;margin-top:11px;padding:9px 13px;background:#fff0f0;border-radius:8px;font-size:12px;color:#b92b2b"></div>
     </div>
 
-    <!-- MFA verify -->
-    <div class="step" id="s-mfa">
-      <div class="title">Verificación en dos pasos</div>
-      <div class="desc">Ingresa el código de 6 dígitos de tu app (Google Authenticator, Authy)</div>
-      <div class="err" id="m-err"></div>
-      <div class="mfa-row" id="mfa-inp"></div>
-      <button class="btn-f btn-g" onclick="doMFA()">Verificar →</button>
-      <button class="btn-f btn-b" onclick="goStep('s-login')">← Volver</button>
-    </div>
 
-    <!-- Setup MFA -->
-    <div class="step" id="s-setup">
-      <div class="title">Activa el doble factor</div>
-      <div class="desc">Escanea el QR con Google Authenticator o Authy antes de continuar.</div>
-      <div class="err" id="su-err"></div>
-      <div class="qr-box">
-        <div id="qr-div-wrap" style="min-height:170px;display:flex;align-items:center;justify-content:center"></div>
-        <div style="font-size:11.5px;color:var(--t2);margin-top:12px;line-height:1.6">Si el QR no carga: abre Google Authenticator → <b>+</b> → <b>Ingresar clave</b> → pega el código:</div>
-        <div class="sec-box" id="sec-disp" style="font-size:15px;letter-spacing:3px;font-weight:700;padding:12px;cursor:pointer;border:2px dashed #3ec97a" onclick="copiarSecret()" title="Clic para copiar"></div>
-        <div style="font-size:11px;color:#3ec97a;margin-top:4px">👆 Clic para copiar al portapapeles</div>
-      </div>
-      <div style="font-size:12.5px;color:var(--t2);margin-bottom:4px">Ingresa el código de 6 dígitos que muestra la app:</div>
-      <div id="totp-preview" style="font-size:11px;color:var(--t3);margin-bottom:10px;cursor:pointer" onclick="mostrarCodigoActual()">🔄 Ver código actual esperado (debug)</div>
-      <div class="mfa-row" id="setup-inp"></div>
-      <button class="btn-f btn-g" onclick="doSetupMFA()">Activar y entrar →</button>
-    </div>
 
     <!-- Crear primer admin -->
     <div class="step" id="s-crear">
@@ -238,6 +213,7 @@ textarea.fi{resize:vertical;min-height:78px}
               <div style="font-size:11px;color:var(--t3)" id="dd-em">admin@dopamina.pe</div>
               <div style="margin-top:3px" id="dd-mfa"></div>
             </div>
+            <div class="udi" onclick="nav('usuarios');tUM()">👥 Gestionar usuarios</div>
             <div class="udi" onclick="nav('seguridad');tUM()">🔐 Seguridad y MFA</div>
             <div class="udi dr" onclick="logout()">⎋ Cerrar sesión</div>
           </div>
@@ -371,11 +347,32 @@ textarea.fi{resize:vertical;min-height:78px}
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
+      <!-- USUARIOS -->
+      <div class="panel" id="panel-usuarios">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div><div class="st" style="margin:0">Administradores</div><div class="tm tsm" style="margin-top:3px">Usuarios con acceso al sistema</div></div>
+          <button class="btn bp bsm" onclick="openM('m-nu')">+ Nuevo usuario</button>
+        </div>
+        <div class="cv" style="padding:0"><div style="overflow-x:auto"><table>
+          <thead><tr><th>Nombre</th><th>Correo</th><th>MFA</th><th>Último acceso</th><th>Acciones</th></tr></thead>
+          <tbody id="tbl-users"><tr><td colspan="5" style="text-align:center;padding:34px;color:var(--t3)">Cargando...</td></tr></tbody>
+        </table></div></div>
+      </div>
 
-<!-- MODALES -->
+
+<div class="mo" id="m-nu"><div class="mc"><div class="mh"><div class="mt">Nuevo administrador</div><button class="mx" onclick="closeM('m-nu')">✕</button></div>
+  <div class="err show" id="nu-err" style="display:none"></div>
+  <div class="fg"><label class="fl">Nombre completo *</label><input type="text" class="fi" id="nu-nm" placeholder="María García"></div>
+  <div class="fg"><label class="fl">Correo *</label><input type="email" class="fi" id="nu-em" placeholder="maria@dopamina.pe"></div>
+  <div class="fg"><label class="fl">Contraseña temporal *</label>
+    <div class="pw-w"><input type="password" class="fi" id="nu-pw" placeholder="Mínimo 8 caracteres"><span class="eye" onclick="tPw('nu-pw',this)">👁</span></div>
+  </div>
+  <div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:10px 13px;font-size:12px;color:#7a5900;margin-bottom:14px;line-height:1.6">
+    ⚠ El nuevo usuario configurará su propio MFA la primera vez que inicie sesión.
+  </div>
+  <div style="display:flex;gap:7px"><button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-nu')">Cancelar</button><button class="btn bp" style="flex:1;justify-content:center" onclick="crearUsuario()">Crear usuario</button></div>
+</div></div>
+
 <div class="mo" id="m-nc"><div class="mc"><div class="mh"><div class="mt">Nuevo cliente</div><button class="mx" onclick="closeM('m-nc')">✕</button></div>
   <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" id="nc-dni" placeholder="12345678" maxlength="8"></div>
   <div class="fg"><label class="fl">Nombre *</label><input type="text" class="fi" id="nc-nm" placeholder="Nombre y apellido"></div>
@@ -443,15 +440,23 @@ async function genTOTP(secret,unixSec){
   return String(code%1000000).padStart(6,'0');
 }
 
-// Verifica con ventana ±1 período (±30s) para tolerancia de reloj
+// Verifica con ventana de 5 periodos para maxima tolerancia
 async function chkTOTP(secret,code){
   if(!code||code.length!==6)return false;
   const now=Math.floor(Date.now()/1000);
-  for(const delta of[-1,0,1]){
+  for(const delta of[-2,-1,0,1,2]){
     const expected=await genTOTP(secret,now+delta*30);
     if(expected&&expected===code)return true;
   }
   return false;
+}
+async function showCurrentCode(secret,elId){
+  if(!secret)return;
+  const code=await genTOTP(secret);
+  const rem=30-(Math.floor(Date.now()/1000)%30);
+  const el=document.getElementById(elId);
+  if(el){el.textContent='Codigo esperado: '+code+' ('+rem+'s)';el.style.display='block';}
+  setTimeout(()=>showCurrentCode(secret,elId),1000);
 }
 // QR Generator embebido (sin dependencia externa)
 function mkQR(canvas,text){
@@ -546,7 +551,7 @@ async function doLogin(){
   await SB.from('admin_users').update({intentos_fallidos:0,bloqueado_hasta:null}).eq('id',u.id);
   CU=u;
   if(!u.mfa_enabled)await iniSetupMFA();
-  else goStep('s-mfa');
+  else{goStep('s-mfa');showCurrentCode(u.mfa_secret,'totp-debug-login');}
 }
 
 async function iniSetupMFA(){
@@ -559,6 +564,7 @@ async function iniSetupMFA(){
   if(wrap)wrap.innerHTML='';
   mkQR(null,`otpauth://totp/Dopamina:${encodeURIComponent(CU.email)}?secret=${sec}&issuer=Dopamina`);
   goStep('s-setup');
+  showCurrentCode(sec,'totp-debug-setup');
 }
 
 async function doSetupMFA(){
@@ -712,7 +718,57 @@ async function crearRew(){const nm=document.getElementById('rw-nm').value.trim()
 async function delRw(id){await SB.from('recompensas').update({activo:false}).eq('id',id);ldRwCfg();}
 
 // ===================== SEGURIDAD =====================
-async function ldSeg(){
+// ===================== USUARIOS ADMIN =====================
+async function ldUsuarios(){
+  const{data,error}=await SB.from('admin_users').select('id,nombre,email,mfa_enabled,ultimo_acceso,created_at').order('created_at');
+  const tbody=document.getElementById('tbl-users');
+  if(error||!data){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--r)">Error cargando usuarios</td></tr>';return;}
+  if(!data.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--t3)">Sin usuarios</td></tr>';return;}
+  tbody.innerHTML=data.map(u=>{
+    const esYo=u.id===CU.id;
+    const ult=u.ultimo_acceso?new Date(u.ultimo_acceso).toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'}):'Nunca';
+    const mfaBadge=u.mfa_enabled?'<span style="background:#e8f7ef;color:#2d7a52;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500">✓ Activo</span>':'<span style="background:#fff0f0;color:#b92b2b;padding:2px 8px;border-radius:20px;font-size:11px">✗ Sin MFA</span>';
+    return`<tr>
+      <td><div style="font-weight:500">${u.nombre}${esYo?' <span style="font-size:10px;background:#e8f7ef;color:#2d7a52;padding:1px 6px;border-radius:10px">Tú</span>':''}</div></td>
+      <td style="color:var(--t2);font-size:12.5px">${u.email}</td>
+      <td>${mfaBadge}</td>
+      <td style="color:var(--t3);font-size:12px">${ult}</td>
+      <td>${esYo?'<span style="color:var(--t3);font-size:11px">—</span>':`<button class="btn bs bsm" style="color:var(--r);border-color:#ffc8c8" onclick="eliminarUsuario(${u.id},'${u.nombre}')">Eliminar</button>`}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function crearUsuario(){
+  const nm=document.getElementById('nu-nm').value.trim();
+  const em=document.getElementById('nu-em').value.trim();
+  const pw=document.getElementById('nu-pw').value;
+  const errEl=document.getElementById('nu-err');
+  errEl.style.display='none';
+  if(!nm||!em||!pw){errEl.textContent='Completa todos los campos';errEl.style.display='block';return;}
+  if(pw.length<8){errEl.textContent='La contraseña debe tener mínimo 8 caracteres';errEl.style.display='block';return;}
+  showLo(true);
+  const h=await sha256(pw+em);
+  const{error}=await SB.from('admin_users').insert({nombre:nm,email:em,password_hash:h,mfa_enabled:false});
+  showLo(false);
+  if(error){errEl.textContent=error.message.includes('unique')?'Ese correo ya está registrado':'Error: '+error.message;errEl.style.display='block';return;}
+  closeM('m-nu');
+  ['nu-nm','nu-em','nu-pw'].forEach(id=>document.getElementById(id).value='');
+  toast2('✓ Usuario '+nm+' creado');
+  ldUsuarios();
+}
+
+async function eliminarUsuario(id,nombre){
+  if(!confirm(`¿Eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`))return;
+  showLo(true);
+  await SB.from('sesiones').delete().eq('user_id',id);
+  const{error}=await SB.from('admin_users').delete().eq('id',id);
+  showLo(false);
+  if(error){toast2('Error al eliminar: '+error.message,true);return;}
+  toast2('✓ Usuario eliminado');
+  ldUsuarios();
+}
+
+
   const el=document.getElementById('mfa-panel');
   if(CU?.mfa_enabled)el.innerHTML=`<div style="display:flex;align-items:center;gap:9px;padding:13px;background:var(--gb);border-radius:9px;margin-bottom:12px"><span style="font-size:22px">🔐</span><div><div style="font-weight:500;font-size:13px">MFA activo</div><div class="tm tsm">Tu cuenta está protegida con doble factor.</div></div></div><button class="btn bdr bsm" onclick="disableMFA()">Desactivar MFA</button>`;
   else el.innerHTML=`<div style="display:flex;align-items:center;gap:9px;padding:13px;background:#fff0f0;border-radius:9px;margin-bottom:12px"><span style="font-size:22px">⚠</span><div><div style="font-weight:500;font-size:13px">MFA no activo</div><div class="tm tsm">Tu cuenta es vulnerable. Activa el doble factor.</div></div></div><button class="btn bp bsm" onclick="enableMFA()">Activar MFA ahora</button>`;
@@ -727,7 +783,7 @@ async function disableMFA(){if(!confirm('¿Desactivar MFA? Tu cuenta quedará me
 async function gSearch(q){if(!q||q.length<2)return;nav('clientes');const{data}=await SB.from('clientes').select('*').or(`nombre.ilike.%${q}%,dni.ilike.%${q}%`).limit(30);const tb=document.getElementById('tbl-cl');if(!data?.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--t3)">Sin resultados para "'+q+'"</td></tr>';return;}tb.innerHTML=data.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="font-weight:500">${c.nombre}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button></td></tr>`;}).join('');}
 
 // ===================== NAV =====================
-function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();}
+function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad',usuarios:'Administradores'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();if(p==='usuarios')ldUsuarios();}
 
 // ===================== UTILS =====================
 function setTab(el,id){['tc-c','tc-h'].forEach(t=>{const e=document.getElementById(t);if(e)e.style.display='none';});document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).style.display='block';el.classList.add('active');if(id==='tc-h')ldCampHist();}
