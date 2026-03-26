@@ -131,20 +131,6 @@ textarea.fi{resize:vertical;min-height:78px}
 <div class="lo" id="lo"><div class="spin"></div><div style="font-size:13px;color:var(--t2)">Cargando...</div></div>
 
 <!-- SETUP SUPABASE -->
-<div class="screen" id="cfg-screen" style="background:var(--gr)">
-  <div class="cfg-card">
-    <div class="logo" style="margin-bottom:2px">Dopamina</div>
-    <div class="sub" style="margin-bottom:18px">Configuración inicial de base de datos</div>
-    <div class="err" id="cfg-err"></div>
-    <div class="fg"><label class="fl">Supabase URL</label><input type="text" class="fi" id="sb-url" placeholder="https://xxxx.supabase.co"></div>
-    <div class="fg"><label class="fl">Anon Public Key</label><input type="text" class="fi" id="sb-key" placeholder="eyJhbGci..."></div>
-    <button class="btn-f btn-g" onclick="conectarSB()">Conectar →</button>
-    <div style="margin-top:12px;padding:11px 13px;background:var(--gb);border-radius:8px;font-size:12px;color:var(--gd);line-height:1.7">
-      Disponible en <strong>Supabase → Settings → API Keys → Legacy anon</strong>
-    </div>
-  </div>
-</div>
-
 <!-- AUTH -->
 <div class="screen dark-bg" id="auth-screen" style="display:none">
   <div class="card">
@@ -495,19 +481,10 @@ async function mostrarCodigoActual(){
   if(el)el.textContent=`Código actual: ${code} (válido ${remaining}s) — si no coincide, verifica la hora de tu celular`;
 }
 let SB=null,CFG={},CU=null,PTC=null,IMP=[];
-const SK='dop_sess',SU='sb_url',SK2='sb_key';
-function initSB(u,k){SB=window.supabase.createClient(u,k);}
-
-// ===================== SETUP =====================
-async function conectarSB(){
-  const u=document.getElementById('sb-url').value.trim(),k=document.getElementById('sb-key').value.trim();
-  if(!u||!k){sErr('cfg-err','Ingresa URL y Key');return;}
-  showLo(true);
-  try{initSB(u,k);const{error}=await SB.from('config').select('id').limit(1);if(error)throw error;
-    localStorage.setItem(SU,u);localStorage.setItem(SK2,k);showLo(false);
-    document.getElementById('cfg-screen').style.display='none';await authFlow();}
-  catch(e){showLo(false);sErr('cfg-err','Error de conexión. Verifica URL/Key y que hayas ejecutado los SQL.');}
-}
+const SK='dop_sess';
+// Credenciales Supabase — hardcodeadas (anon key es pública por diseño)
+const SBURL='https://cuofpfajzeyezerubytc.supabase.co';
+const SBKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1b2ZwZmFqemV5ZXplcnVieXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzU1MTMsImV4cCI6MjA5MDExMTUxM30.5Tog6Ata3CbYflwxOhezXZegrwagiboQF2u0fVX9oZ4';
 
 // ===================== AUTH =====================
 async function authFlow(){
@@ -803,9 +780,14 @@ function fmtN(nac){if(!nac)return'';return new Date(nac).toLocaleDateString('es-
 // ===================== INICIO =====================
 (async()=>{
   showLo(true);
-  const u=localStorage.getItem(SU),k=localStorage.getItem(SK2);
-  if(u&&k){try{initSB(u,k);const{error}=await SB.from('config').select('id').limit(1);if(!error){showLo(false);await authFlow();return;}}catch(e){}}
-  showLo(false);document.getElementById('cfg-screen').style.display='flex';
+  try{
+    SB=window.supabase.createClient(SBURL,SBKEY);
+    await authFlow();
+  }catch(e){
+    showLo(false);
+    document.getElementById('auth-screen').style.display='flex';
+    console.error('Error de conexión Supabase:',e);
+  }
 })();
 </script>
 </body>
