@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dopamina — Club de Fidelización</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--verde:#3EC97A;--verde-d:#1f8a4c;--verde-bg:#edf9f2;--amarillo:#F5C842;--amarillo-bg:#fdf8e1;--coral:#FF6B6B;--coral-bg:#fff2f2;--morado:#7C5CBF;--morado-bg:#f2eefb;--azul-bg:#edf4ff;--azul:#3B7DD8;--gris:#F6F6F2;--borde:#E4E4DC;--txt:#18181A;--txt2:#52524E;--txt3:#A8A8A0;--blanco:#FFFFFF;--sw:248px;--r:12px;--sh:0 1px 6px rgba(0,0,0,.06)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--gris);color:var(--txt);display:flex;min-height:100vh;font-size:14px;line-height:1.5}
+#cfg-screen{position:fixed;inset:0;background:var(--gris);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:24px;padding:24px}
+.cfg-card{background:var(--blanco);border-radius:20px;padding:36px 40px;border:1px solid var(--borde);width:100%;max-width:480px;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.cfg-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--verde);margin-bottom:4px}
+.cfg-note{background:var(--verde-bg);border-radius:9px;padding:12px 16px;font-size:12.5px;color:var(--verde-d);line-height:1.7;margin-bottom:18px}
+.cfg-note a{color:var(--verde-d);font-weight:600}
+.sidebar{width:var(--sw);background:var(--txt);color:white;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100}
+.sb-logo{padding:24px 20px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo-m{font-family:'Syne',sans-serif;font-weight:800;font-size:21px;color:var(--amarillo)}
+.logo-s{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.sb-nav{flex:1;padding:14px 10px;overflow-y:auto}
+.nl{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.25);padding:10px 10px 5px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;cursor:pointer;color:rgba(255,255,255,.55);font-size:13px;transition:all .14s;margin-bottom:1px}
+.ni:hover{background:rgba(255,255,255,.07);color:white}
+.ni.active{background:var(--verde);color:white;font-weight:500}
+.ni-ic{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sb-ft{padding:14px 20px;border-top:1px solid rgba(255,255,255,.07);font-size:11px;color:rgba(255,255,255,.25)}
+.online-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--verde);margin-right:5px}
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--blanco);border-bottom:1px solid var(--borde);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.tb-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px}
+.content{padding:24px 28px;flex:1}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--blanco);border-radius:var(--r);padding:22px;box-shadow:var(--sh);border:1px solid var(--borde)}
+.ct{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--blanco);border-radius:var(--r);padding:18px 20px;border:1px solid var(--borde)}
+.sl{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px}
+.sv{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;line-height:1}
+.ss{font-size:11.5px;margin-top:5px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:20px}
+.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:9px 13px;font-size:10.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--txt3);border-bottom:1px solid var(--borde);font-weight:500}
+tbody tr{border-bottom:1px solid var(--gris);cursor:pointer;transition:background .1s}
+tbody tr:hover{background:var(--gris)}
+tbody td{padding:11px 13px}
+tbody tr:last-child{border-bottom:none}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.bv{background:var(--amarillo-bg);color:#7a6000}.br{background:var(--verde-bg);color:var(--verde-d)}.bd{background:#f2f2f0;color:var(--txt3)}.bn{background:var(--azul-bg);color:var(--azul)}.bc{background:var(--morado-bg);color:var(--morado)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .13s;font-family:'DM Sans',sans-serif}
+.bp{background:var(--verde);color:white}.bp:hover{background:var(--verde-d)}
+.bs{background:var(--gris);color:var(--txt);border:1px solid var(--borde)}.bs:hover{background:var(--borde)}
+.bsm{padding:5px 11px;font-size:12px}.bw{background:var(--amarillo-bg);color:#7a6000}.be{background:var(--coral-bg);color:var(--coral)}
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:11.5px;font-weight:500;color:var(--txt2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.fi{width:100%;padding:9px 12px;border:1.5px solid var(--borde);border-radius:8px;font-size:13.5px;font-family:'DM Sans',sans-serif;background:var(--blanco);color:var(--txt);outline:none;transition:border .14s}
+.fi:focus{border-color:var(--verde)}.fi::placeholder{color:var(--txt3)}
+select.fi{cursor:pointer}textarea.fi{resize:vertical;min-height:90px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:200;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--blanco);border-radius:18px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:28px 32px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+.mt2{font-family:'Syne',sans-serif;font-size:19px;font-weight:700}
+.mx{width:30px;height:30px;border-radius:50%;background:var(--gris);border:none;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;color:var(--txt2)}
+.mx:hover{background:var(--borde)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--txt);color:white;padding:13px 18px;border-radius:11px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:300;display:none;align-items:center;gap:9px;max-width:300px}
+.toast.show{display:flex}
+.ld{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.segs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.sg{border-radius:var(--r);padding:16px;cursor:pointer;transition:transform .13s;border:2px solid transparent}
+.sg:hover{transform:translateY(-2px)}
+.sg-v{background:var(--amarillo-bg)}.sg-r{background:var(--verde-bg)}.sg-d{background:#f5f5f5}.sg-c{background:var(--morado-bg)}
+.sg-ic{font-size:22px;margin-bottom:6px}.sg-nm{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:3px}
+.sg-cnt{font-size:24px;font-weight:700;font-family:'Syne',sans-serif}.sg-ds{font-size:11px;color:var(--txt2);margin-top:3px}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:white;flex-shrink:0}
+.av-lg{width:58px;height:58px;font-size:20px}
+.wa-bg{background:#e5ddd5;border-radius:10px;padding:18px}
+.wa-msg{background:#dcf8c6;border-radius:8px 8px 8px 2px;padding:11px 14px;font-size:13px;line-height:1.6;max-width:85%;white-space:pre-wrap;color:#1a1a1a}
+.hi{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gris)}
+.hi:last-child{border-bottom:none}.hd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dc{background:var(--verde)}.dk{background:var(--amarillo)}.db{background:var(--morado)}
+.pr{display:flex;align-items:center;gap:12px;background:var(--verde-bg);border-radius:9px;padding:13px 15px;margin-top:10px}
+.pb{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:var(--verde-d)}
+.tabs{display:flex;gap:3px;border-bottom:1.5px solid var(--borde);margin-bottom:18px}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:all .13s}
+.tab:hover{color:var(--txt2)}.tab.active{color:var(--verde);border-bottom-color:var(--verde)}
+.empty{text-align:center;padding:48px 20px;color:var(--txt3)}.ei{font-size:40px;margin-bottom:10px}.et{font-size:15px;font-weight:500;color:var(--txt2);margin-bottom:5px}
+.flex{display:flex}.ic{align-items:center}.sb{justify-content:space-between}.g8{gap:8px}.g10{gap:10px}.g12{gap:12px}
+.tsm{font-size:12.5px}.tm{color:var(--txt3)}.tv{color:var(--verde)}.te{color:var(--coral)}.fw5{font-weight:500}
+.div{border:none;border-top:1px solid var(--borde);margin:18px 0}
+.sw{display:flex;align-items:center;gap:7px;background:var(--gris);border:1.5px solid var(--borde);border-radius:8px;padding:7px 12px}
+.sw input{border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--txt);outline:none;width:200px}
+.sw input::placeholder{color:var(--txt3)}
+</style>
+</head>
+<body>
+
+<div id="cfg-screen">
+  <div class="cfg-card">
+    <div class="cfg-logo">Dopamina</div>
+    <div style="font-size:13px;color:var(--txt3);margin-bottom:22px">Club de Fidelización · Configuración inicial</div>
+    <div class="cfg-note">
+      1. Crea cuenta gratis en <a href="https://supabase.com" target="_blank">supabase.com</a><br>
+      2. Crea un proyecto nuevo<br>
+      3. Ejecuta el archivo <strong>schema.sql</strong> en SQL Editor<br>
+      4. Ve a <strong>Project Settings → API</strong> y copia los datos:
+    </div>
+    <div class="fg"><label class="fl">Supabase Project URL</label><input type="text" class="fi" id="sb-url" placeholder="https://xxxxxxxxxxxx.supabase.co"></div>
+    <div class="fg"><label class="fl">Supabase Anon Key</label><input type="text" class="fi" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></div>
+    <div id="cfg-err" class="te tsm mt8" style="display:none"></div>
+    <button class="btn bp mt8" style="width:100%;justify-content:center" id="btn-conn" onclick="conectar()">Conectar base de datos</button>
+    <div class="div"></div>
+    <div style="font-size:11.5px;color:var(--txt2);margin-bottom:8px">También necesitas ejecutar en Supabase SQL Editor:</div>
+    <button class="btn bs bsm" onclick="dlSchema()">⇩ Descargar schema.sql</button>
+  </div>
+</div>
+
+<nav class="sidebar">
+  <div class="sb-logo"><div class="logo-m">Dopamina</div><div class="logo-s">Club Fidelización</div></div>
+  <div class="sb-nav">
+    <div class="nl">Principal</div>
+    <div class="ni active" onclick="nav('dashboard')"><span class="ni-ic">▦</span>Dashboard</div>
+    <div class="ni" onclick="nav('clientes')"><span class="ni-ic">◎</span>Clientes</div>
+    <div class="ni" onclick="nav('puntos')"><span class="ni-ic">◈</span>Registrar puntos</div>
+    <div class="ni" onclick="nav('campanas')"><span class="ni-ic">◷</span>Campañas WhatsApp</div>
+    <div class="nl">Herramientas</div>
+    <div class="ni" onclick="nav('importar')"><span class="ni-ic">⇪</span>Importar CSV</div>
+    <div class="ni" onclick="nav('qr')"><span class="ni-ic">▣</span>QR de registro</div>
+    <div class="ni" onclick="nav('config')"><span class="ni-ic">◌</span>Configuración</div>
+  </div>
+  <div class="sb-ft"><span class="online-dot"></span>Conectado · Supabase</div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="tb-title" id="tb-title">Dashboard</div>
+    <div class="flex ic g10">
+      <div class="sw"><span style="color:var(--txt3)">⌕</span><input type="text" placeholder="Buscar cliente..." id="sg" oninput="buscGlobal(this.value)"></div>
+      <button class="btn bp" onclick="openM('m-nuevo')">+ Nuevo cliente</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <div class="panel active" id="panel-dashboard">
+      <div class="stats">
+        <div class="stat"><div class="sl">Clientes activos</div><div class="sv" id="st-total">—</div><div class="ss tm" id="st-hoy">cargando...</div></div>
+        <div class="stat"><div class="sl">Puntos emitidos</div><div class="sv" id="st-pts">—</div><div class="ss tv">total acumulado</div></div>
+        <div class="stat"><div class="sl">Cumpleaños mes</div><div class="sv" id="st-cump">—</div><div class="ss" style="color:var(--morado)">enviar campaña</div></div>
+        <div class="stat"><div class="sl">Canjes</div><div class="sv" id="st-can">—</div><div class="ss tm">recompensas usadas</div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="ct">Segmentos</div>
+          <div class="segs">
+            <div class="sg sg-v" onclick="filtSeg('VIP')"><div class="sg-ic">⭐</div><div class="sg-nm">VIP</div><div class="sg-cnt" id="sg-vip">—</div><div class="sg-ds">Top compradores</div></div>
+            <div class="sg sg-r" onclick="filtSeg('Regular')"><div class="sg-ic">◉</div><div class="sg-nm">Regular</div><div class="sg-cnt" id="sg-reg">—</div><div class="sg-ds">Frecuencia media</div></div>
+            <div class="sg sg-d" onclick="filtSeg('Dormido')"><div class="sg-ic">◌</div><div class="sg-nm">Dormido</div><div class="sg-cnt" id="sg-dor">—</div><div class="sg-ds">Sin visitas 30d+</div></div>
+            <div class="sg sg-c" onclick="nav('campanas')"><div class="sg-ic">◆</div><div class="sg-nm">Cumple</div><div class="sg-cnt" id="sg-cum">—</div><div class="sg-ds">Este mes</div></div>
+          </div>
+          <button class="btn bs" style="width:100%" onclick="nav('campanas')">Crear campaña WhatsApp →</button>
+        </div>
+        <div class="card"><div class="ct">Actividad reciente</div><div id="act-list"><div class="tm tsm">Cargando...</div></div></div>
+      </div>
+      <div class="card">
+        <div class="flex sb ic mb16"><div class="ct" style="margin:0">Cumpleaños este mes</div><button class="btn bw bsm" onclick="nav('campanas')">Enviar felicitación WA</button></div>
+        <div id="cump-list"><div class="tm tsm">Cargando...</div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-clientes">
+      <div class="flex sb ic mb16">
+        <div><div class="ct" style="margin:0">Clientes registrados</div><div class="tm tsm mt8" id="cl-cnt">—</div></div>
+        <div class="flex g10">
+          <select class="fi" style="width:auto" id="fil-seg" onchange="renderTbl()">
+            <option value="">Todos</option><option value="VIP">VIP</option><option value="Regular">Regular</option><option value="Dormido">Dormido</option><option value="Nuevo">Nuevo</option>
+          </select>
+          <button class="btn bp" onclick="openM('m-nuevo')">+ Nuevo</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0"><div class="tw"><table>
+        <thead><tr><th>Cliente</th><th>DNI</th><th>Celular</th><th>Puntos</th><th>Segmento</th><th>Última visita</th><th>Acciones</th></tr></thead>
+        <tbody id="tbl"><tr><td colspan="7" style="text-align:center;padding:36px;color:var(--txt3)">Cargando...</td></tr></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="panel" id="panel-puntos">
+      <div class="ct">Registrar venta y asignar puntos</div>
+      <div class="g2">
+        <div class="card">
+          <div class="fg"><label class="fl">Buscar cliente por DNI o nombre</label><input type="text" class="fi" id="pts-q" placeholder="DNI o nombre..." oninput="buscPts(this.value)"></div>
+          <div id="pts-res"></div>
+          <div id="pts-cli" style="display:none">
+            <div class="div"></div>
+            <div class="flex ic g10 mb16" id="pts-cli-info"></div>
+            <div class="fg"><label class="fl">Monto de venta (S/)</label><input type="number" class="fi" id="pts-monto" placeholder="0.00" oninput="calcPts()" min="0" step="0.50"></div>
+            <div class="fg"><label class="fl">Descripción (opcional)</label><input type="text" class="fi" id="pts-desc" placeholder="Waffle proteico + Frappé"></div>
+            <div class="pr" id="pts-prev" style="display:none">
+              <div><div class="tsm tm">Puntos a sumar</div><div class="pb" id="pts-calc">0</div></div>
+              <div style="margin-left:auto"><div class="tsm tm">Nuevo total</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--verde-d)" id="pts-ntot">0</div></div>
+            </div>
+            <button class="btn bp" style="width:100%;justify-content:center;margin-top:14px" id="btn-rpts" onclick="regPts()">Registrar y sumar puntos</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">Reglas de puntos</div><div id="reglas"></div>
+          <div class="div"></div>
+          <div class="ct">Canjear recompensa</div>
+          <div id="canje-sec"><div class="tm tsm">Selecciona un cliente.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-campanas">
+      <div class="ct">Campañas WhatsApp</div>
+      <div class="tabs">
+        <div class="tab active" onclick="setTab(this,'tc-crear')">Crear mensaje</div>
+        <div class="tab" onclick="setTab(this,'tc-hist')">Historial</div>
+      </div>
+      <div id="tc-crear">
+        <div class="g2">
+          <div><div class="card mb20">
+            <div class="fg"><label class="fl">Segmento destino</label>
+              <select class="fi" id="c-seg" onchange="updDest()">
+                <option value="todos">Todos los clientes</option><option value="VIP">VIP</option><option value="Regular">Regulares</option><option value="Dormido">Dormidos</option><option value="Cumpleaños">Cumpleaños este mes</option><option value="Nuevo">Nuevos (7 días)</option>
+              </select>
+              <div class="tsm tm mt8" id="c-dest">— destinatarios</div>
+            </div>
+            <div class="fg"><label class="fl">Tipo de campaña</label>
+              <select class="fi" id="c-tipo" onchange="loadTpl()">
+                <option value="">Personalizado</option><option value="cumple">Felicitación cumpleaños</option><option value="puntos">Notificación puntos</option><option value="promo">Promoción especial</option><option value="reactivar">Reactivar dormido</option><option value="bienvenida">Bienvenida nuevo</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Mensaje · Variables: {nombre} {puntos} {promo}</label><textarea class="fi" id="c-msg" rows="7"></textarea></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn bs" style="flex:1;justify-content:center" onclick="prevCamp()">Vista previa</button>
+              <button class="btn bp" style="flex:1;justify-content:center" onclick="genLinks()">Generar links WA</button>
+            </div>
+          </div></div>
+          <div class="card"><div class="ct">Vista previa</div><div id="c-prev"><div class="empty"><div class="ei">◷</div><div class="et">Sin vista previa</div></div></div></div>
+        </div>
+        <div id="links-sec" style="display:none" class="card">
+          <div class="flex sb ic mb16"><div class="ct" style="margin:0">Links generados</div><span class="tm tsm" id="links-cnt"></span></div>
+          <div id="links-list"></div>
+        </div>
+      </div>
+      <div id="tc-hist" style="display:none"><div id="camp-hist"><div class="empty"><div class="ei">◷</div><div class="et">Sin campañas</div></div></div></div>
+    </div>
+
+    <div class="panel" id="panel-importar">
+      <div class="ct">Importar clientes desde CSV</div>
+      <div class="g2">
+        <div class="card">
+          <div id="drop-area" onclick="document.getElementById('finput').click()"
+            ondragover="event.preventDefault();this.style.background='var(--verde-bg)'"
+            ondragleave="this.style.background=''"
+            ondrop="event.preventDefault();this.style.background='';hFile(event.dataTransfer.files[0])"
+            style="border:2px dashed var(--borde);border-radius:10px;padding:36px;text-align:center;cursor:pointer;transition:all .14s">
+            <div style="font-size:36px;margin-bottom:10px">⇪</div>
+            <div style="font-weight:500;margin-bottom:5px">Arrastra tu CSV aquí</div>
+            <div class="tm tsm">O clic para seleccionar</div>
+          </div>
+          <input type="file" id="finput" accept=".csv" style="display:none" onchange="hFile(this.files[0])">
+          <div class="div"></div>
+          <div class="ct" style="font-size:14px">Formato CSV esperado</div>
+          <div class="tw"><table style="font-size:12px"><thead><tr><th>DNI</th><th>Nombre</th><th>Celular</th><th>Puntos</th><th>Nacimiento</th></tr></thead><tbody><tr><td>12345678</td><td>Ana Torres</td><td>999888777</td><td>150</td><td>1995-03-15</td></tr></tbody></table></div>
+          <button class="btn bs bsm mt12" onclick="dlTpl()">⇩ Descargar plantilla CSV</button>
+        </div>
+        <div class="card">
+          <div class="ct">Vista previa</div>
+          <div id="imp-prev"><div class="empty" style="padding:30px 0"><div class="ei">⇪</div><div class="et">Carga un archivo</div></div></div>
+          <div id="imp-act" style="display:none;margin-top:14px;gap:10px;flex-direction:column">
+            <div id="imp-sum" class="tsm" style="background:var(--verde-bg);padding:11px 14px;border-radius:8px;color:var(--verde-d)"></div>
+            <button class="btn bp" style="justify-content:center" id="btn-imp" onclick="confImp()">Confirmar importación</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-qr">
+      <div class="ct">QR de registro para tu local</div>
+      <div class="g2">
+        <div class="card" style="text-align:center;padding:36px">
+          <div style="font-size:13px;color:var(--txt3);margin-bottom:14px">Código QR del formulario</div>
+          <div style="width:180px;height:180px;border:3px solid var(--txt);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:70px">▣</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:5px">Club Dopamina</div>
+          <div class="tm tsm mb16">Escanea para acumular puntos</div>
+          <div style="background:var(--gris);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--txt2);margin-bottom:14px">Tu URL de Vercel + /registro</div>
+          <button class="btn bp" onclick="showT('✓ Link copiado')">Copiar link</button>
+        </div>
+        <div class="card">
+          <div class="ct">Vista del formulario (cliente)</div>
+          <div style="background:var(--gris);border-radius:10px;padding:22px">
+            <div style="text-align:center;margin-bottom:18px"><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--verde)">Dopamina</div><div style="font-size:12px;color:var(--txt2);margin-top:3px">Únete al Club de Puntos</div></div>
+            <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" placeholder="12345678" maxlength="8"></div>
+            <div class="fg"><label class="fl">Nombre</label><input type="text" class="fi" placeholder="Tu nombre completo"></div>
+            <div class="fg"><label class="fl">Celular WhatsApp</label><input type="tel" class="fi" placeholder="999 888 777"></div>
+            <div class="fg" style="margin-bottom:0"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi"></div>
+          </div>
+          <div class="tm tsm mt12">Datos van directo a Supabase al registrarse.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-config">
+      <div class="ct">Configuración del programa</div>
+      <div class="g2">
+        <div class="card">
+          <div class="ct" style="font-size:15px">Reglas de puntos</div>
+          <div class="fg"><label class="fl">Puntos por cada S/ 1 gastado</label><input type="number" class="fi" id="cfg-sol" value="1" min="0.1" step="0.1"></div>
+          <div class="fg"><label class="fl">Bono cumpleaños (pts)</label><input type="number" class="fi" id="cfg-cump" value="50"></div>
+          <div class="fg"><label class="fl">Bono bienvenida (pts)</label><input type="number" class="fi" id="cfg-bvda" value="20"></div>
+          <div class="div"></div>
+          <div class="ct" style="font-size:15px">Segmentación</div>
+          <div class="fg"><label class="fl">Puntos mínimos para VIP</label><input type="number" class="fi" id="cfg-vip" value="500"></div>
+          <div class="fg"><label class="fl">Días sin visita = Dormido</label><input type="number" class="fi" id="cfg-dorm" value="30"></div>
+          <button class="btn bp mt8" onclick="saveCfg()">Guardar configuración</button>
+        </div>
+        <div class="card">
+          <div class="ct" style="font-size:15px">Recompensas</div>
+          <div id="rw-list"></div>
+          <button class="btn bs bsm mt12" onclick="openM('m-rw')">+ Agregar recompensa</button>
+          <div class="div"></div>
+          <div class="ct" style="font-size:15px">Negocio</div>
+          <div class="fg"><label class="fl">Nombre del local</label><input type="text" class="fi" id="cfg-nom" value="Dopamina"></div>
+          <div class="fg"><label class="fl">WhatsApp del negocio</label><input type="text" class="fi" id="cfg-wa" placeholder="51999888777"></div>
+          <div class="fg"><label class="fl">Ciudad</label><input type="text" class="fi" id="cfg-ciu" value="Miraflores, Lima"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="overlay" id="m-nuevo">
+  <div class="modal">
+    <div class="mh"><div class="mt2">Nuevo cliente</div><button class="mx" onclick="closeM('m-nuevo')">✕</button></div>
+    <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" id="n-dni" placeholder="12345678" maxlength="8"></div>
+    <div class="fg"><label class="fl">Nombre completo *</label><input type="text" class="fi" id="n-nom" placeholder="Nombre y apellido"></div>
+    <div class="fg"><label class="fl">Celular WhatsApp</label><input type="text" class="fi" id="n-cel" placeholder="999888777"></div>
+    <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi" id="n-nac"></div>
+    <div class="fg"><label class="fl">Puntos iniciales</label><input type="number" class="fi" id="n-pts" value="0" min="0"></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-nuevo')">Cancelar</button>
+      <button class="btn bp" style="flex:1;justify-content:center" id="btn-nc" onclick="crearC()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="m-perfil">
+  <div class="modal" style="max-width:560px">
+    <div class="mh"><div class="mt2">Perfil de cliente</div><button class="mx" onclick="closeM('m-perfil')">✕</button></div>
+    <div id="perf-cont"></div>
+  </div>
+</div>
+
+<div class="overlay" id="m-rw">
+  <div class="modal">
+    <div class="mh"><div class="mt2">Nueva recompensa</div><button class="mx" onclick="closeM('m-rw')">✕</button></div>
+    <div class="fg"><label class="fl">Nombre</label><input type="text" class="fi" id="rw-n" placeholder="Waffle gratis"></div>
+    <div class="fg"><label class="fl">Puntos requeridos</label><input type="number" class="fi" id="rw-p" placeholder="200"></div>
+    <div class="fg"><label class="fl">Descripción</label><input type="text" class="fi" id="rw-d" placeholder="1 waffle proteico a elección"></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-rw')">Cancelar</button>
+      <button class="btn bp" style="flex:1;justify-content:center" onclick="crearRw()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="t-ic">✓</span><span id="t-msg"></span></div>
+<script>
+let sb=null,CFG={ptsPorSol:1,ptsCumple:50,ptsBienvenida:20,vipMin:500,dormidoDias:30},cache=[],selId=null,impData=[];
+const COLS=['#3EC97A','#7C5CBF','#F5A623','#FF6B6B','#3B7DD8','#14B8A6','#EC4899','#8B5CF6'];
+const TPLS={
+  cumple:`Hola {nombre} 🎂✨\n\n¡Feliz cumpleaños de parte de Dopamina!\n\nTe regalamos *{promo}* en tu visita de hoy 🌿\n\nAdemás sumamos *50 puntos extra* a tu cuenta.\n\n¡Ven a celebrar!\n*Dopamina · Lima*`,
+  puntos:`Hola {nombre} 👋\n\nTienes *{puntos} puntos* en Dopamina.\n\n🥤 Puedes canjear:\n• Frappé gratis (150 pts)\n• Waffle proteico (200 pts)\n• Descuento 20% (100 pts)\n\n¡Te esperamos!\n*Dopamina*`,
+  promo:`¡Hola {nombre}! 🌿\n\nEsta semana en Dopamina:\n\n*{promo}*\n\nVálido hasta el domingo 🔥\n*Dopamina · Miraflores, Lima*`,
+  reactivar:`Hola {nombre} 👋\n\n¡Te extrañamos en Dopamina!\n\nPor eso: *{promo}* en tu próxima visita 💚\n\n*Dopamina · Bar proteico saludable*`,
+  bienvenida:`¡Hola {nombre}! 👋✨\n\nBienvenido/a al *Club Dopamina* 🌿\n\nYa tienes *{puntos} puntos* en tu cuenta.\n\n¡Gracias por unirte!\n*Dopamina · Lima*`
+};
+
+function g(id){return document.getElementById(id)}
+function gv(id){return g(id)?.value||''}
+function sv(id,v){const e=g(id);if(e)e.value=v}
+function st(id,v){const e=g(id);if(e)e.textContent=v}
+function openM(id){g(id).classList.add('open')}
+function closeM(id){g(id).classList.remove('open')}
+document.querySelectorAll('.overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+let tT;function showT(msg,err){const t=g('toast');st('t-msg',msg);t.style.background=err?'#FF6B6B':'var(--txt)';t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),3500)}
+function inic(n){return(n||'?').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase()}
+function avC(n){return COLS[(n||'').charCodeAt(0)%COLS.length]||COLS[0]}
+function fmtD(iso){if(!iso)return'';return new Date(iso).toLocaleDateString('es-PE',{day:'2-digit',month:'short'})}
+function fmtN(nac){if(!nac)return'';return new Date(nac).toLocaleDateString('es-PE',{day:'2-digit',month:'long'})}
+function seg(c){const h=new Date();if((c.puntos||0)>=CFG.vipMin)return'VIP';if(c.ultima_visita&&Math.floor((h-new Date(c.ultima_visita))/86400000)>=CFG.dormidoDias)return'Dormido';if(c.creado_en&&Math.floor((h-new Date(c.creado_en))/86400000)<=7)return'Nuevo';return'Regular'}
+function esCump(nac){if(!nac)return false;return new Date(nac).getMonth()===new Date().getMonth()}
+function bCls(s){return s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn'}
+function bdLoad(id,on){const b=g(id);if(!b)return;b.disabled=on;if(on){b._o=b.innerHTML;b.innerHTML='<span class="ld"></span> Procesando...'}else b.innerHTML=b._o||b.innerHTML}
+
+async function conectar(){
+  const url=gv('sb-url').trim(),key=gv('sb-key').trim();
+  if(!url||!key){g('cfg-err').textContent='Ingresa URL y Key';g('cfg-err').style.display='block';return}
+  bdLoad('btn-conn',true);
+  try{
+    sb=supabase.createClient(url,key);
+    const{error}=await sb.from('clientes').select('id').limit(1);
+    if(error)throw error;
+    localStorage.setItem('dp_sb',JSON.stringify({url,key}));
+    g('cfg-screen').style.display='none';
+    await initApp();
+  }catch(e){g('cfg-err').textContent='Error de conexión: '+(e.message.includes('relation')?'Ejecuta el schema.sql primero':e.message);g('cfg-err').style.display='block';bdLoad('btn-conn',false)}
+}
+
+window.addEventListener('load',async()=>{
+  const c=localStorage.getItem('dp_sb');
+  if(c){try{const{url,key}=JSON.parse(c);sv('sb-url',url);sv('sb-key',key);sb=supabase.createClient(url,key);const{error}=await sb.from('clientes').select('id').limit(1);if(!error){g('cfg-screen').style.display='none';await initApp();return}}catch{}}
+});
+
+async function initApp(){
+  await loadCfg();await renderDash();await renderTbl();renderReg();await renderRws();updDest()
+}
+
+async function loadCfg(){
+  try{const{data}=await sb.from('configuracion').select('*');if(data){const m=Object.fromEntries(data.map(r=>[r.clave,r.valor]));
+    CFG.ptsPorSol=parseFloat(m.pts_por_sol||'1');CFG.ptsCumple=parseInt(m.pts_cumple||'50');
+    CFG.ptsBienvenida=parseInt(m.pts_bienvenida||'20');CFG.vipMin=parseInt(m.vip_min||'500');CFG.dormidoDias=parseInt(m.dormido_dias||'30');
+    sv('cfg-sol',CFG.ptsPorSol);sv('cfg-cump',CFG.ptsCumple);sv('cfg-bvda',CFG.ptsBienvenida);
+    sv('cfg-vip',CFG.vipMin);sv('cfg-dorm',CFG.dormidoDias);
+    sv('cfg-nom',m.nombre_local||'Dopamina');sv('cfg-wa',m.whatsapp_local||'');sv('cfg-ciu',m.ciudad||'Miraflores, Lima');
+  }}catch{}
+}
+
+async function saveCfg(){
+  const vals=[['pts_por_sol',gv('cfg-sol')],['pts_cumple',gv('cfg-cump')],['pts_bienvenida',gv('cfg-bvda')],['vip_min',gv('cfg-vip')],['dormido_dias',gv('cfg-dorm')],['nombre_local',gv('cfg-nom')],['whatsapp_local',gv('cfg-wa')],['ciudad',gv('cfg-ciu')]];
+  for(const[clave,valor]of vals)await sb.from('configuracion').upsert({clave,valor},{onConflict:'clave'});
+  await loadCfg();showT('✓ Configuración guardada')
+}
+
+async function renderDash(){
+  try{
+    const{data}=await sb.from('clientes').select('*');cache=data||[];
+    const hoy=new Date();
+    st('st-total',cache.length);
+    st('st-pts',cache.reduce((s,c)=>s+(c.puntos||0),0).toLocaleString());
+    const cump=cache.filter(c=>esCump(c.nacimiento));st('st-cump',cump.length);
+    const{count}=await sb.from('historial').select('*',{count:'exact',head:true}).eq('tipo','canje');st('st-can',count||0);
+    const nHoy=cache.filter(c=>c.creado_en&&new Date(c.creado_en).toDateString()===hoy.toDateString()).length;
+    st('st-hoy','↑ '+nHoy+' registrados hoy');
+    const s={VIP:0,Regular:0,Dormido:0};cache.forEach(c=>{const x=seg(c);if(s[x]!==undefined)s[x]++});
+    st('sg-vip',s.VIP);st('sg-reg',s.Regular);st('sg-dor',s.Dormido);st('sg-cum',cump.length);
+    const{data:hist}=await sb.from('historial').select('*,clientes(nombre)').order('creado_en',{ascending:false}).limit(8);
+    const al=g('act-list');
+    if(!hist||!hist.length){al.innerHTML='<div class="empty" style="padding:24px 0"><div class="ei">◎</div><div class="et">Sin actividad</div></div>'}
+    else{al.innerHTML=hist.map(h=>`<div class="hi"><div class="hd ${h.tipo==='compra'?'dc':h.tipo==='canje'?'dk':'db'}"></div><div style="flex:1"><div style="font-size:13px;font-weight:500">${h.clientes?.nombre||'Cliente'}</div><div class="tm tsm">${h.descripcion}</div></div><div class="tm tsm">${fmtD(h.creado_en)}</div></div>`).join('')}
+    const cl=g('cump-list');
+    if(!cump.length){cl.innerHTML='<div class="tm tsm">No hay cumpleaños este mes.</div>'}
+    else{cl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:8px">'+cump.map(c=>`<div style="background:var(--morado-bg);padding:7px 12px;border-radius:8px;font-size:13px"><span style="color:var(--morado)">◆ </span><strong>${c.nombre}</strong><span class="tm" style="margin-left:7px">${fmtN(c.nacimiento)}</span></div>`).join('')+'</div>'}
+  }catch(e){console.error(e)}
+}
+
+async function renderTbl(sf){
+  const f=sf||gv('fil-seg');
+  try{const{data}=await sb.from('clientes').select('*').order('creado_en',{ascending:false});cache=data||[];
+    let l=cache;if(f)l=l.filter(c=>seg(c)===f);
+    st('cl-cnt',l.length+' cliente'+(l.length!==1?'s':''));
+    const tb=g('tbl');
+    if(!l.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--txt3)">No hay clientes.</td></tr>';return}
+    tb.innerHTML=l.map(c=>{const s=seg(c),cm=esCump(c.nacimiento)?` <span class="badge bc" style="font-size:10px">Cumple</span>`:'';
+      return`<tr onclick="verPerf(${c.id})"><td><div class="flex ic g10"><div class="av" style="background:${avC(c.nombre)}">${inic(c.nombre)}</div><div><div class="fw5">${c.nombre}</div>${cm}</div></div></td><td style="font-family:monospace">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong> pts</td><td><span class="badge ${bCls(s)}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'Sin visitas'}</td><td><div class="flex g8" onclick="event.stopPropagation()"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button><button class="btn bs bsm" onclick="envWA(${c.id})">WA</button></div></td></tr>`
+    }).join('')
+  }catch(e){console.error(e)}
+}
+
+async function crearC(){
+  const nom=gv('n-nom').trim();if(!nom){showT('⚠ Ingresa el nombre',true);return}
+  const dni=gv('n-dni'),cel=gv('n-cel'),nac=gv('n-nac'),pts=parseInt(gv('n-pts'))||0;
+  bdLoad('btn-nc',true);
+  try{const ptsTot=pts+CFG.ptsBienvenida;
+    const{data,error}=await sb.from('clientes').insert({dni:dni||null,nombre:nom,celular:cel||null,nacimiento:nac||null,puntos:ptsTot}).select().single();
+    if(error)throw error;
+    if(ptsTot>0)await sb.from('historial').insert({cliente_id:data.id,tipo:'bono',descripcion:`Bienvenida: +${ptsTot} pts`,puntos:ptsTot});
+    closeM('m-nuevo');['n-dni','n-nom','n-cel','n-nac'].forEach(id=>sv(id,''));sv('n-pts','0');
+    showT(`✓ ${nom} registrado con ${ptsTot} pts`);await renderDash();await renderTbl()
+  }catch(e){showT('⚠ '+(e.message.includes('duplicate')?'DNI ya registrado':e.message),true)}
+  bdLoad('btn-nc',false)
+}
+
+async function verPerf(id){
+  const c=cache.find(x=>x.id===id);if(!c)return;
+  const s=seg(c);
+  const{data:hist}=await sb.from('historial').select('*').eq('cliente_id',id).order('creado_en',{ascending:false}).limit(10);
+  const{data:rws}=await sb.from('recompensas').select('*').eq('activo',true).lte('puntos',c.puntos||0);
+  g('perf-cont').innerHTML=`
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px">
+      <div class="av av-lg" style="background:${avC(c.nombre)}">${inic(c.nombre)}</div>
+      <div style="flex:1"><div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:700">${c.nombre}</div>
+        <div class="tm tsm mb16">DNI: ${c.dni||'—'} · ${c.celular||'—'}</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap"><span class="badge ${bCls(s)}">${s}</span>${esCump(c.nacimiento)?'<span class="badge bc">Cumpleaños este mes</span>':''}</div>
+      </div>
+      <div style="text-align:right"><div class="tm tsm">Puntos</div><div style="font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--verde)">${(c.puntos||0).toLocaleString()}</div></div>
+    </div>
+    ${rws&&rws.length?`<div style="background:var(--verde-bg);border-radius:9px;padding:12px 14px;margin-bottom:16px"><div class="tsm" style="text-transform:uppercase;letter-spacing:.8px;color:var(--verde-d);margin-bottom:8px">Recompensas disponibles</div><div style="display:flex;flex-wrap:wrap;gap:7px">${rws.map(r=>`<button class="btn bsm" style="background:white;border:1px solid var(--verde);color:var(--verde-d)" onclick="canjeM(${c.id},${r.id},'${r.nombre}',${r.puntos})">${r.nombre} (${r.puntos} pts)</button>`).join('')}</div></div>`:''}
+    <div class="ct" style="font-size:14px">Historial</div>
+    ${!hist||!hist.length?'<div class="tm tsm">Sin actividad.</div>':hist.map(h=>`<div class="hi"><div class="hd ${h.tipo==='compra'?'dc':h.tipo==='canje'?'dk':'db'}"></div><div style="flex:1;font-size:13px">${h.descripcion}</div><div class="tm tsm">${fmtD(h.creado_en)}</div></div>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button class="btn bp bsm" onclick="closeM('m-perfil');nav('puntos');setTimeout(()=>{sv('pts-q','${c.nombre}');buscPts('${c.nombre}')},100)">+ Puntos</button>
+      <button class="btn bs bsm" onclick="envWA(${c.id})">WhatsApp</button>
+      <button class="btn be bsm" onclick="elimC(${c.id})">Eliminar</button>
+    </div>`;
+  openM('m-perfil')
+}
+
+async function elimC(id){if(!confirm('¿Eliminar cliente?'))return;await sb.from('clientes').delete().eq('id',id);closeM('m-perfil');showT('✓ Eliminado');await renderDash();await renderTbl()}
+async function canjeM(cId,rwId,nom,pts){const c=cache.find(x=>x.id===cId);if(!c||(c.puntos||0)<pts){showT('⚠ Puntos insuficientes',true);return}await sb.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await sb.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:`Canje: ${nom} (-${pts} pts)`,puntos:-pts});showT('✓ Canje: '+nom);await renderTbl();await verPerf(cId)}
+function filtSeg(s){nav('clientes');sv('fil-seg',s);renderTbl(s)}
+function envWA(id){const c=cache.find(x=>x.id===id);if(!c||!c.celular){showT('⚠ Sin celular registrado',true);return}const msg=encodeURIComponent(`Hola ${c.nombre}! Te escribimos desde Dopamina 🌿\nTienes ${c.puntos||0} puntos acumulados. ¡Gracias por ser parte del club!`);const num=(c.celular||'').replace(/\D/g,'');window.open('https://wa.me/'+(num.startsWith('51')?num:'51'+num)+'?text='+msg,'_blank')}
+
+async function buscPts(q){g('pts-cli').style.display='none';selId=null;const r=g('pts-res');if(!q||q.length<2){r.innerHTML='';return}const f=cache.filter(c=>c.nombre.toLowerCase().includes(q.toLowerCase())||(c.dni&&c.dni.includes(q))).slice(0,5);if(!f.length){r.innerHTML='<div class="tm tsm" style="padding:8px 0">Sin resultados.</div>';return}r.innerHTML=f.map(c=>`<div onclick="selPts(${c.id})" class="flex ic g10" style="padding:9px;border-radius:8px;cursor:pointer;border:1px solid var(--borde);margin-bottom:6px;transition:background .1s" onmouseover="this.style.background='var(--gris)'" onmouseout="this.style.background=''"><div class="av" style="background:${avC(c.nombre)}">${inic(c.nombre)}</div><div><div class="fw5">${c.nombre}</div><div class="tm tsm">DNI: ${c.dni||'—'} · ${c.puntos||0} pts</div></div></div>`).join('')}
+
+async function selPts(id){const c=cache.find(x=>x.id===id);if(!c)return;selId=id;g('pts-res').innerHTML='';sv('pts-q',c.nombre);g('pts-cli-info').innerHTML=`<div class="av" style="background:${avC(c.nombre)}">${inic(c.nombre)}</div><div><div class="fw5">${c.nombre}</div><div class="tm tsm">${c.puntos||0} puntos actuales</div></div>`;g('pts-cli').style.display='block';sv('pts-monto','');g('pts-prev').style.display='none';
+  const{data:rws}=await sb.from('recompensas').select('*').eq('activo',true).lte('puntos',c.puntos||0);
+  const cs=g('canje-sec');if(rws&&rws.length){cs.innerHTML=rws.map(r=>`<div class="flex sb ic" style="padding:9px 0;border-bottom:1px solid var(--gris)"><div><div style="font-size:13px;font-weight:500">${r.nombre}</div><div class="tm tsm">${r.descripcion}</div></div><button class="btn bw bsm" onclick="canje(${c.id},${r.id},'${r.nombre}',${r.puntos})">${r.puntos} pts</button></div>`).join('')}else{cs.innerHTML=`<div class="tm tsm">${c.nombre} no tiene suficientes puntos.</div>`}
+}
+
+function calcPts(){if(!selId)return;const c=cache.find(x=>x.id===selId);const m=parseFloat(gv('pts-monto'))||0;const p=Math.floor(m*CFG.ptsPorSol);const pr=g('pts-prev');if(m>0){pr.style.display='flex';st('pts-calc','+'+p);st('pts-ntot',((c.puntos||0)+p).toLocaleString()+' pts')}else pr.style.display='none'}
+
+async function regPts(){if(!selId)return;const m=parseFloat(gv('pts-monto'))||0;if(m<=0){showT('⚠ Ingresa monto',true);return}const p=Math.floor(m*CFG.ptsPorSol);const d=gv('pts-desc')||`Compra S/ ${m.toFixed(2)}`;const c=cache.find(x=>x.id===selId);bdLoad('btn-rpts',true);
+  try{await sb.from('clientes').update({puntos:(c.puntos||0)+p,ultima_visita:new Date().toISOString()}).eq('id',selId);await sb.from('historial').insert({cliente_id:selId,tipo:'compra',descripcion:`${d} · +${p} pts`,puntos:p,monto:m});showT(`✓ +${p} puntos para ${c.nombre}`);sv('pts-monto','');sv('pts-desc','');g('pts-prev').style.display='none';await renderTbl();await selPts(selId)}
+  catch(e){showT('⚠ Error: '+e.message,true)}bdLoad('btn-rpts',false)
+}
+
+async function canje(cId,rwId,nom,pts){const c=cache.find(x=>x.id===cId);if(!c||(c.puntos||0)<pts){showT('⚠ Puntos insuficientes',true);return}await sb.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await sb.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:`Canje: ${nom} (-${pts} pts)`,puntos:-pts});showT('✓ Canje: '+nom);await renderTbl();await selPts(cId)}
+
+function renderReg(){const e=g('reglas');if(!e)return;e.innerHTML=`<div style="display:grid;gap:0"><div class="flex sb" style="padding:9px 0;border-bottom:1px solid var(--gris)"><span class="tm">Por cada S/ 1</span><strong>${CFG.ptsPorSol} pto${CFG.ptsPorSol!==1?'s':''}</strong></div><div class="flex sb" style="padding:9px 0;border-bottom:1px solid var(--gris)"><span class="tm">Bono bienvenida</span><strong>+${CFG.ptsBienvenida} pts</strong></div><div class="flex sb" style="padding:9px 0"><span class="tm">Bono cumpleaños</span><strong>+${CFG.ptsCumple} pts</strong></div></div>`}
+
+async function renderRws(){const{data}=await sb.from('recompensas').select('*').eq('activo',true);const e=g('rw-list');if(!e)return;e.innerHTML=(data||[]).map(r=>`<div class="flex sb ic" style="padding:9px 0;border-bottom:1px solid var(--gris)"><div><div style="font-size:13px;font-weight:500">${r.nombre}</div><div class="tm tsm">${r.descripcion}</div></div><div class="flex ic g10"><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--verde)">${r.puntos} pts</span><button class="btn be bsm" onclick="elimRw(${r.id})">✕</button></div></div>`).join('')}
+async function crearRw(){const n=gv('rw-n').trim(),p=parseInt(gv('rw-p'))||0,d=gv('rw-d').trim();if(!n||!p){showT('⚠ Completa nombre y puntos',true);return}await sb.from('recompensas').insert({nombre:n,puntos:p,descripcion:d});closeM('m-rw');await renderRws();showT('✓ Recompensa agregada')}
+async function elimRw(id){await sb.from('recompensas').update({activo:false}).eq('id',id);await renderRws()}
+
+function getSC(s){let l=cache;const h=new Date();if(s==='todos')return l;if(s==='Cumpleaños')return l.filter(c=>esCump(c.nacimiento));if(s==='Nuevo')return l.filter(c=>c.creado_en&&(h-new Date(c.creado_en))/86400000<=7);return l.filter(c=>seg(c)===s)}
+function updDest(){const s=gv('c-seg');st('c-dest',getSC(s).length+' destinatario'+(getSC(s).length!==1?'s':''))}
+function loadTpl(){const t=gv('c-tipo');if(t&&TPLS[t])sv('c-msg',TPLS[t])}
+function prevCamp(){const s=gv('c-seg'),l=getSC(s),ej=l[0]||{nombre:'Ana Torres',puntos:150};let msg=gv('c-msg').replace(/{nombre}/g,ej.nombre||'Cliente').replace(/{puntos}/g,ej.puntos||0).replace(/{promo}/g,'20% de descuento en tu próxima visita');g('c-prev').innerHTML=`<div class="wa-bg"><div class="wa-msg">${msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>')}</div><div style="font-size:10px;color:#888;text-align:right;margin-top:3px">Ahora · Dopamina</div></div><div class="tm tsm mt8">Con datos de "${ej.nombre}"</div>`}
+
+async function genLinks(){const s=gv('c-seg'),base=gv('c-msg');let lista=getSC(s).filter(c=>c.celular);if(!lista.length){showT('⚠ Sin clientes con celular',true);return}
+  const lks=lista.map(c=>{let msg=base.replace(/{nombre}/g,c.nombre||'Cliente').replace(/{puntos}/g,c.puntos||0).replace(/{promo}/g,'20% de descuento');const n=(c.celular||'').replace(/\D/g,'');return{c,url:'https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+encodeURIComponent(msg)}});
+  st('links-cnt',lks.length+' mensajes');g('links-list').innerHTML=lks.map(l=>`<div class="flex ic g10" style="padding:9px 0;border-bottom:1px solid var(--gris)"><div class="av" style="background:${avC(l.c.nombre)};width:30px;height:30px;font-size:11px">${inic(l.c.nombre)}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${l.c.nombre}</div><div class="tm tsm">${l.c.celular}</div></div><a href="${l.url}" target="_blank" class="btn bp bsm" style="text-decoration:none">Enviar WA</a></div>`).join('');
+  await sb.from('campanas').insert({segmento:s,tipo:gv('c-tipo')||'personalizado',enviados:lks.length,mensaje:base});
+  g('links-sec').style.display='block';showT('✓ '+lks.length+' links generados')}
+
+async function renderCampH(){const{data}=await sb.from('campanas').select('*').order('creado_en',{ascending:false}).limit(20);const e=g('camp-hist');if(!data||!data.length){e.innerHTML='<div class="empty"><div class="ei">◷</div><div class="et">Sin campañas</div></div>';return}e.innerHTML=data.map(c=>`<div class="card mb16"><div class="flex sb ic mb12"><div style="font-family:'Syne',sans-serif;font-weight:700">${c.tipo} · ${c.segmento}</div><span class="tm tsm">${fmtD(c.creado_en)}</span></div><div class="tm tsm">${c.enviados} mensajes enviados</div></div>`).join('')}
+
+function hFile(f){if(!f)return;const r=new FileReader();r.onload=e=>{const ls=e.target.result.split('\n').filter(l=>l.trim());if(ls.length<2){showT('⚠ Archivo vacío',true);return}const h=ls[0].split(',').map(x=>x.trim().replace(/['"]/g,'').toLowerCase());impData=[];for(let i=1;i<ls.length;i++){const c=ls[i].split(',').map(x=>x.trim().replace(/['"]/g,''));const o=Object.fromEntries(h.map((hh,j)=>[hh,c[j]||'']));const row={dni:o.dni||'',nombre:o.nombre||o['nombre completo']||'',celular:o.celular||o.whatsapp||'',puntos:parseInt(o.puntos||'0')||0,nacimiento:o.nacimiento||o['fecha de nacimiento']||null};if(row.nombre)impData.push(row)}g('imp-prev').innerHTML=`<div class="tw" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>Nombre</th><th>DNI</th><th>Celular</th><th>Pts</th></tr></thead><tbody>${impData.slice(0,20).map(r=>`<tr><td>${r.nombre}</td><td>${r.dni||'—'}</td><td>${r.celular||'—'}</td><td>${r.puntos}</td></tr>`).join('')}</tbody></table></div>`;g('imp-sum').textContent=`${impData.length} clientes detectados`;g('imp-act').style.display='flex'};r.readAsText(f)}
+
+async function confImp(){if(!impData.length)return;bdLoad('btn-imp',true);let nv=0,act=0;for(const row of impData){if(row.dni){const{data:ex}=await sb.from('clientes').select('id,puntos').eq('dni',row.dni).single();if(ex){await sb.from('clientes').update({puntos:(ex.puntos||0)+row.puntos}).eq('id',ex.id);act++;continue}}await sb.from('clientes').insert({...row,dni:row.dni||null,nacimiento:row.nacimiento||null});nv++}impData=[];g('imp-prev').innerHTML='<div class="empty" style="padding:30px 0"><div class="ei">✓</div><div class="et">Importación completada</div></div>';g('imp-act').style.display='none';showT(`✓ ${nv} nuevos · ${act} actualizados`);await renderDash();await renderTbl();bdLoad('btn-imp',false)}
+function dlTpl(){const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob(['DNI,Nombre,Celular,Puntos,Nacimiento\n12345678,Ana Torres,999888777,150,1995-03-15\n87654321,Carlos Ríos,988777666,80,1990-07-22'],{type:'text/csv'})),download:'plantilla_dopamina.csv'});a.click()}
+
+function dlSchema(){
+  const sql=`-- DOPAMINA LOYALTY SYSTEM - Supabase Schema\nCREATE TABLE clientes (id BIGSERIAL PRIMARY KEY, dni TEXT UNIQUE, nombre TEXT NOT NULL, celular TEXT, nacimiento DATE, puntos INTEGER DEFAULT 0, ultima_visita TIMESTAMPTZ, creado_en TIMESTAMPTZ DEFAULT NOW());\nCREATE TABLE historial (id BIGSERIAL PRIMARY KEY, cliente_id BIGINT REFERENCES clientes(id) ON DELETE CASCADE, tipo TEXT NOT NULL CHECK (tipo IN ('compra','canje','bono')), descripcion TEXT, puntos INTEGER, monto NUMERIC(10,2), creado_en TIMESTAMPTZ DEFAULT NOW());\nCREATE TABLE recompensas (id BIGSERIAL PRIMARY KEY, nombre TEXT NOT NULL, puntos INTEGER NOT NULL, descripcion TEXT, activo BOOLEAN DEFAULT TRUE);\nCREATE TABLE campanas (id BIGSERIAL PRIMARY KEY, segmento TEXT, tipo TEXT, mensaje TEXT, enviados INTEGER DEFAULT 0, creado_en TIMESTAMPTZ DEFAULT NOW());\nCREATE TABLE configuracion (clave TEXT PRIMARY KEY, valor TEXT);\nINSERT INTO recompensas (nombre, puntos, descripcion) VALUES ('Frappe gratis', 150, '1 frappe a eleccion'), ('Waffle proteico', 200, '1 waffle proteico a eleccion'), ('Descuento 20%', 100, '20% off en tu proxima compra');\nINSERT INTO configuracion (clave, valor) VALUES ('pts_por_sol','1'),('pts_cumple','50'),('pts_bienvenida','20'),('vip_min','500'),('dormido_dias','30'),('nombre_local','Dopamina'),('whatsapp_local',''),('ciudad','Miraflores, Lima');\nALTER TABLE clientes ENABLE ROW LEVEL SECURITY;\nALTER TABLE historial ENABLE ROW LEVEL SECURITY;\nALTER TABLE recompensas ENABLE ROW LEVEL SECURITY;\nALTER TABLE campanas ENABLE ROW LEVEL SECURITY;\nALTER TABLE configuracion ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "allow_all_clientes" ON clientes FOR ALL USING (true) WITH CHECK (true);\nCREATE POLICY "allow_all_historial" ON historial FOR ALL USING (true) WITH CHECK (true);\nCREATE POLICY "allow_all_recompensas" ON recompensas FOR ALL USING (true) WITH CHECK (true);\nCREATE POLICY "allow_all_campanas" ON campanas FOR ALL USING (true) WITH CHECK (true);\nCREATE POLICY "allow_all_configuracion" ON configuracion FOR ALL USING (true) WITH CHECK (true);`;
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([sql],{type:'text/plain'})),download:'schema.sql'});a.click()
+}
+
+function buscGlobal(q){if(!q||q.length<2)return;nav('clientes');const f=cache.filter(c=>c.nombre.toLowerCase().includes(q.toLowerCase())||(c.dni&&c.dni.includes(q)));const tb=g('tbl');if(!f.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--txt3)">Sin resultados</td></tr>`;return}const tmp=cache;cache=f;renderTbl();cache=tmp}
+
+function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));g('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',qr:'QR de registro',config:'Configuración'};st('tb-title',T[p]||p);document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active')});if(p==='dashboard')renderDash();if(p==='clientes')renderTbl();if(p==='config'){renderRws();loadCfg()}if(p==='puntos')renderReg();if(p==='campanas')updDest()}
+
+function setTab(el,id){['tc-crear','tc-hist'].forEach(t=>{const e=g(t);if(e)e.style.display='none'});document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));g(id).style.display='block';el.classList.add('active');if(id==='tc-hist')renderCampH()}
+</script>
+</body>
+</html>
