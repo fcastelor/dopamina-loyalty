@@ -360,11 +360,28 @@ textarea.fi{resize:vertical;min-height:78px}
 </div></div>
 
 <div class="mo" id="m-nc"><div class="mc"><div class="mh"><div class="mt">Nuevo cliente</div><button class="mx" onclick="closeM('m-nc')">✕</button></div>
-  <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" id="nc-dni" placeholder="12345678" maxlength="8"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+    <div class="fg"><label class="fl">Nro. Tarjeta Dopi</label><input type="text" class="fi" id="nc-trd" placeholder="DOPI-0001"></div>
+    <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" id="nc-dni" placeholder="12345678" maxlength="8"></div>
+  </div>
   <div class="fg"><label class="fl">Nombre *</label><input type="text" class="fi" id="nc-nm" placeholder="Nombre y apellido"></div>
-  <div class="fg"><label class="fl">Celular WhatsApp</label><input type="text" class="fi" id="nc-cel" placeholder="999888777"></div>
-  <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi" id="nc-nac"></div>
-  <div class="fg"><label class="fl">Puntos iniciales</label><input type="number" class="fi" id="nc-pts" value="0" min="0"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+    <div class="fg"><label class="fl">Celular WhatsApp</label><input type="text" class="fi" id="nc-cel" placeholder="999888777"></div>
+    <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi" id="nc-nac"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+    <div class="fg"><label class="fl">Tipo</label>
+      <select class="fi" id="nc-tipo">
+        <option value="cliente">Cliente</option>
+        <option value="embajador">Embajador</option>
+        <option value="fitclub">FitClub</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Puntos iniciales</label><input type="number" class="fi" id="nc-pts" value="0" min="0"></div>
+  </div>
+  <div class="fg"><label class="fl">Alianza (código de descuento)</label><input type="text" class="fi" id="nc-ali" placeholder="PARTNER20"></div>
+  <div class="fg"><label class="fl">Etiquetas (separadas por coma)</label><input type="text" class="fi" id="nc-etq" placeholder="vip, referido, online"></div>
+  <div class="fg"><label class="fl">Comentarios</label><textarea class="fi" id="nc-com" rows="2" placeholder="Notas adicionales..." style="resize:vertical"></textarea></div>
   <div style="display:flex;gap:7px"><button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-nc')">Cancelar</button><button class="btn bp" style="flex:1;justify-content:center" onclick="crearCliente()">Registrar</button></div>
 </div></div>
 
@@ -628,17 +645,31 @@ async function loadCL(){
   document.getElementById('cl-c').textContent=cl.length+' cliente'+(cl.length!==1?'s':'');
   const tb=document.getElementById('tbl-cl');
   if(!cl.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--t3)">Sin clientes</td></tr>';showLo(false);return;}
-  tb.innerHTML=cl.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';const ck=isCumple(c.nacimiento)?'<span class="bg bc" style="font-size:10px;margin-left:3px">cumple</span>':'';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="font-weight:500">${c.nombre}${ck}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><div style="display:flex;gap:4px"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button><button class="btn bs bsm" onclick="waC(${c.id})">WA</button></div></td></tr>`;}).join('');
+  tb.innerHTML=cl.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';const ck=isCumple(c.nacimiento)?'<span class="bg bc" style="font-size:10px;margin-left:3px">cumple</span>':'';const tipoBadge=c.tipo&&c.tipo!=='cliente'?`<span class="bg" style="background:#f0ebfa;color:#7C5CBF;font-size:10px;margin-left:3px">${c.tipo}</span>`:'';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div><div style="font-weight:500">${c.nombre}${ck}${tipoBadge}</div>${c.nro_tarjeta?`<div style="font-size:10px;color:var(--t3)">${c.nro_tarjeta}</div>`:''}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><div style="display:flex;gap:4px"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button><button class="btn bs bsm" onclick="waC(${c.id})">WA</button></div></td></tr>`;}).join('');
   showLo(false);
 }
 
 async function crearCliente(){
   const nm=document.getElementById('nc-nm').value.trim();if(!nm){toast2('⚠ Nombre obligatorio',true);return;}
   const pts=(parseInt(document.getElementById('nc-pts').value)||0)+(CFG.pts_bienvenida||20);
-  showLo(true);const{data,error}=await SB.from('clientes').insert({dni:document.getElementById('nc-dni').value.trim()||null,nombre:nm,celular:document.getElementById('nc-cel').value.trim()||null,nacimiento:document.getElementById('nc-nac').value||null,puntos:pts,created_at:new Date().toISOString()}).select().single();
+  const etqRaw=document.getElementById('nc-etq').value.trim();
+  const etiquetas=etqRaw?etqRaw.split(',').map(e=>e.trim()).filter(Boolean):null;
+  showLo(true);const{data,error}=await SB.from('clientes').insert({
+    nro_tarjeta:document.getElementById('nc-trd').value.trim()||null,
+    dni:document.getElementById('nc-dni').value.trim()||null,
+    nombre:nm,
+    celular:document.getElementById('nc-cel').value.trim()||null,
+    nacimiento:document.getElementById('nc-nac').value||null,
+    tipo:document.getElementById('nc-tipo').value||'cliente',
+    alianza:document.getElementById('nc-ali').value.trim()||null,
+    etiquetas:etiquetas,
+    comentarios:document.getElementById('nc-com').value.trim()||null,
+    puntos:pts,
+    created_at:new Date().toISOString()
+  }).select().single();
   if(error){showLo(false);toast2('⚠ '+(error.message.includes('unique')?'DNI ya registrado':error.message),true);return;}
   if(pts>0)await SB.from('historial').insert({cliente_id:data.id,tipo:'bono',descripcion:'Bono bienvenida: +'+pts+'pts',puntos:pts});
-  showLo(false);closeM('m-nc');['nc-dni','nc-nm','nc-cel'].forEach(id=>document.getElementById(id).value='');document.getElementById('nc-nac').value='';document.getElementById('nc-pts').value='0';
+  showLo(false);closeM('m-nc');['nc-trd','nc-dni','nc-nm','nc-cel','nc-ali','nc-etq','nc-com'].forEach(id=>document.getElementById(id).value='');document.getElementById('nc-nac').value='';document.getElementById('nc-pts').value='0';document.getElementById('nc-tipo').value='cliente';
   toast2('✓ '+nm+' registrado con '+pts+' pts');ldDash();if(document.getElementById('panel-clientes').classList.contains('active'))loadCL();
 }
 
@@ -647,7 +678,31 @@ async function verPerf(id){
   showLo(false);if(!c)return;
   const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';
   const dsp=(rw||[]).filter(r=>r.puntos_requeridos<=(c.puntos||0));
-  document.getElementById('pf-cont').innerHTML=`<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px"><div class="avl" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="flex:1"><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">${c.nombre}</div><div class="tm tsm" style="margin:3px 0 7px">DNI: ${c.dni||'—'} · ${c.celular||'—'}</div><span class="bg ${bc}">${s}</span>${isCumple(c.nacimiento)?'<span class="bg bc" style="margin-left:5px">cumpleaños este mes</span>':''}</div><div style="text-align:right"><div class="tm tsm">Puntos</div><div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--g)">${(c.puntos||0).toLocaleString()}</div></div></div>
+  document.getElementById('pf-cont').innerHTML=`
+<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px">
+  <div class="avl" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div>
+  <div style="flex:1">
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">${c.nombre}</div>
+    <div class="tm tsm" style="margin:3px 0 5px">DNI: ${c.dni||'—'} · ${c.celular||'—'}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+      <span class="bg ${bc}">${s}</span>
+      ${c.tipo&&c.tipo!=='cliente'?`<span class="bg" style="background:#f0ebfa;color:#7C5CBF">${c.tipo}</span>`:''}
+      ${isCumple(c.nacimiento)?'<span class="bg bc">cumpleaños este mes</span>':''}
+      ${(c.etiquetas||[]).map(e=>`<span class="bg" style="background:#f4f4f0;color:#5a5a52;font-size:10px">${e}</span>`).join('')}
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div class="tm tsm">Puntos</div>
+    <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--g)">${(c.puntos||0).toLocaleString()}</div>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;background:var(--gr);border-radius:9px;padding:11px 13px;margin-bottom:14px;font-size:12.5px">
+  ${c.nro_tarjeta?`<div><span class="tm tsm">Tarjeta Dopi:</span> <strong>${c.nro_tarjeta}</strong></div>`:''}
+  ${c.nacimiento?`<div><span class="tm tsm">Cumpleaños:</span> ${fmtN(c.nacimiento)}</div>`:''}
+  ${c.alianza?`<div><span class="tm tsm">Alianza:</span> <code style="background:white;padding:1px 6px;border-radius:4px;border:1px solid var(--b)">${c.alianza}</code></div>`:''}
+  ${c.ultima_visita?`<div><span class="tm tsm">Última visita:</span> ${fmtD(c.ultima_visita)}</div>`:''}
+</div>
+${c.comentarios?`<div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:9px 12px;font-size:12.5px;margin-bottom:14px;color:#7a5900">💬 ${c.comentarios}</div>`:''}
 ${dsp.length>0?`<div style="background:var(--gb);border-radius:9px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--gd);margin-bottom:7px">Recompensas disponibles</div><div style="display:flex;flex-wrap:wrap;gap:6px">${dsp.map(r=>`<button class="btn bsm" style="background:white;border:1px solid var(--g);color:var(--gd)" onclick="cjPf(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.nombre} (${r.puntos_requeridos}pts)</button>`).join('')}</div></div>`:''}
 <div class="st" style="font-size:12.5px">Historial</div>
 ${(h||[]).length===0?'<div class="tm tsm">Sin actividad</div>':(h||[]).map(x=>`<div class="hi"><div class="hd ${x.tipo==='compra'?'hc':x.tipo==='canje'?'hj':'hb'}"></div><div style="flex:1;font-size:12.5px">${x.descripcion||''}</div><div class="tm tsm">${fmtD(x.created_at)}</div></div>`).join('')}
