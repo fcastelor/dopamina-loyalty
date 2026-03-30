@@ -509,13 +509,32 @@ const SBKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZi
 
 // ===================== AUTH =====================
 async function authFlow(){
-  const sess=localStorage.getItem(SK);
-  if(sess){try{const s=JSON.parse(sess);if(new Date(s.expires_at)>new Date()){const{data:u}=await SB.from('admin_users').select('*').eq('id',s.user_id).single();if(u){CU=u;await startApp();return;}}}catch(e){}}
-  localStorage.removeItem(SK);
-  const{data:users}=await SB.from('admin_users').select('id').limit(1);
-  goStep((!users||users.length===0)?'s-crear':'s-login');
-  document.getElementById('auth-screen').style.display='flex';
-  buildMFAInp('mfa-inp',doMFA);buildMFAInp('setup-inp',doSetupMFA);
+  try {
+    const sess=localStorage.getItem(SK);
+    if(sess){
+      try{
+        const s=JSON.parse(sess);
+        if(new Date(s.expires_at)>new Date()){
+          const{data:u,error}=await SB.from('admin_users').select('*').eq('id',s.user_id).single();
+          if(u&&!error){CU=u;await startApp();return;}
+        }
+      }catch(e){console.warn('Sesión inválida, re-login requerido');}
+      localStorage.removeItem(SK);
+    }
+    const{data:users,error:eu}=await SB.from('admin_users').select('id').limit(1);
+    if(eu) throw eu;
+    const step=(!users||users.length===0)?'s-crear':'s-login';
+    goStep(step);
+    document.getElementById('auth-screen').style.display='flex';
+    buildMFAInp('mfa-inp',doMFA);
+    buildMFAInp('setup-inp',doSetupMFA);
+  } catch(e) {
+    console.error('Error en authFlow:', e);
+    // Mostrar login de todas formas
+    goStep('s-login');
+    document.getElementById('auth-screen').style.display='flex';
+    try{buildMFAInp('mfa-inp',doMFA);buildMFAInp('setup-inp',doSetupMFA);}catch(e2){}
+  }
 }
 
 function goStep(id){document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
@@ -609,7 +628,9 @@ function clrMFA(id){Array.from(document.getElementById(id).children).forEach(i=>
 
 // ===================== APP =====================
 async function startApp(){
+  document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='flex';
+  showLo(false);
   await ldCfg();rdUI();await ldDash();
 }
 function rdUI(){if(!CU)return;document.getElementById('u-nm').textContent=CU.nombre.split(' ')[0];document.getElementById('dd-nm').textContent=CU.nombre;document.getElementById('dd-em').textContent=CU.email;document.getElementById('dd-mfa').innerHTML=CU.mfa_enabled?'<span class="ms ms-on">🔐 MFA activo</span>':'<span class="ms ms-off">⚠ Sin MFA</span>';}
@@ -920,9 +941,12 @@ function fmtN(nac){if(!nac)return'';return new Date(nac).toLocaleDateString('es-
     SB=window.supabase.createClient(SBURL,SBKEY);
     await authFlow();
   }catch(e){
-    showLo(false);
-    document.getElementById('auth-screen').style.display='flex';
     console.error('Error de conexión Supabase:',e);
+    goStep('s-login');
+    document.getElementById('auth-screen').style.display='flex';
+    try{buildMFAInp('mfa-inp',doMFA);buildMFAInp('setup-inp',doSetupMFA);}catch(e2){}
+  } finally {
+    showLo(false);
   }
 })();
 </script>
