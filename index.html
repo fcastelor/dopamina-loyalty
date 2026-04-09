@@ -223,7 +223,7 @@ textarea.fi{resize:vertical;min-height:78px}
           <div class="ud" id="u-dd">
             <div style="padding:7px 11px;border-bottom:1px solid var(--b);margin-bottom:3px">
               <div style="font-weight:500;font-size:13px" id="dd-nm">Admin</div>
-              <div style="font-size:11px;color:var(--t3)" id="dd-em">admin@dopamina.pe</div>
+              <div style="font-size:11px;color:var(--t3)" id="dd-em"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="badbded7d3d4faded5cadbd7d3d4db94cadf">[email&#160;protected]</a></div>
               <div style="margin-top:3px" id="dd-mfa"></div>
             </div>
             <div class="udi" onclick="nav('usuarios');tUM()">👥 Gestionar usuarios</div>
@@ -418,6 +418,34 @@ textarea.fi{resize:vertical;min-height:78px}
 
 <div class="mo" id="m-pf"><div class="mc" style="max-width:560px"><div class="mh"><div class="mt">Perfil</div><button class="mx" onclick="closeM('m-pf')">✕</button></div><div id="pf-cont"></div></div></div>
 
+<div class="mo" id="m-ed"><div class="mc" style="max-width:500px"><div class="mh"><div class="mt">Editar cliente</div><button class="mx" onclick="closeM('m-ed')">✕</button></div>
+  <div class="err" id="ed-err" style="display:none"></div>
+  <input type="hidden" id="ed-id">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+    <div class="fg"><label class="fl">Nro. Tarjeta Dopi</label><input type="text" class="fi" id="ed-trd" placeholder="DOPI-0001"></div>
+    <div class="fg"><label class="fl">DNI</label><input type="text" class="fi" id="ed-dni" placeholder="12345678" maxlength="8"></div>
+  </div>
+  <div class="fg"><label class="fl">Nombre *</label><input type="text" class="fi" id="ed-nm" placeholder="Nombre y apellido"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+    <div class="fg"><label class="fl">Celular WhatsApp</label><input type="text" class="fi" id="ed-cel" placeholder="999888777"></div>
+    <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi" id="ed-nac"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+    <div class="fg"><label class="fl">Tipo</label>
+      <select class="fi" id="ed-tipo">
+        <option value="cliente">Cliente</option>
+        <option value="embajador">Embajador</option>
+        <option value="fitclub">FitClub</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Puntos actuales</label><input type="number" class="fi" id="ed-pts" min="0"></div>
+  </div>
+  <div class="fg"><label class="fl">Alianza (código de descuento)</label><input type="text" class="fi" id="ed-ali" placeholder="PARTNER20"></div>
+  <div class="fg"><label class="fl">Etiquetas (separadas por coma)</label><input type="text" class="fi" id="ed-etq" placeholder="vip, referido, online"></div>
+  <div class="fg"><label class="fl">Comentarios</label><textarea class="fi" id="ed-com" rows="2" style="resize:vertical"></textarea></div>
+  <div style="display:flex;gap:7px"><button class="btn bs" style="flex:1;justify-content:center" onclick="closeM('m-ed')">Cancelar</button><button class="btn bp" style="flex:1;justify-content:center" onclick="guardarEdicion()">Guardar cambios</button></div>
+</div></div>
+
 <div class="mo" id="m-nrw"><div class="mc"><div class="mh"><div class="mt">Nueva recompensa</div><button class="mx" onclick="closeM('m-nrw')">✕</button></div>
   <div class="fg"><label class="fl">Nombre</label><input type="text" class="fi" id="rw-nm" placeholder="Waffle gratis"></div>
   <div class="fg"><label class="fl">Puntos requeridos</label><input type="number" class="fi" id="rw-pts" min="1"></div>
@@ -427,7 +455,7 @@ textarea.fi{resize:vertical;min-height:78px}
 
 <div class="toast" id="toast"><span id="t-msg"></span></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ===================== CRYPTO =====================
 async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
 
@@ -780,12 +808,59 @@ ${(()=>{
 ${dsp.length>0?`<div style="background:var(--gb);border-radius:9px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--gd);margin-bottom:7px">Recompensas disponibles</div><div style="display:flex;flex-wrap:wrap;gap:6px">${dsp.map(r=>`<button class="btn bsm" style="background:white;border:1px solid var(--g);color:var(--gd)" onclick="cjPf(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.nombre} (${r.puntos_requeridos}pts)</button>`).join('')}</div></div>`:''}
 <div class="st" style="font-size:12.5px">Historial</div>
 ${(h||[]).length===0?'<div class="tm tsm">Sin actividad</div>':(h||[]).map(x=>`<div class="hi"><div class="hd ${x.tipo==='compra'?'hc':x.tipo==='canje'?'hj':'hb'}"></div><div style="flex:1;font-size:12.5px">${x.descripcion||''}</div><div class="tm tsm">${fmtD(x.created_at)}</div></div>`).join('')}
-<div style="display:flex;gap:7px;margin-top:16px"><button class="btn bp bsm" onclick="closeM('m-pf');nav('puntos');setTimeout(()=>preSel(${c.id}),150)">+ Puntos</button><button class="btn bs bsm" onclick="waC(${c.id})">WhatsApp</button><button class="btn bdr bsm" onclick="delCl(${c.id})">Eliminar</button></div>`;
+<div style="display:flex;gap:7px;margin-top:16px"><button class="btn bp bsm" onclick="closeM('m-pf');nav('puntos');setTimeout(()=>preSel(${c.id}),150)">+ Puntos</button><button class="btn bs bsm" onclick="editarCliente(${c.id})">✏️ Editar</button><button class="btn bs bsm" onclick="waC(${c.id})">WhatsApp</button><button class="btn bdr bsm" onclick="delCl(${c.id})">Eliminar</button></div>`;
   openM('m-pf');
 }
 
 async function waC(id){const{data:c}=await SB.from('clientes').select('nombre,celular,puntos').eq('id',id).single();if(!c?.celular){toast2('⚠ Sin celular',true);return;}const msg=encodeURIComponent(`Hola ${c.nombre}! Te escribimos desde Dopamina 🌿\nTienes ${c.puntos||0} puntos. ¡Gracias!`);const n=c.celular.replace(/\D/g,'');window.open('https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+msg,'_blank');}
 async function delCl(id){if(!confirm('¿Eliminar este cliente?'))return;showLo(true);await SB.from('clientes').delete().eq('id',id);showLo(false);closeM('m-pf');toast2('✓ Eliminado');ldDash();if(document.getElementById('panel-clientes').classList.contains('active'))loadCL();}
+
+async function editarCliente(id){
+  showLo(true);
+  const{data:c}=await SB.from('clientes').select('*').eq('id',id).single();
+  showLo(false);if(!c)return;
+  document.getElementById('ed-id').value=c.id;
+  document.getElementById('ed-trd').value=c.nro_tarjeta||'';
+  document.getElementById('ed-dni').value=c.dni||'';
+  document.getElementById('ed-nm').value=c.nombre||'';
+  document.getElementById('ed-cel').value=c.celular||'';
+  document.getElementById('ed-nac').value=c.nacimiento||'';
+  document.getElementById('ed-tipo').value=c.tipo||'cliente';
+  document.getElementById('ed-pts').value=c.puntos||0;
+  document.getElementById('ed-ali').value=c.alianza||'';
+  document.getElementById('ed-etq').value=(c.etiquetas||[]).join(', ');
+  document.getElementById('ed-com').value=c.comentarios||'';
+  document.getElementById('ed-err').style.display='none';
+  closeM('m-pf');
+  openM('m-ed');
+}
+
+async function guardarEdicion(){
+  const id=document.getElementById('ed-id').value;
+  const nm=document.getElementById('ed-nm').value.trim();
+  const errEl=document.getElementById('ed-err');
+  if(!nm){errEl.textContent='El nombre es obligatorio';errEl.style.display='block';return;}
+  const etqRaw=document.getElementById('ed-etq').value.trim();
+  const etiquetas=etqRaw?etqRaw.split(',').map(e=>e.trim()).filter(Boolean):null;
+  showLo(true);
+  const{error}=await SB.from('clientes').update({
+    nro_tarjeta:document.getElementById('ed-trd').value.trim()||null,
+    dni:document.getElementById('ed-dni').value.trim()||null,
+    nombre:nm,
+    celular:document.getElementById('ed-cel').value.trim()||null,
+    nacimiento:document.getElementById('ed-nac').value||null,
+    tipo:document.getElementById('ed-tipo').value||'cliente',
+    puntos:parseInt(document.getElementById('ed-pts').value)||0,
+    alianza:document.getElementById('ed-ali').value.trim()||null,
+    etiquetas:etiquetas,
+    comentarios:document.getElementById('ed-com').value.trim()||null,
+  }).eq('id',id);
+  showLo(false);
+  if(error){errEl.textContent='Error: '+error.message;errEl.style.display='block';return;}
+  closeM('m-ed');
+  toast2('✓ Cliente actualizado');
+  if(document.getElementById('panel-clientes').classList.contains('active'))loadCL();
+}
 async function cjPf(cId,rId,nm,pts){showLo(true);const{data:c}=await SB.from('clientes').select('puntos').eq('id',cId).single();if(!c||(c.puntos||0)<pts){showLo(false);toast2('⚠ Puntos insuficientes',true);return;}await SB.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await SB.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:'Canje: '+nm+' (-'+pts+'pts)',puntos:-pts});showLo(false);toast2('✓ Canje: '+nm);verPerf(cId);}
 
 // ===================== PUNTOS =====================
@@ -969,13 +1044,4 @@ function fmtN(nac){if(!nac)return'';return new Date(nac).toLocaleDateString('es-
     await authFlow();
   }catch(e){
     console.error('Error de conexión Supabase:',e);
-    goStep('s-login');
-    document.getElementById('auth-screen').style.display='flex';
-    try{buildMFAInp('mfa-inp',doMFA);buildMFAInp('setup-inp',doSetupMFA);}catch(e2){}
-  } finally {
-    showLo(false);
-  }
-})();
-</script>
-</body>
-</html>
+    goStep('s-l
