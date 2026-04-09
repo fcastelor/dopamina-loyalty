@@ -288,8 +288,22 @@ textarea.fi{resize:vertical;min-height:78px}
           <div class="g2">
             <div class="cv">
               <div class="fg"><label class="fl">Segmento</label><select class="fi" id="c-sg" onchange="updDst()"><option value="todos">Todos</option><option value="VIP">VIP</option><option value="Regular">Regular</option><option value="Dormido">Dormido</option><option value="Cumpleaños">Cumpleaños</option><option value="Nuevo">Nuevos</option></select><div class="tm tsm" style="margin-top:5px" id="c-dst">— destinatarios</div></div>
-              <div class="fg"><label class="fl">Plantilla</label><select class="fi" id="c-tp" onchange="ldPlant()"><option value="">Personalizado</option><option value="cumple">Felicitación cumpleaños</option><option value="puntos">Notificación puntos</option><option value="promo">Promoción especial</option><option value="reactivar">Reactivar dormidos</option><option value="bienvenida">Bienvenida</option></select></div>
-              <div class="fg"><label class="fl">Mensaje · {nombre} {puntos} {promo}</label><textarea class="fi" id="c-msg" rows="7"></textarea></div>
+              <div class="fg"><label class="fl">Plantilla</label><select class="fi" id="c-tp" onchange="ldPlant()"><option value="">Personalizado</option><option value="cumple">🎂 Felicitación cumpleaños</option><option value="puntos">⭐ Notificación puntos</option><option value="promo">🔥 Promoción especial</option><option value="reactivar">💚 Reactivar dormidos</option><option value="bienvenida">🎉 Bienvenida</option><option value="sellos">☕ Tarjeta de sellos</option></select></div>
+              <div class="fg">
+                <label class="fl">Mensaje · {nombre} {puntos} {promo}</label>
+                <div style="display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap">
+                  <button type="button" class="btn bs bsm" onclick="fmtMsg('bold')" title="Negrita"><b>N</b></button>
+                  <button type="button" class="btn bs bsm" onclick="fmtMsg('italic')" title="Cursiva"><i>C</i></button>
+                  <button type="button" class="btn bs bsm" onclick="fmtMsg('strike')" title="Tachado"><s>T</s></button>
+                  <button type="button" class="btn bs bsm" onclick="fmtMsg('mono')" title="Monospace" style="font-family:monospace">M</button>
+                  <div style="width:1px;background:var(--b);margin:0 2px"></div>
+                  <button type="button" class="btn bs bsm" onclick="insVar('{nombre}')" title="Insertar nombre">👤 nombre</button>
+                  <button type="button" class="btn bs bsm" onclick="insVar('{puntos}')" title="Insertar puntos">⭐ puntos</button>
+                  <button type="button" class="btn bs bsm" onclick="insVar('{promo}')" title="Insertar promo">🎁 promo</button>
+                </div>
+                <textarea class="fi" id="c-msg" rows="7" style="font-family:monospace;font-size:13px"></textarea>
+                <div style="font-size:11px;color:var(--t3);margin-top:4px">Formato WA: *negrita* _cursiva_ ~tachado~ \`\`\`mono\`\`\`</div>
+              </div>
               <div style="display:flex;gap:7px"><button class="btn bs" style="flex:1;justify-content:center" onclick="pvCamp()">Vista previa</button><button class="btn bp" style="flex:1;justify-content:center" onclick="genLinks()">Generar links WA</button></div>
             </div>
             <div class="cv" id="c-pv-card"><div class="st">Vista previa</div><div id="c-pv"><div class="tm tsm">Configura el mensaje y presiona Vista previa</div></div></div>
@@ -991,8 +1005,88 @@ async function cjPts(cId,rId,nm,pts){showLo(true);const{data:c}=await SB.from('c
 function rdReglas(){document.getElementById('r-disp').innerHTML=`<div style="display:grid;gap:3px"><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Por S/ 1</span><strong>${CFG.pts_por_sol||1} pto(s)</strong></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Bono bienvenida</span><strong>+${CFG.pts_bienvenida||20} pts</strong></div><div style="display:flex;justify-content:space-between;padding:8px 0"><span class="tm">Bono cumpleaños</span><strong>+${CFG.pts_cumple||50} pts</strong></div></div>`;}
 
 // ===================== CAMPAÑAS =====================
-const PLANT={cumple:`Hola {nombre} 🎂✨\n\n¡Feliz cumpleaños de parte de Dopamina!\n\nTe regalamos *{promo}* hoy.\nAdemás, +50 puntos extra 🌿\n\n*Dopamina · Lima*`,puntos:`Hola {nombre} 👋\n\nTienes *{puntos} puntos* en Dopamina 🌿\n\n¡Úsalos en tu próxima visita!\n*Dopamina*`,promo:`¡Hola {nombre}! 🌿\n\nEsta semana:\n*{promo}*\n\n*Dopamina · Miraflores*`,reactivar:`Hola {nombre} 👋\n\n¡Te extrañamos!\n\nTe regalamos *{promo}* 💚\n\n*Dopamina*`,bienvenida:`¡Hola {nombre}! 👋\n\nBienvenido/a al *Club Dopamina* 🌿\n\nYa tienes *{puntos} puntos*. ¡Gracias!\n*Dopamina · Lima*`};
+const PLANT={
+  cumple:`🎂 *¡Feliz cumpleaños, {nombre}!*
+
+_Hoy es tu día especial y en Dopamina lo celebramos contigo_ 🎉
+
+🎁 *Regalo de cumpleaños:* {promo}
+⭐ *+50 puntos* extra cargados a tu cuenta
+
+_Ven a celebrar con nosotros, te esperamos_ 💚
+*Dopamina · Miraflores & San Isidro*`,
+
+  puntos:`👋 *Hola {nombre}!*
+
+_Aquí tu resumen de puntos Dopamina:_
+
+☕ *{puntos} puntos* acumulados
+🏷️ Cada 10 visitas = *1 consumo gratis*
+
+_¡Sigue sumando en tu próxima visita!_ 🌿
+*Dopamina*`,
+
+  promo:`🌿 *¡Hola {nombre}!*
+
+_Esta semana tenemos algo especial para ti:_
+
+🔥 *{promo}*
+
+_Solo por tiempo limitado. ¡No te lo pierdas!_ ⚡
+*Dopamina · Lima*`,
+
+  reactivar:`👋 *Hola {nombre}*
+
+_¡Te extrañamos! Ha pasado un tiempo desde tu última visita_ 🥺
+
+💚 *Te regalamos:* {promo}
+⭐ Válido en tu próxima visita
+
+_¡Te esperamos con los brazos abiertos!_ 🌿
+*Dopamina*`,
+
+  bienvenida:`🎉 *¡Bienvenido/a al Club Dopamina, {nombre}!*
+
+_Estamos felices de tenerte con nosotros_ 💚
+
+✅ *{puntos} puntos* ya están en tu cuenta
+☕ Recuerda: cada *10 visitas = 1 consumo gratis*
+🌿 Acumula *1 punto por cada S/1* gastado
+
+_¡Nos vemos pronto!_ 😊
+*Dopamina · Miraflores & San Isidro*`,
+
+  sellos:`☕ *¡Hola {nombre}!*
+
+_Tu tarjeta de sellos Dopamina:_
+
+🟢 *{puntos} sellos* completados
+🏆 ¡Solo te faltan _pocos más_ para tu *consumo gratis*!
+
+_¡Visítanos pronto y completa tu tarjeta!_ 💪
+*Dopamina*`
+};
 function ldPlant(){const t=document.getElementById('c-tp').value;if(t&&PLANT[t])document.getElementById('c-msg').value=PLANT[t];}
+
+function fmtMsg(tipo){
+  const ta=document.getElementById('c-msg');
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  const sel=ta.value.substring(start,end);
+  if(!sel){toast2('⚠ Selecciona texto primero',true);return;}
+  const wrap={bold:['*','*'],italic:['_','_'],strike:['~','~'],mono:['```','```']};
+  const[a,b]=wrap[tipo];
+  ta.value=ta.value.substring(0,start)+a+sel+b+ta.value.substring(end);
+  ta.selectionStart=start; ta.selectionEnd=end+a.length+b.length;
+  ta.focus();
+}
+
+function insVar(v){
+  const ta=document.getElementById('c-msg');
+  const pos=ta.selectionStart;
+  ta.value=ta.value.substring(0,pos)+v+ta.value.substring(pos);
+  ta.selectionStart=ta.selectionEnd=pos+v.length;
+  ta.focus();
+}
 async function updDst(){const sg=document.getElementById('c-sg').value;const{data}=await SB.from('clientes').select('id,puntos,nacimiento,created_at,ultima_visita,celular');let l=(data||[]).filter(c=>c.celular);if(sg!=='todos'){if(sg==='Cumpleaños')l=l.filter(c=>isCumple(c.nacimiento));else if(sg==='Nuevo')l=l.filter(c=>c.created_at&&(new Date()-new Date(c.created_at))/86400000<=7);else l=l.filter(c=>getSeg(c)===sg);}document.getElementById('c-dst').textContent=l.length+' destinatarios con celular';}
 async function pvCamp(){const{data}=await SB.from('clientes').select('nombre,puntos').limit(1);const ej=data?.[0]||{nombre:'Ana Torres',puntos:150};let msg=document.getElementById('c-msg').value.replace(/{nombre}/g,ej.nombre).replace(/{puntos}/g,ej.puntos||0).replace(/{promo}/g,'20% de descuento');document.getElementById('c-pv').innerHTML=`<div class="wa-bg"><div class="wa-b">${msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>')}</div><div style="font-size:11px;color:#888;text-align:right;margin-top:4px">Ahora</div></div><div class="tm tsm" style="margin-top:7px">Ejemplo con "${ej.nombre}"</div>`;}
 async function genLinks(){const sg=document.getElementById('c-sg').value;const{data}=await SB.from('clientes').select('id,nombre,celular,puntos,nacimiento,created_at,ultima_visita');let l=(data||[]).filter(c=>c.celular);if(sg!=='todos'){if(sg==='Cumpleaños')l=l.filter(c=>isCumple(c.nacimiento));else if(sg==='Nuevo')l=l.filter(c=>c.created_at&&(new Date()-new Date(c.created_at))/86400000<=7);else l=l.filter(c=>getSeg(c)===sg);}if(!l.length){toast2('⚠ Sin destinatarios',true);return;}const mb=document.getElementById('c-msg').value;const lks=l.map(c=>{let msg=mb.replace(/{nombre}/g,c.nombre||'Cliente').replace(/{puntos}/g,c.puntos||0).replace(/{promo}/g,'20% de descuento');const n=(c.celular||'').replace(/\D/g,'');return{c,url:'https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+encodeURIComponent(msg)};});document.getElementById('c-lk-c').textContent=lks.length+' mensajes';document.getElementById('c-lk-l').innerHTML=lks.map(x=>`<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--gr)"><div class="av" style="background:${aC(x.c.nombre)};width:29px;height:29px;font-size:10px">${ini(x.c.nombre)}</div><div style="flex:1"><div style="font-size:12.5px;font-weight:500">${x.c.nombre}</div><div class="tm tsm">${x.c.celular}</div></div><a href="${x.url}" target="_blank" class="btn bp bsm" style="text-decoration:none">Enviar WA</a></div>`).join('');document.getElementById('c-lk-s').style.display='block';await SB.from('campanas').insert({segmento:sg,tipo:document.getElementById('c-tp').value||'personalizado',mensaje:mb,enviados:lks.length});toast2('✓ '+lks.length+' links generados');}
