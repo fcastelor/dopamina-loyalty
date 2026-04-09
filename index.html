@@ -725,7 +725,7 @@ async function loadCL(){
   document.getElementById('cl-c').textContent=cl.length+' cliente'+(cl.length!==1?'s':'');
   const tb=document.getElementById('tbl-cl');
   if(!cl.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--t3)">Sin clientes</td></tr>';showLo(false);return;}
-  tb.innerHTML=cl.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';const ck=isCumple(c.nacimiento)?'<span class="bg bc" style="font-size:10px;margin-left:3px">cumple</span>':'';const tipoBadge=c.tipo&&c.tipo!=='cliente'?`<span class="bg" style="background:#f0ebfa;color:#7C5CBF;font-size:10px;margin-left:3px">${c.tipo}</span>`:'';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div><div style="font-weight:500">${c.nombre}${ck}${tipoBadge}</div>${c.nro_tarjeta?`<div style="font-size:10px;color:var(--t3)">${c.nro_tarjeta}</div>`:''}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><div style="display:flex;gap:4px"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button><button class="btn bs bsm" onclick="waC(${c.id})">WA</button></div></td></tr>`;}).join('');
+  tb.innerHTML=cl.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';const ck=isCumple(c.nacimiento)?'<span class="bg bc" style="font-size:10px;margin-left:3px">cumple</span>':'';const tipoBadge=c.tipo&&c.tipo!=='cliente'?`<span class="bg" style="background:#f0ebfa;color:#7C5CBF;font-size:10px;margin-left:3px">${c.tipo}</span>`:'';const avatarHtml=c.foto_url?`<img src="${c.foto_url}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0">`:`<div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div>`;return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px">${avatarHtml}<div><div style="font-weight:500">${c.nombre}${ck}${tipoBadge}</div>${c.nro_tarjeta?`<div style="font-size:10px;color:var(--t3)">${c.nro_tarjeta}</div>`:''}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><div style="display:flex;gap:4px"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button><button class="btn bs bsm" onclick="waC(${c.id})">WA</button></div></td></tr>`;}).join('');
   showLo(false);
 }
 
@@ -760,7 +760,15 @@ async function verPerf(id){
   const dsp=(rw||[]).filter(r=>r.puntos_requeridos<=(c.puntos||0));
   document.getElementById('pf-cont').innerHTML=`
 <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px">
-  <div class="avl" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div>
+  <div style="position:relative;flex-shrink:0">
+    ${c.foto_url
+      ? `<img src="${c.foto_url}" style="width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid var(--b)">`
+      : `<div class="avl" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div>`
+    }
+    <label style="position:absolute;bottom:0;right:-2px;background:var(--g);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px" title="Cambiar foto">
+      📷<input type="file" accept="image/*" style="display:none" onchange="subirFoto(event,${c.id})">
+    </label>
+  </div>
   <div style="flex:1">
     <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">${c.nombre}</div>
     <div class="tm tsm" style="margin:3px 0 5px">DNI: ${c.dni||'—'} · ${c.celular||'—'}</div>
@@ -813,6 +821,36 @@ ${(h||[]).length===0?'<div class="tm tsm">Sin actividad</div>':(h||[]).map(x=>`<
 }
 
 async function waC(id){const{data:c}=await SB.from('clientes').select('nombre,celular,puntos').eq('id',id).single();if(!c?.celular){toast2('⚠ Sin celular',true);return;}const msg=encodeURIComponent(`Hola ${c.nombre}! Te escribimos desde Dopamina 🌿\nTienes ${c.puntos||0} puntos. ¡Gracias!`);const n=c.celular.replace(/\D/g,'');window.open('https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+msg,'_blank');}
+async function subirFoto(event, clienteId){
+  const file = event.target.files[0];
+  if(!file) return;
+  // Validar tamaño y tipo
+  if(file.size > 3 * 1024 * 1024){ toast2('⚠ Foto máx 3MB', true); return; }
+  if(!file.type.startsWith('image/')){ toast2('⚠ Solo imágenes', true); return; }
+  showLo(true);
+  try{
+    // Subir a Supabase Storage
+    const ext = file.name.split('.').pop();
+    const path = `cliente_${clienteId}_${Date.now()}.${ext}`;
+    const { data: upData, error: upErr } = await SB.storage
+      .from('fotos-clientes')
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if(upErr) throw upErr;
+    // Obtener URL pública
+    const { data: urlData } = SB.storage.from('fotos-clientes').getPublicUrl(path);
+    const fotoUrl = urlData.publicUrl;
+    // Guardar URL en la tabla clientes
+    await SB.from('clientes').update({ foto_url: fotoUrl }).eq('id', clienteId);
+    showLo(false);
+    toast2('✓ Foto actualizada');
+    // Recargar perfil
+    verPerf(clienteId);
+  } catch(e){
+    showLo(false);
+    toast2('⚠ Error subiendo foto: ' + e.message, true);
+  }
+}
+
 async function delCl(id){if(!confirm('¿Eliminar este cliente?'))return;showLo(true);await SB.from('clientes').delete().eq('id',id);showLo(false);closeM('m-pf');toast2('✓ Eliminado');ldDash();if(document.getElementById('panel-clientes').classList.contains('active'))loadCL();}
 
 async function editarCliente(id){
