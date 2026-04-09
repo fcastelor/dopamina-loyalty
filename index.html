@@ -1044,4 +1044,21 @@ function fmtN(nac){if(!nac)return'';return new Date(nac).toLocaleDateString('es-
     await authFlow();
   }catch(e){
     console.error('Error de conexión Supabase:',e);
-    goStep('s-l
+    goStep('s-login');
+    document.getElementById('auth-screen').style.display='flex';
+    try{buildMFAInp('mfa-inp',doMFA);buildMFAInp('setup-inp',doSetupMFA);}catch(e2){}
+  } finally {
+    showLo(false);
+    // Safety net: si nada es visible, mostrar login
+    const authVis=document.getElementById('auth-screen').style.display!=='none';
+    const appVis=document.getElementById('app').style.display==='flex';
+    if(!authVis&&!appVis){
+      goStep('s-login');
+      document.getElementById('auth-screen').style.display='flex';
+      try{buildMFAInp('mfa-inp',doMFA);buildMFAInp('setup-inp',doSetupMFA);}catch(e2){}
+    }
+  }
+})();
+</script>
+</body>
+</html>
