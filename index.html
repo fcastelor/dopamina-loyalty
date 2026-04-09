@@ -400,12 +400,18 @@ textarea.fi{resize:vertical;min-height:78px}
     <div class="fg"><label class="fl">Celular WhatsApp</label><input type="text" class="fi" id="nc-cel" placeholder="999888777"></div>
     <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi" id="nc-nac"></div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 12px">
     <div class="fg"><label class="fl">Tipo</label>
       <select class="fi" id="nc-tipo">
         <option value="cliente">Cliente</option>
         <option value="embajador">Embajador</option>
         <option value="fitclub">FitClub</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Género</label>
+      <select class="fi" id="nc-gen">
+        <option value="hombre">Hombre</option>
+        <option value="mujer">Mujer</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Puntos iniciales</label><input type="number" class="fi" id="nc-pts" value="0" min="0"></div>
@@ -430,12 +436,18 @@ textarea.fi{resize:vertical;min-height:78px}
     <div class="fg"><label class="fl">Celular WhatsApp</label><input type="text" class="fi" id="ed-cel" placeholder="999888777"></div>
     <div class="fg"><label class="fl">Fecha de nacimiento</label><input type="date" class="fi" id="ed-nac"></div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 12px">
     <div class="fg"><label class="fl">Tipo</label>
       <select class="fi" id="ed-tipo">
         <option value="cliente">Cliente</option>
         <option value="embajador">Embajador</option>
         <option value="fitclub">FitClub</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Género (avatar)</label>
+      <select class="fi" id="ed-gen">
+        <option value="hombre">Hombre</option>
+        <option value="mujer">Mujer</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Puntos actuales</label><input type="number" class="fi" id="ed-pts" min="0"></div>
@@ -561,6 +573,8 @@ const SK='dop_sess';
 // Credenciales Supabase — hardcodeadas (anon key es pública por diseño)
 const SBURL='https://cuofpfajzeyezerubytc.supabase.co';
 const SBKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1b2ZwZmFqemV5ZXplcnVieXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzU1MTMsImV4cCI6MjA5MDExMTUxM30.5Tog6Ata3CbYflwxOhezXZegrwagiboQF2u0fVX9oZ4';
+const AVATAR_HOMBRE=`${SBURL}/storage/v1/object/public/fotos-clientes/avatar_hombre.svg`;
+const AVATAR_MUJER=`${SBURL}/storage/v1/object/public/fotos-clientes/avatar_mujer.svg`;
 
 // ===================== AUTH =====================
 async function authFlow(){
@@ -734,6 +748,8 @@ async function crearCliente(){
   const pts=(parseInt(document.getElementById('nc-pts').value)||0)+(CFG.pts_bienvenida||20);
   const etqRaw=document.getElementById('nc-etq').value.trim();
   const etiquetas=etqRaw?etqRaw.split(',').map(e=>e.trim()).filter(Boolean):null;
+  const genero=document.getElementById('nc-gen').value||'hombre';
+  const avatarDefault=genero==='mujer'?AVATAR_MUJER:AVATAR_HOMBRE;
   showLo(true);const{data,error}=await SB.from('clientes').insert({
     nro_tarjeta:document.getElementById('nc-trd').value.trim()||null,
     dni:document.getElementById('nc-dni').value.trim()||null,
@@ -744,12 +760,13 @@ async function crearCliente(){
     alianza:document.getElementById('nc-ali').value.trim()||null,
     etiquetas:etiquetas,
     comentarios:document.getElementById('nc-com').value.trim()||null,
+    foto_url:avatarDefault,
     puntos:pts,
     created_at:new Date().toISOString()
   }).select().single();
   if(error){showLo(false);toast2('⚠ '+(error.message.includes('unique')?'DNI ya registrado':error.message),true);return;}
   if(pts>0)await SB.from('historial').insert({cliente_id:data.id,tipo:'bono',descripcion:'Bono bienvenida: +'+pts+'pts',puntos:pts});
-  showLo(false);closeM('m-nc');['nc-trd','nc-dni','nc-nm','nc-cel','nc-ali','nc-etq','nc-com'].forEach(id=>document.getElementById(id).value='');document.getElementById('nc-nac').value='';document.getElementById('nc-pts').value='0';document.getElementById('nc-tipo').value='cliente';
+  showLo(false);closeM('m-nc');['nc-trd','nc-dni','nc-nm','nc-cel','nc-ali','nc-etq','nc-com'].forEach(id=>document.getElementById(id).value='');document.getElementById('nc-nac').value='';document.getElementById('nc-pts').value='0';document.getElementById('nc-tipo').value='cliente';document.getElementById('nc-gen').value='hombre';
   toast2('✓ '+nm+' registrado con '+pts+' pts');ldDash();if(document.getElementById('panel-clientes').classList.contains('active'))loadCL();
 }
 
@@ -864,6 +881,7 @@ async function editarCliente(id){
   document.getElementById('ed-cel').value=c.celular||'';
   document.getElementById('ed-nac').value=c.nacimiento||'';
   document.getElementById('ed-tipo').value=c.tipo||'cliente';
+  document.getElementById('ed-gen').value=(c.foto_url||'').includes('mujer')?'mujer':'hombre';
   document.getElementById('ed-pts').value=c.puntos||0;
   document.getElementById('ed-ali').value=c.alianza||'';
   document.getElementById('ed-etq').value=(c.etiquetas||[]).join(', ');
@@ -881,6 +899,8 @@ async function guardarEdicion(){
   const etqRaw=document.getElementById('ed-etq').value.trim();
   const etiquetas=etqRaw?etqRaw.split(',').map(e=>e.trim()).filter(Boolean):null;
   showLo(true);
+  const genero=document.getElementById('ed-gen').value||'hombre';
+  const avatarDefault=genero==='mujer'?AVATAR_MUJER:AVATAR_HOMBRE;
   const{error}=await SB.from('clientes').update({
     nro_tarjeta:document.getElementById('ed-trd').value.trim()||null,
     dni:document.getElementById('ed-dni').value.trim()||null,
@@ -892,6 +912,7 @@ async function guardarEdicion(){
     alianza:document.getElementById('ed-ali').value.trim()||null,
     etiquetas:etiquetas,
     comentarios:document.getElementById('ed-com').value.trim()||null,
+    foto_url:avatarDefault,
   }).eq('id',id);
   showLo(false);
   if(error){errEl.textContent='Error: '+error.message;errEl.style.display='block';return;}
