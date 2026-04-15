@@ -85,6 +85,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--gr);color:var(--t);min-he
 .sc{background:var(--w);border-radius:var(--rad);padding:17px 19px;border:1px solid var(--b)}
 .sl{font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
 .sv{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;line-height:1}
+/* Analytics */
+.an-period.active{background:var(--g);color:white;border-color:var(--g)}
+.an-bar{border-radius:4px 4px 0 0;background:var(--g);min-width:8px;flex:1;transition:height .4s cubic-bezier(.34,1.56,.64,1);cursor:pointer;position:relative}
+.an-bar:hover{opacity:.8}
+.an-bar-lbl{font-size:9px;color:var(--t3);text-align:center;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.an-prod-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gr)}
+.an-prod-row:last-child{border-bottom:none}
+.an-prod-bar{height:6px;border-radius:3px;background:var(--g);transition:width .5s ease}
+.an-seg-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.an-seg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.an-metric{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--gr)}
+.an-metric:last-child{border-bottom:none}
+.an-metric-val{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--g)}
 .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}
 .st{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:12px}
 table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
@@ -235,6 +248,7 @@ textarea.fi{resize:vertical;min-height:78px}
       <div class="ni" onclick="nav('campanas')"><span class="ni-ic">◷</span> Campañas WhatsApp</div>
       <div class="nl">Herramientas</div>
       <div class="ni" onclick="nav('importar')"><span class="ni-ic">⇪</span> Importar CSV</div>
+      <div class="ni" onclick="nav('analytics')"><span class="ni-ic">📊</span> Analytics</div>
       <div class="ni" onclick="nav('scanner')"><span class="ni-ic">📷</span> Escanear QR</div>
       <div class="ni" onclick="nav('config')"><span class="ni-ic">◌</span> Configuración</div>
       <div class="ni" onclick="nav('seguridad')"><span class="ni-ic">🔐</span> Seguridad</div>
@@ -340,6 +354,77 @@ textarea.fi{resize:vertical;min-height:78px}
           <div id="c-lk-s" style="display:none" class="cv"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="st" style="margin:0">Links generados</div><span class="tm tsm" id="c-lk-c"></span></div><div id="c-lk-l"></div></div>
         </div>
         <div id="tc-h" style="display:none"><div class="cv"><div id="cp-h"><div class="tm tsm">Cargando...</div></div></div></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="panel" id="panel-analytics">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div class="st" style="margin:0">📊 Analytics</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn bs bsm an-period active" onclick="setPeriod(this,'day')">Hoy</button>
+            <button class="btn bs bsm an-period" onclick="setPeriod(this,'week')">Semana</button>
+            <button class="btn bs bsm an-period" onclick="setPeriod(this,'month')">Mes</button>
+            <button class="btn bs bsm an-period" onclick="setPeriod(this,'year')">Año</button>
+          </div>
+        </div>
+
+        <!-- KPIs principales -->
+        <div class="sg" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px">
+          <div class="sc"><div class="sl">Ventas</div><div class="sv" id="an-ventas">—</div><div class="tm tsm" id="an-ventas-sub"></div></div>
+          <div class="sc"><div class="sl">Ingresos (S/)</div><div class="sv" id="an-ingresos">—</div><div class="tm tsm" id="an-ingresos-sub"></div></div>
+          <div class="sc"><div class="sl">Visitas</div><div class="sv" id="an-visitas">—</div><div class="tm tsm" id="an-visitas-sub"></div></div>
+          <div class="sc"><div class="sl">Clientes nuevos</div><div class="sv" id="an-nuevos">—</div><div class="tm tsm" id="an-nuevos-sub"></div></div>
+        </div>
+
+        <div class="g2">
+          <!-- Gráfico de ventas por período -->
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Ventas por día</div>
+            <div id="an-chart-ventas" style="height:180px;display:flex;align-items:flex-end;gap:3px;padding:8px 0"></div>
+            <div id="an-chart-labels" style="display:flex;gap:3px;margin-top:4px"></div>
+          </div>
+
+          <!-- Productos más vendidos -->
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Productos más vendidos</div>
+            <div id="an-productos" style="min-height:180px">
+              <div class="tm tsm" style="padding:20px 0;text-align:center">Cargando...</div>
+            </div>
+          </div>
+
+          <!-- Ticket promedio y hora pico -->
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Horas pico</div>
+            <div id="an-horas" style="height:140px;display:flex;align-items:flex-end;gap:4px;padding:8px 0"></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3);margin-top:4px">
+              <span>8am</span><span>12pm</span><span>4pm</span><span>8pm</span><span>12am</span>
+            </div>
+          </div>
+
+          <!-- Segmentos de clientes -->
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Clientes por segmento</div>
+            <div id="an-segmentos" style="min-height:140px">
+              <div class="tm tsm" style="padding:20px 0;text-align:center">Cargando...</div>
+            </div>
+          </div>
+
+          <!-- Métricas de fidelización -->
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Fidelización</div>
+            <div id="an-fidelizacion">
+              <div class="tm tsm" style="padding:20px 0;text-align:center">Cargando...</div>
+            </div>
+          </div>
+
+          <!-- Tipos de cliente -->
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Por tipo de cliente</div>
+            <div id="an-tipos">
+              <div class="tm tsm" style="padding:20px 0;text-align:center">Cargando...</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- SCANNER QR -->
@@ -1832,7 +1917,7 @@ async function disableMFA(){if(!confirm('¿Desactivar MFA? Tu cuenta quedará me
 async function gSearch(q){if(!q||q.length<2)return;nav('clientes');const{data}=await SB.from('clientes').select('*').or(`nombre.ilike.%${q}%,dni.ilike.%${q}%`).limit(30);const tb=document.getElementById('tbl-cl');if(!data?.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--t3)">Sin resultados para "'+q+'"</td></tr>';return;}tb.innerHTML=data.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="font-weight:500">${c.nombre}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button></td></tr>`;}).join('');}
 
 // ===================== NAV =====================
-function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad',usuarios:'Administradores',scanner:'Escanear QR'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();if(p==='usuarios')ldUsuarios();if(p!=='scanner')stopScanner();}
+function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad',usuarios:'Administradores',scanner:'Escanear QR',analytics:'Analytics'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();if(p==='usuarios')ldUsuarios();if(p==='analytics')ldAnalytics();if(p!=='scanner')stopScanner();}
 
 // ===================== UTILS =====================
 function setTab(el,id){['tc-c','tc-h'].forEach(t=>{const e=document.getElementById(t);if(e)e.style.display='none';});document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).style.display='block';el.classList.add('active');if(id==='tc-h')ldCampHist();}
@@ -1848,6 +1933,269 @@ const CLS=['#4CAF7D','#7C5CBF','#F5A623','#FF6B6B','#1D9E75','#3B82F6','#EC4899'
 function aC(n){if(!n)return CLS[0];return CLS[n.charCodeAt(0)%CLS.length];}
 function fmtD(iso){if(!iso)return'';return new Date(iso).toLocaleDateString('es-PE',{day:'2-digit',month:'short'});}
 function fmtN(nac){if(!nac)return'';return new Date(nac).toLocaleDateString('es-PE',{day:'2-digit',month:'long'});}
+
+// ===================== ANALYTICS =====================
+let AN_PERIOD = 'week';
+
+function setPeriod(btn, period){
+  document.querySelectorAll('.an-period').forEach(b=>{b.classList.remove('active');});
+  btn.classList.add('active');
+  AN_PERIOD = period;
+  ldAnalytics();
+}
+
+function getPeriodDates(period){
+  const now = new Date();
+  const end = new Date(now);
+  end.setHours(23,59,59,999);
+  let start = new Date(now);
+  let prevStart = new Date(now);
+  let prevEnd = new Date(now);
+  if(period==='day'){
+    start.setHours(0,0,0,0);
+    prevStart.setDate(prevStart.getDate()-1); prevStart.setHours(0,0,0,0);
+    prevEnd.setDate(prevEnd.getDate()-1); prevEnd.setHours(23,59,59,999);
+  } else if(period==='week'){
+    const day=now.getDay()||7;
+    start.setDate(now.getDate()-day+1); start.setHours(0,0,0,0);
+    prevStart.setDate(start.getDate()-7);
+    prevEnd.setDate(start.getDate()-1); prevEnd.setHours(23,59,59,999);
+  } else if(period==='month'){
+    start = new Date(now.getFullYear(),now.getMonth(),1);
+    prevStart = new Date(now.getFullYear(),now.getMonth()-1,1);
+    prevEnd = new Date(now.getFullYear(),now.getMonth(),0,23,59,59,999);
+  } else { // year
+    start = new Date(now.getFullYear(),0,1);
+    prevStart = new Date(now.getFullYear()-1,0,1);
+    prevEnd = new Date(now.getFullYear()-1,11,31,23,59,59,999);
+  }
+  return {start, end, prevStart, prevEnd};
+}
+
+function fmtMoney(n){return 'S/ '+(n||0).toLocaleString('es-PE',{minimumFractionDigits:0,maximumFractionDigits:2});}
+function fmtPct(a,b){if(!b)return '';const p=((a-b)/b*100);const col=p>=0?'var(--g)':'var(--r)';return `<span style="color:${col};font-size:11px">${p>=0?'▲':'▼'}${Math.abs(p).toFixed(0)}%</span>`;}
+
+async function ldAnalytics(){
+  showLo(true);
+  const {start, end, prevStart, prevEnd} = getPeriodDates(AN_PERIOD);
+
+  // Cargar historial del período actual y anterior
+  const[{data:hist},{data:prevHist},{data:clientes},{data:allHist}] = await Promise.all([
+    SB.from('historial').select('*').gte('created_at',start.toISOString()).lte('created_at',end.toISOString()).order('created_at'),
+    SB.from('historial').select('*').gte('created_at',prevStart.toISOString()).lte('created_at',prevEnd.toISOString()),
+    SB.from('clientes').select('id,tipo,puntos,visitas,sellos_activos,total_canjes_sello,created_at,ultima_visita').gte('created_at',start.toISOString()),
+    SB.from('historial').select('*').gte('created_at',start.toISOString()).lte('created_at',end.toISOString()),
+  ]);
+
+  const compras=(hist||[]).filter(h=>h.tipo==='compra');
+  const prevCompras=(prevHist||[]).filter(h=>h.tipo==='compra');
+
+  // ── KPIs ──
+  const totalVentas=compras.length;
+  const totalIngresos=compras.reduce((s,h)=>s+(h.monto||0),0);
+  const totalVisitas=(hist||[]).filter(h=>h.tipo==='visita'||h.tipo==='compra').length;
+  const nuevosClientes=(clientes||[]).length;
+
+  const prevVentas=prevCompras.length;
+  const prevIngresos=prevCompras.reduce((s,h)=>s+(h.monto||0),0);
+
+  document.getElementById('an-ventas').textContent=totalVentas;
+  document.getElementById('an-ventas-sub').innerHTML=`vs ${prevVentas} período anterior`;
+  document.getElementById('an-ingresos').textContent=fmtMoney(totalIngresos);
+  document.getElementById('an-ingresos-sub').innerHTML=`vs ${fmtMoney(prevIngresos)} anterior`;
+  document.getElementById('an-visitas').textContent=totalVisitas;
+  document.getElementById('an-visitas-sub').textContent=`${totalVentas>0?fmtMoney(totalIngresos/totalVentas):0} ticket prom.`;
+  document.getElementById('an-nuevos').textContent=nuevosClientes;
+  document.getElementById('an-nuevos-sub').textContent='registrados en el período';
+
+  // ── GRÁFICO VENTAS POR DÍA ──
+  renderChartVentas(compras, start, end);
+
+  // ── PRODUCTOS MÁS VENDIDOS ──
+  renderProductos(compras);
+
+  // ── HORAS PICO ──
+  renderHorasPico(hist||[]);
+
+  // ── SEGMENTOS ──
+  await renderSegmentos();
+
+  // ── FIDELIZACIÓN ──
+  renderFidelizacion(hist||[], clientes||[]);
+
+  // ── TIPOS DE CLIENTE ──
+  await renderTiposAnalytics();
+
+  showLo(false);
+}
+
+function renderChartVentas(compras, start, end){
+  const chart = document.getElementById('an-chart-ventas');
+  const labels = document.getElementById('an-chart-labels');
+  chart.innerHTML=''; labels.innerHTML='';
+
+  // Agrupar por día
+  const dias={};
+  const cursor = new Date(start);
+  while(cursor<=end){
+    const key=cursor.toISOString().slice(0,10);
+    dias[key]={ventas:0,monto:0};
+    cursor.setDate(cursor.getDate()+1);
+  }
+  compras.forEach(c=>{
+    const key=c.created_at?.slice(0,10);
+    if(dias[key]){dias[key].ventas++;dias[key].monto+=(c.monto||0);}
+  });
+
+  const keys=Object.keys(dias);
+  const maxMonto=Math.max(...Object.values(dias).map(d=>d.monto),1);
+
+  // Si hay muchos días, mostrar solo algunos
+  const step=keys.length>14?Math.ceil(keys.length/14):1;
+
+  keys.forEach((key,i)=>{
+    const d=dias[key];
+    const pct=Math.max((d.monto/maxMonto)*100,d.monto>0?4:0);
+    const bar=document.createElement('div');
+    bar.className='an-bar';
+    bar.style.height=pct+'%';
+    bar.style.background=d.monto>0?'var(--g)':'var(--gr)';
+    bar.title=`${key}: ${fmtMoney(d.monto)} (${d.ventas} ventas)`;
+    chart.appendChild(bar);
+
+    const lbl=document.createElement('div');
+    lbl.className='an-bar-lbl';
+    if(i%step===0){
+      const date=new Date(key+'T12:00:00');
+      lbl.textContent=date.toLocaleDateString('es-PE',{day:'2-digit',month:'short'});
+    }
+    labels.appendChild(lbl);
+  });
+}
+
+function renderProductos(compras){
+  const el=document.getElementById('an-productos');
+  if(!compras.length){el.innerHTML='<div class="tm tsm" style="padding:20px 0;text-align:center">Sin ventas en este período</div>';return;}
+
+  // Extraer productos de la descripción (antes del " · ")
+  const prods={};
+  compras.forEach(c=>{
+    const desc=(c.descripcion||'').split('·')[0].trim();
+    if(!desc||desc.startsWith('Compra S/'))return;
+    prods[desc]=(prods[desc]||0)+1;
+  });
+
+  // Si no hay nombres de productos, agrupar por monto
+  if(!Object.keys(prods).length){
+    el.innerHTML='<div class="tm tsm" style="padding:10px 0">Registra descripciones en las ventas para ver productos</div>';
+    return;
+  }
+
+  const sorted=Object.entries(prods).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max=sorted[0][1];
+
+  el.innerHTML=sorted.map(([prod,cnt],i)=>`
+    <div class="an-prod-row">
+      <div style="width:20px;height:20px;background:var(--gr);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--t3);flex-shrink:0">${i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${prod}</div>
+        <div class="an-prod-bar" style="width:${(cnt/max*100).toFixed(0)}%;margin-top:4px"></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--g);flex-shrink:0">${cnt}</div>
+    </div>`).join('');
+}
+
+function renderHorasPico(hist){
+  const el=document.getElementById('an-horas');
+  el.innerHTML='';
+  const horas=new Array(24).fill(0);
+  hist.filter(h=>h.tipo==='compra'||h.tipo==='visita').forEach(h=>{
+    const hr=new Date(h.created_at).getHours();
+    horas[hr]++;
+  });
+  const max=Math.max(...horas,1);
+  // Mostrar solo 8am-11pm
+  for(let i=8;i<=23;i++){
+    const pct=Math.max((horas[i]/max)*100,horas[i]>0?5:0);
+    const bar=document.createElement('div');
+    bar.className='an-bar';
+    bar.style.height=pct+'%';
+    bar.style.flex='1';
+    bar.style.background=horas[i]===Math.max(...horas.slice(8,24))?'var(--p)':'var(--g)';
+    bar.style.opacity=horas[i]>0?'1':'0.2';
+    bar.title=`${i}:00 — ${horas[i]} visitas`;
+    el.appendChild(bar);
+  }
+}
+
+async function renderSegmentos(){
+  const el=document.getElementById('an-segmentos');
+  const{data:todos}=await SB.from('clientes').select('puntos,ultima_visita,created_at');
+  if(!todos?.length){el.innerHTML='<div class="tm tsm">Sin datos</div>';return;}
+
+  const segs={VIP:0,Regular:0,Dormido:0,Nuevo:0};
+  todos.forEach(c=>{
+    if((c.puntos||0)>=(CFG.vip_min||500))segs.VIP++;
+    else if(c.ultima_visita&&(new Date()-new Date(c.ultima_visita))/86400000>=(CFG.dormido_dias||30))segs.Dormido++;
+    else if(c.created_at&&(new Date()-new Date(c.created_at))/86400000<=7)segs.Nuevo++;
+    else segs.Regular++;
+  });
+
+  const total=todos.length;
+  const colors={VIP:'#F5C842',Regular:'var(--g)',Dormido:'var(--r)',Nuevo:'var(--p)'};
+  el.innerHTML=Object.entries(segs).map(([seg,cnt])=>`
+    <div class="an-seg-row">
+      <div class="an-seg-dot" style="background:${colors[seg]}"></div>
+      <div style="flex:1;font-size:12.5px">${seg}</div>
+      <div style="font-size:12px;color:var(--t2)">${cnt} (${total>0?(cnt/total*100).toFixed(0):0}%)</div>
+      <div style="width:60px;height:5px;background:var(--gr);border-radius:3px;overflow:hidden">
+        <div style="height:100%;background:${colors[seg]};width:${total>0?(cnt/total*100).toFixed(0):0}%;border-radius:3px"></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderFidelizacion(hist, clientesPeriodo){
+  const el=document.getElementById('an-fidelizacion');
+  const canjes=(hist||[]).filter(h=>h.tipo==='canje').length;
+  const bonos=(hist||[]).filter(h=>h.tipo==='bono').length;
+  const visitas=(hist||[]).filter(h=>h.tipo==='visita').length;
+  const ptsEmitidos=(hist||[]).filter(h=>h.tipo==='compra').reduce((s,h)=>s+(h.puntos||0),0);
+  const ptsCanjeados=(hist||[]).filter(h=>h.tipo==='canje').reduce((s,h)=>s+Math.abs(h.puntos||0),0);
+
+  el.innerHTML=`
+    <div class="an-metric"><div style="font-size:12.5px">Puntos emitidos</div><div class="an-metric-val">${ptsEmitidos.toLocaleString()}</div></div>
+    <div class="an-metric"><div style="font-size:12.5px">Puntos canjeados</div><div class="an-metric-val" style="color:var(--r)">${ptsCanjeados.toLocaleString()}</div></div>
+    <div class="an-metric"><div style="font-size:12.5px">Canjes realizados</div><div class="an-metric-val">${canjes}</div></div>
+    <div class="an-metric"><div style="font-size:12.5px">Visitas con QR</div><div class="an-metric-val">${visitas}</div></div>
+    <div class="an-metric"><div style="font-size:12.5px">Bonos bienvenida</div><div class="an-metric-val">${bonos}</div></div>`;
+}
+
+async function renderTiposAnalytics(){
+  const el=document.getElementById('an-tipos');
+  const{data:todos}=await SB.from('clientes').select('tipo,puntos,visitas');
+  if(!todos?.length){el.innerHTML='<div class="tm tsm">Sin datos</div>';return;}
+
+  const tipos={};
+  todos.forEach(c=>{
+    const t=c.tipo||'cliente';
+    if(!tipos[t])tipos[t]={count:0,puntos:0,visitas:0};
+    tipos[t].count++;
+    tipos[t].puntos+=(c.puntos||0);
+    tipos[t].visitas+=(c.visitas||0);
+  });
+
+  el.innerHTML=Object.entries(tipos).map(([tipo,d])=>`
+    <div class="an-metric">
+      <div>
+        <div style="font-size:12.5px;font-weight:500;text-transform:capitalize">${tipo}</div>
+        <div style="font-size:11px;color:var(--t3)">${(d.puntos/d.count).toFixed(0)} pts/cliente avg</div>
+      </div>
+      <div style="text-align:right">
+        <div class="an-metric-val" style="font-size:16px">${d.count}</div>
+        <div style="font-size:11px;color:var(--t3)">${d.visitas} visitas</div>
+      </div>
+    </div>`).join('');
+}
 
 // ===================== INICIO =====================
 (async()=>{
