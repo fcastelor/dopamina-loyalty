@@ -398,8 +398,15 @@ textarea.fi{resize:vertical;min-height:78px}
               <div class="st" style="font-size:13.5px">Contacto y redes</div>
               <div class="fg"><label class="fl">WhatsApp (con código país)</label><input type="text" class="fi" id="cp-wa" placeholder="51999888777"></div>
               <div class="fg"><label class="fl">Teléfono delivery</label><input type="text" class="fi" id="cp-del" placeholder="908 922 055"></div>
-              <div class="fg"><label class="fl">Instagram</label><input type="text" class="fi" id="cp-ig" placeholder="@dopamina.pee"></div>
-              <div class="fg"><label class="fl">TikTok</label><input type="text" class="fi" id="cp-tt" placeholder="Dopamina.pee"></div>
+              <hr class="dv" style="margin:8px 0">
+              <div class="st" style="font-size:12px;margin-bottom:8px">Redes sociales</div>
+              <div class="fg"><label class="fl">📸 Instagram</label><input type="text" class="fi" id="cp-ig" placeholder="@dopamina.pee"></div>
+              <div class="fg"><label class="fl">🎵 TikTok</label><input type="text" class="fi" id="cp-tt" placeholder="Dopamina.pee"></div>
+              <div class="fg"><label class="fl">📘 Facebook</label><input type="text" class="fi" id="cp-fb" placeholder="facebook.com/dopamina"></div>
+              <div class="fg"><label class="fl">▶️ YouTube</label><input type="text" class="fi" id="cp-yt" placeholder="@dopamina"></div>
+              <div class="fg"><label class="fl">🐦 X / Twitter</label><input type="text" class="fi" id="cp-tw" placeholder="@dopamina"></div>
+              <div class="fg"><label class="fl">💼 LinkedIn</label><input type="text" class="fi" id="cp-li" placeholder="linkedin.com/company/dopamina"></div>
+              <div class="fg"><label class="fl">🌐 Sitio web</label><input type="text" class="fi" id="cp-web" placeholder="www.dopamina.pe"></div>
             </div>
             <div class="cv">
               <div class="st" style="font-size:13.5px">Colores del negocio</div>
@@ -432,10 +439,10 @@ textarea.fi{resize:vertical;min-height:78px}
             </div>
             <div class="cv">
               <div class="st" style="font-size:13.5px">Tipos de cliente</div>
-              <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Personaliza cómo llamas a cada tipo de cliente en tu negocio</div>
-              <div class="fg"><label class="fl">Tipo 1 (estándar)</label><input type="text" class="fi" id="cp-t1" placeholder="cliente"></div>
-              <div class="fg"><label class="fl">Tipo 2 (especial)</label><input type="text" class="fi" id="cp-t2" placeholder="embajador"></div>
-              <div class="fg"><label class="fl">Tipo 3 (premium)</label><input type="text" class="fi" id="cp-t3" placeholder="fitclub"></div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Define cómo categorizas a tus clientes. Agrega los que necesites.</div>
+              <div id="tipos-lista"></div>
+              <button class="btn bs bsm" onclick="agregarTipo()" style="margin-top:6px;width:100%;justify-content:center">+ Agregar tipo</button>
+              <div style="font-size:11px;color:var(--t3);margin-top:8px">El primer tipo es el estándar para clientes nuevos</div>
             </div>
           </div>
         </div>
@@ -586,8 +593,6 @@ textarea.fi{resize:vertical;min-height:78px}
     <div class="fg"><label class="fl">Tipo</label>
       <select class="fi" id="nc-tipo">
         <option value="cliente">Cliente</option>
-        <option value="embajador">Embajador</option>
-        <option value="fitclub">FitClub</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Género</label>
@@ -622,8 +627,6 @@ textarea.fi{resize:vertical;min-height:78px}
     <div class="fg"><label class="fl">Tipo</label>
       <select class="fi" id="ed-tipo">
         <option value="cliente">Cliente</option>
-        <option value="embajador">Embajador</option>
-        <option value="fitclub">FitClub</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Género (avatar)</label>
@@ -895,14 +898,25 @@ async function ldCfg(){
     CFG=data;
     document.getElementById('sb-nm').textContent=CFG.nombre||'Dopamina';
     document.getElementById('sb-ft').textContent=(CFG.nombre||'Dopamina')+' · '+(CFG.ciudad||'Lima');
-    // Aplicar colores del negocio a la app
+    // Aplicar colores del negocio
     if(CFG.color_primario){
       document.documentElement.style.setProperty('--g',CFG.color_primario);
       document.documentElement.style.setProperty('--gd',CFG.color_primario);
     }
-    if(CFG.color_secundario){
-      document.documentElement.style.setProperty('--y',CFG.color_secundario);
-    }
+    if(CFG.color_secundario)document.documentElement.style.setProperty('--y',CFG.color_secundario);
+    // Poblar selects de tipo de cliente dinámicamente
+    try{
+      const raw=CFG.tipos_cliente;
+      const tipos=raw?(typeof raw==='string'?JSON.parse(raw):raw):null;
+      const lista=tipos&&tipos.length?tipos:['cliente','embajador','fitclub'];
+      ['nc-tipo','ed-tipo'].forEach(selectId=>{
+        const sel=document.getElementById(selectId);
+        if(!sel)return;
+        const current=sel.value;
+        sel.innerHTML=lista.map(t=>`<option value="${t}">${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
+        if(current&&lista.includes(current))sel.value=current;
+      });
+    }catch(e){}
   }
 }
 function rdCfg(){
@@ -922,6 +936,11 @@ function rdCfg(){
   document.getElementById('cp-del').value=CFG.delivery_tel||'';
   document.getElementById('cp-ig').value=CFG.instagram||'';
   document.getElementById('cp-tt').value=CFG.tiktok||'';
+  document.getElementById('cp-fb').value=CFG.facebook||'';
+  document.getElementById('cp-yt').value=CFG.youtube||'';
+  document.getElementById('cp-tw').value=CFG.twitter||'';
+  document.getElementById('cp-li').value=CFG.linkedin||'';
+  document.getElementById('cp-web').value=CFG.web||'';
   // Colores
   const c1=CFG.color_primario||'#4CAF7D';
   const c2=CFG.color_secundario||'#F5C842';
@@ -929,10 +948,12 @@ function rdCfg(){
   document.getElementById('cp-col1').value=c1;document.getElementById('cp-col1t').value=c1;document.getElementById('prev-col1').style.background=c1;
   document.getElementById('cp-col2').value=c2;document.getElementById('cp-col2t').value=c2;document.getElementById('prev-col2').style.background=c2;
   document.getElementById('cp-col3').value=c3;document.getElementById('cp-col3t').value=c3;document.getElementById('prev-col3').style.background=c3;
-  // Tipos de cliente
-  document.getElementById('cp-t1').value=CFG.tipo_cliente1||'cliente';
-  document.getElementById('cp-t2').value=CFG.tipo_cliente2||'embajador';
-  document.getElementById('cp-t3').value=CFG.tipo_cliente3||'fitclub';
+  // Tipos de cliente dinámicos
+  try{
+    const raw=CFG.tipos_cliente;
+    const tipos=raw?(typeof raw==='string'?JSON.parse(raw):raw):null;
+    renderTipos(tipos&&tipos.length?tipos:['cliente','embajador','fitclub']);
+  }catch(e){renderTipos(['cliente','embajador','fitclub']);}
   // Tarjeta
   document.getElementById('cp-mlbl').value=CFG.tarjeta_miembro_label||'Dopilover';
   document.getElementById('cp-ff').value=CFG.tarjeta_frase_frente||'Date el gusto de ser feliz.';
@@ -964,14 +985,17 @@ async function saveCfg(){
     delivery_tel:document.getElementById('cp-del').value,
     instagram:document.getElementById('cp-ig').value,
     tiktok:document.getElementById('cp-tt').value,
+    facebook:document.getElementById('cp-fb').value,
+    youtube:document.getElementById('cp-yt').value,
+    twitter:document.getElementById('cp-tw').value,
+    linkedin:document.getElementById('cp-li').value,
+    web:document.getElementById('cp-web').value,
     // Colores
     color_primario:document.getElementById('cp-col1t').value||'#4CAF7D',
     color_secundario:document.getElementById('cp-col2t').value||'#F5C842',
     color_acento:document.getElementById('cp-col3t').value||'#5c3317',
-    // Tipos de cliente
-    tipo_cliente1:document.getElementById('cp-t1').value||'cliente',
-    tipo_cliente2:document.getElementById('cp-t2').value||'embajador',
-    tipo_cliente3:document.getElementById('cp-t3').value||'fitclub',
+    // Tipos de cliente dinámicos (guardar como JSON array)
+    tipos_cliente:JSON.stringify(getTipos()),
     // Puntos
     pts_por_sol:parseFloat(document.getElementById('cp-pps').value)||1,
     pts_bienvenida:parseInt(document.getElementById('cp-bv').value)||20,
@@ -1267,6 +1291,59 @@ async function procesarQR(rawUrl){
   if(ganoGratis)toast2('🎉 ¡'+c.nombre+' completó su tarjeta! Consumo GRATIS',false);
   else toast2('✓ Visita de '+c.nombre+' registrada · Sello '+(sellosAhora)+'/'+sellosMax);
 }
+// ===================== TIPOS DE CLIENTE DINÁMICOS =====================
+function renderTipos(tipos){
+  const lista=document.getElementById('tipos-lista');
+  if(!lista)return;
+  lista.innerHTML='';
+  tipos.forEach((t,i)=>{
+    const div=document.createElement('div');
+    div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
+    div.innerHTML=`
+      <div style="width:22px;height:22px;background:var(--gr);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t3);font-weight:700;flex-shrink:0">${i+1}</div>
+      <input type="text" class="fi" value="${t}" placeholder="Nombre del tipo" style="flex:1;margin:0"
+        oninput="this.dataset.val=this.value">
+      ${i===0
+        ? '<div style="font-size:10px;color:var(--t3);white-space:nowrap">estándar</div>'
+        : `<button class="btn bdr bsm" onclick="eliminarTipo(this)" style="flex-shrink:0;padding:6px 8px">✕</button>`
+      }`;
+    lista.appendChild(div);
+  });
+}
+
+function agregarTipo(){
+  const lista=document.getElementById('tipos-lista');
+  if(!lista)return;
+  const count=lista.children.length;
+  if(count>=10){toast2('⚠ Máximo 10 tipos',true);return;}
+  const div=document.createElement('div');
+  div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px';
+  div.innerHTML=`
+    <div style="width:22px;height:22px;background:var(--gr);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--t3);font-weight:700;flex-shrink:0">${count+1}</div>
+    <input type="text" class="fi" placeholder="Nuevo tipo..." style="flex:1;margin:0">
+    <button class="btn bdr bsm" onclick="eliminarTipo(this)" style="flex-shrink:0;padding:6px 8px">✕</button>`;
+  lista.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+function eliminarTipo(btn){
+  const row=btn.parentElement;
+  const lista=document.getElementById('tipos-lista');
+  if(lista.children.length<=1){toast2('⚠ Debe haber al menos 1 tipo',true);return;}
+  row.remove();
+  // Re-numerar
+  Array.from(lista.children).forEach((r,i)=>{
+    const num=r.querySelector('div');
+    if(num)num.textContent=i+1;
+  });
+}
+
+function getTipos(){
+  const lista=document.getElementById('tipos-lista');
+  if(!lista)return['cliente'];
+  return Array.from(lista.querySelectorAll('input')).map(i=>i.value.trim()).filter(Boolean);
+}
+
 // ===================== CONFIG HELPERS =====================
 function cfgTab(btn, panelId){
   document.querySelectorAll('.cfg-tab').forEach(b=>{b.classList.remove('active');b.style.background='';b.style.color='';b.style.borderColor='';});
