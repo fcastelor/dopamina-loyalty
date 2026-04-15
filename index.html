@@ -207,6 +207,7 @@ textarea.fi{resize:vertical;min-height:78px}
       <div class="ni" onclick="nav('campanas')"><span class="ni-ic">◷</span> Campañas WhatsApp</div>
       <div class="nl">Herramientas</div>
       <div class="ni" onclick="nav('importar')"><span class="ni-ic">⇪</span> Importar CSV</div>
+      <div class="ni" onclick="nav('scanner')"><span class="ni-ic">📷</span> Escanear QR</div>
       <div class="ni" onclick="nav('config')"><span class="ni-ic">◌</span> Configuración</div>
       <div class="ni" onclick="nav('seguridad')"><span class="ni-ic">🔐</span> Seguridad</div>
     </div>
@@ -311,6 +312,41 @@ textarea.fi{resize:vertical;min-height:78px}
           <div id="c-lk-s" style="display:none" class="cv"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="st" style="margin:0">Links generados</div><span class="tm tsm" id="c-lk-c"></span></div><div id="c-lk-l"></div></div>
         </div>
         <div id="tc-h" style="display:none"><div class="cv"><div id="cp-h"><div class="tm tsm">Cargando...</div></div></div></div>
+      </div>
+
+      <!-- SCANNER QR -->
+      <div class="panel" id="panel-scanner">
+        <div class="st">Escanear tarjeta del cliente</div>
+        <div class="g2">
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Cámara</div>
+            <div id="scanner-box" style="background:#000;border-radius:12px;overflow:hidden;position:relative;min-height:260px;display:flex;align-items:center;justify-content:center">
+              <video id="scanner-video" style="width:100%;border-radius:12px;display:none" playsinline autoplay muted></video>
+              <canvas id="scanner-canvas" style="display:none"></canvas>
+              <div id="scanner-placeholder" style="color:rgba(255,255,255,.6);text-align:center;padding:40px">
+                <div style="font-size:48px;margin-bottom:12px">📷</div>
+                <div style="font-size:13px">Toca "Activar cámara" para escanear</div>
+              </div>
+              <div id="scanner-overlay" style="display:none;position:absolute;inset:0;border:3px solid #4CAF7D;border-radius:12px;box-shadow:inset 0 0 0 3000px rgba(0,0,0,.4)">
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid #4CAF7D;border-radius:12px;box-shadow:0 0 0 3000px rgba(0,0,0,.4)"></div>
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:3px;background:#4CAF7D;animation:scan 2s ease-in-out infinite"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn bp" style="flex:1;justify-content:center" id="btn-scan-start" onclick="startScanner()">📷 Activar cámara</button>
+              <button class="btn bs" style="flex:1;justify-content:center" id="btn-scan-stop" onclick="stopScanner()" style="display:none">⏹ Detener</button>
+            </div>
+            <div id="scan-status" style="margin-top:10px;text-align:center;font-size:13px;color:var(--t2)">Listo para escanear</div>
+          </div>
+          <div class="cv">
+            <div class="st" style="font-size:13.5px">Resultado</div>
+            <div id="scan-result" style="min-height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;color:var(--t3)">
+              <div style="font-size:36px">🃏</div>
+              <div style="font-size:13px">Escanea el QR de la tarjeta del cliente para registrar su visita</div>
+            </div>
+          </div>
+        </div>
+        <style>@keyframes scan{0%,100%{top:30%}50%{top:70%}}</style>
       </div>
 
       <!-- IMPORTAR -->
@@ -847,11 +883,153 @@ ${(()=>{
 ${dsp.length>0?`<div style="background:var(--gb);border-radius:9px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--gd);margin-bottom:7px">Recompensas disponibles</div><div style="display:flex;flex-wrap:wrap;gap:6px">${dsp.map(r=>`<button class="btn bsm" style="background:white;border:1px solid var(--g);color:var(--gd)" onclick="cjPf(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.nombre} (${r.puntos_requeridos}pts)</button>`).join('')}</div></div>`:''}
 <div class="st" style="font-size:12.5px">Historial</div>
 ${(h||[]).length===0?'<div class="tm tsm">Sin actividad</div>':(h||[]).map(x=>`<div class="hi"><div class="hd ${x.tipo==='compra'?'hc':x.tipo==='canje'?'hj':'hb'}"></div><div style="flex:1;font-size:12.5px">${x.descripcion||''}</div><div class="tm tsm">${fmtD(x.created_at)}</div></div>`).join('')}
-<div style="display:flex;gap:7px;margin-top:16px"><button class="btn bp bsm" onclick="closeM('m-pf');nav('puntos');setTimeout(()=>preSel(${c.id}),150)">+ Puntos</button><button class="btn bs bsm" onclick="editarCliente(${c.id})">✏️ Editar</button><button class="btn bs bsm" onclick="waC(${c.id})">WhatsApp</button><button class="btn bdr bsm" onclick="delCl(${c.id})">Eliminar</button></div>`;
+<div style="display:flex;gap:7px;margin-top:16px;flex-wrap:wrap"><button class="btn bp bsm" onclick="closeM('m-pf');nav('puntos');setTimeout(()=>preSel(${c.id}),150)">+ Puntos</button><button class="btn bs bsm" onclick="editarCliente(${c.id})">✏️ Editar</button><button class="btn bs bsm" onclick="verTarjeta(${c.id})">🃏 Tarjeta</button><button class="btn bs bsm" onclick="waC(${c.id})">WhatsApp</button><button class="btn bdr bsm" onclick="delCl(${c.id})">Eliminar</button></div>`;
   openM('m-pf');
 }
 
 async function waC(id){const{data:c}=await SB.from('clientes').select('nombre,celular,puntos').eq('id',id).single();if(!c?.celular){toast2('⚠ Sin celular',true);return;}const msg=encodeURIComponent(`Hola ${c.nombre}! Te escribimos desde Dopamina 🌿\nTienes ${c.puntos||0} puntos. ¡Gracias!`);const n=c.celular.replace(/\D/g,'');window.open('https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+msg,'_blank');}
+
+function verTarjeta(id){
+  const url=`https://dopamina-loyalty.vercel.app/card.html?id=${id}`;
+  window.open(url,'_blank');
+}
+
+// ===================== SCANNER QR =====================
+let scannerStream=null,scannerInterval=null;
+
+async function startScanner(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    scannerStream=stream;
+    const video=document.getElementById('scanner-video');
+    video.srcObject=stream;
+    video.style.display='block';
+    document.getElementById('scanner-placeholder').style.display='none';
+    document.getElementById('scanner-overlay').style.display='block';
+    document.getElementById('btn-scan-start').style.display='none';
+    document.getElementById('btn-scan-stop').style.display='flex';
+    document.getElementById('scan-status').textContent='Apunta al QR de la tarjeta...';
+    // Escanear frames
+    scannerInterval=setInterval(()=>scanFrame(video),500);
+  }catch(e){
+    document.getElementById('scan-status').textContent='⚠ No se pudo acceder a la cámara: '+e.message;
+  }
+}
+
+function stopScanner(){
+  if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}
+  if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}
+  const video=document.getElementById('scanner-video');
+  video.style.display='none';video.srcObject=null;
+  document.getElementById('scanner-placeholder').style.display='flex';
+  document.getElementById('scanner-overlay').style.display='none';
+  document.getElementById('btn-scan-start').style.display='flex';
+  document.getElementById('btn-scan-stop').style.display='none';
+  document.getElementById('scan-status').textContent='Listo para escanear';
+}
+
+async function scanFrame(video){
+  if(!video.videoWidth)return;
+  const canvas=document.getElementById('scanner-canvas');
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(video,0,0);
+  try{
+    const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+    // Usar BarcodeDetector si está disponible
+    if('BarcodeDetector' in window){
+      const detector=new BarcodeDetector({formats:['qr_code']});
+      const codes=await detector.detect(canvas);
+      if(codes.length>0){
+        const raw=codes[0].rawValue;
+        await procesarQR(raw);
+      }
+    } else {
+      // Fallback: pedir al usuario que escriba el ID
+      document.getElementById('scan-status').innerHTML='Tu navegador no soporta escáner nativo.<br><button class="btn bp bsm" onclick="scanManual()" style="margin-top:8px">Ingresar ID manual</button>';
+      clearInterval(scannerInterval);scannerInterval=null;
+    }
+  }catch(e){}
+}
+
+async function scanManual(){
+  const id=prompt('Ingresa el ID del cliente (número):');
+  if(!id||isNaN(id))return;
+  await procesarQR(`https://dopamina-loyalty.vercel.app/card.html?id=${id}`);
+}
+
+async function procesarQR(rawUrl){
+  // Extraer ID del URL
+  let clienteId=null;
+  try{
+    const url=new URL(rawUrl);
+    clienteId=url.searchParams.get('id')||url.searchParams.get('c');
+  }catch(e){
+    // Si es solo un número
+    if(!isNaN(rawUrl.trim()))clienteId=rawUrl.trim();
+  }
+  if(!clienteId){document.getElementById('scan-status').textContent='QR no reconocido';return;}
+  
+  // Evitar doble escaneo
+  clearInterval(scannerInterval);scannerInterval=null;
+  stopScanner();
+  
+  document.getElementById('scan-status').textContent='✓ QR detectado — cargando cliente...';
+  document.getElementById('scan-result').innerHTML='<div style="font-size:24px;animation:spin 1s linear infinite">⏳</div>';
+  
+  showLo(true);
+  const{data:c,error}=await SB.from('clientes').select('*').eq('id',clienteId).single();
+  if(error||!c){showLo(false);document.getElementById('scan-result').innerHTML='<div style="color:var(--r)">⚠ Cliente no encontrado</div>';return;}
+  
+  // Registrar visita
+  const sellosMax=CFG?.sellos_meta||10;
+  const sellosAhora=(c.sellos_activos||0)+1;
+  const ganoGratis=sellosAhora>=sellosMax;
+  const nuevosSellos=ganoGratis?0:sellosAhora;
+  
+  await SB.from('clientes').update({
+    visitas:(c.visitas||0)+1,
+    sellos_activos:nuevosSellos,
+    total_canjes_sello:(c.total_canjes_sello||0)+(ganoGratis?1:0),
+    ultima_visita:new Date().toISOString()
+  }).eq('id',c.id);
+  
+  await SB.from('historial').insert({
+    cliente_id:c.id,tipo:'visita',
+    descripcion:`Visita registrada via QR · Sello ${ganoGratis?sellosMax:sellosAhora}/${sellosMax}`,
+    puntos:0
+  });
+  
+  showLo(false);
+  
+  const s=getSeg(c);
+  const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';
+  document.getElementById('scan-result').innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px;width:100%">
+      ${c.foto_url?`<img src="${c.foto_url}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid var(--g)">`
+        :`<div class="av" style="width:70px;height:70px;font-size:22px;background:${aC(c.nombre)}">${ini(c.nombre)}</div>`}
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700">${c.nombre}</div>
+      <span class="bg ${bc}">${s}</span>
+      <div style="display:flex;gap:12px;margin-top:4px">
+        <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--g)">${(c.puntos||0).toLocaleString()}</div><div style="font-size:10px;color:var(--t3)">PUNTOS</div></div>
+        <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--g)">${nuevosSellos}/${sellosMax}</div><div style="font-size:10px;color:var(--t3)">SELLOS</div></div>
+        <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--g)">${(c.visitas||0)+1}</div><div style="font-size:10px;color:var(--t3)">VISITAS</div></div>
+      </div>
+      ${ganoGratis?`<div style="background:#e8f7ef;border:2px solid var(--g);border-radius:12px;padding:12px 16px;text-align:center;width:100%">
+        <div style="font-size:24px">🎉</div>
+        <div style="font-weight:700;color:var(--gd)">¡Tarjeta completa!</div>
+        <div style="font-size:12px;color:var(--t2)">Consumo gratis ganado</div>
+      </div>`:''}
+      <div style="background:#e8f7ef;border-radius:10px;padding:10px 16px;width:100%;text-align:center">
+        <div style="font-weight:600;color:var(--gd)">✓ Visita registrada</div>
+        <div style="font-size:11px;color:var(--t2)">${new Date().toLocaleTimeString('es-PE')}</div>
+      </div>
+      <button class="btn bp" style="width:100%;justify-content:center;margin-top:4px" onclick="startScanner()">📷 Escanear otro</button>
+    </div>`;
+  
+  if(ganoGratis)toast2('🎉 ¡'+c.nombre+' completó su tarjeta! Consumo GRATIS',false);
+  else toast2('✓ Visita de '+c.nombre+' registrada · Sello '+(sellosAhora)+'/'+sellosMax);
+}
 async function subirFoto(event, clienteId){
   const file = event.target.files[0];
   if(!file) return;
@@ -1172,7 +1350,7 @@ async function disableMFA(){if(!confirm('¿Desactivar MFA? Tu cuenta quedará me
 async function gSearch(q){if(!q||q.length<2)return;nav('clientes');const{data}=await SB.from('clientes').select('*').or(`nombre.ilike.%${q}%,dni.ilike.%${q}%`).limit(30);const tb=document.getElementById('tbl-cl');if(!data?.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--t3)">Sin resultados para "'+q+'"</td></tr>';return;}tb.innerHTML=data.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="font-weight:500">${c.nombre}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button></td></tr>`;}).join('');}
 
 // ===================== NAV =====================
-function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad',usuarios:'Administradores'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();if(p==='usuarios')ldUsuarios();}
+function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad',usuarios:'Administradores',scanner:'Escanear QR'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();if(p==='usuarios')ldUsuarios();if(p!=='scanner')stopScanner();}
 
 // ===================== UTILS =====================
 function setTab(el,id){['tc-c','tc-h'].forEach(t=>{const e=document.getElementById(t);if(e)e.style.display='none';});document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).style.display='block';el.classList.add('active');if(id==='tc-h')ldCampHist();}
