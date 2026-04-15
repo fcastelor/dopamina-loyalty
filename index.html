@@ -53,6 +53,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--gr);color:var(--t);min-he
 .content{padding:22px 26px;flex:1}
 .panel{display:none}.panel.active{display:block}
 .cv{background:var(--w);border-radius:var(--rad);padding:20px;box-shadow:0 1px 5px rgba(0,0,0,.05);border:1px solid var(--b)}
+.cfg-tab.active{background:var(--g);color:white;border-color:var(--g)}
+.cfg-tab-panel{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .sg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:18px}
 .sc{background:var(--w);border-radius:var(--rad);padding:17px 19px;border:1px solid var(--b)}
 .sl{font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
@@ -367,33 +370,162 @@ textarea.fi{resize:vertical;min-height:78px}
 
       <!-- CONFIG -->
       <div class="panel" id="panel-config">
-        <div class="st">Configuración</div>
-        <div class="g2">
-          <div class="cv">
-            <div class="st" style="font-size:13.5px">Reglas de puntos</div>
-            <div class="fg"><label class="fl">Puntos por S/ 1</label><input type="number" class="fi" id="cp-pps" min="0.1" step="0.1"></div>
-            <div class="fg"><label class="fl">Bono bienvenida (pts)</label><input type="number" class="fi" id="cp-bv" min="0"></div>
-            <div class="fg"><label class="fl">Bono cumpleaños (pts)</label><input type="number" class="fi" id="cp-bc" min="0"></div>
-            <div class="fg"><label class="fl">Mínimo para VIP</label><input type="number" class="fi" id="cp-vip" min="1"></div>
-            <div class="fg"><label class="fl">Días para Dormido</label><input type="number" class="fi" id="cp-dorm" min="1"></div>
-            <hr class="dv">
-            <div class="st" style="font-size:13.5px">Tarjeta de sellos ☕</div>
-            <div class="fg"><label class="fl">Visitas para consumo gratis</label><input type="number" class="fi" id="cp-sellos" min="2" max="20" placeholder="10"></div>
-            <div style="font-size:11.5px;color:var(--t3);margin-top:-8px;margin-bottom:10px">Cada visita = 1 sello. Al completar la tarjeta → 1 consumo gratis.</div>
-            <button class="btn bp" style="width:100%;justify-content:center" onclick="saveCfg()">Guardar cambios</button>
-          </div>
-          <div class="cv">
-            <div class="st" style="font-size:13.5px">Recompensas</div>
-            <div id="rw-cfg"></div>
-            <button class="btn bs bsm" style="margin-top:10px" onclick="openM('m-nrw')">+ Agregar</button>
-            <hr class="dv">
-            <div class="st" style="font-size:13.5px">Datos del negocio</div>
-            <div class="fg"><label class="fl">Nombre</label><input type="text" class="fi" id="cp-nm"></div>
-            <div class="fg"><label class="fl">WhatsApp</label><input type="text" class="fi" id="cp-wa" placeholder="51999888777"></div>
-            <div class="fg"><label class="fl">Ciudad</label><input type="text" class="fi" id="cp-ci"></div>
-            <button class="btn bp" style="width:100%;justify-content:center" onclick="saveCfg()">Guardar</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="st" style="margin:0">Configuración</div>
+          <button class="btn bp bsm" onclick="saveCfg()">💾 Guardar todo</button>
+        </div>
+
+        <!-- TABS de config -->
+        <div style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="btn bp bsm cfg-tab active" onclick="cfgTab(this,'ct-negocio')">🏪 Negocio</button>
+          <button class="btn bs bsm cfg-tab" onclick="cfgTab(this,'ct-tarjeta')">🃏 Tarjeta</button>
+          <button class="btn bs bsm cfg-tab" onclick="cfgTab(this,'ct-puntos')">⭐ Puntos</button>
+          <button class="btn bs bsm cfg-tab" onclick="cfgTab(this,'ct-agente')">🤖 Agente WA</button>
+          <button class="btn bs bsm cfg-tab" onclick="cfgTab(this,'ct-recompensas')">🎁 Recompensas</button>
+        </div>
+
+        <!-- TAB: Negocio -->
+        <div id="ct-negocio" class="cfg-tab-panel">
+          <div class="g2">
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Identidad</div>
+              <div class="fg"><label class="fl">Nombre del negocio</label><input type="text" class="fi" id="cp-nm" placeholder="Dopamina"></div>
+              <div class="fg"><label class="fl">Slogan</label><input type="text" class="fi" id="cp-slogan" placeholder="Alimentando tu felicidad"></div>
+              <div class="fg"><label class="fl">Ciudad</label><input type="text" class="fi" id="cp-ci" placeholder="Lima"></div>
+              <div class="fg"><label class="fl">Dirección</label><input type="text" class="fi" id="cp-dir" placeholder="Av. Larco 123, Miraflores"></div>
+            </div>
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Contacto y redes</div>
+              <div class="fg"><label class="fl">WhatsApp (con código país)</label><input type="text" class="fi" id="cp-wa" placeholder="51999888777"></div>
+              <div class="fg"><label class="fl">Teléfono delivery</label><input type="text" class="fi" id="cp-del" placeholder="908 922 055"></div>
+              <div class="fg"><label class="fl">Instagram</label><input type="text" class="fi" id="cp-ig" placeholder="@dopamina.pee"></div>
+              <div class="fg"><label class="fl">TikTok</label><input type="text" class="fi" id="cp-tt" placeholder="Dopamina.pee"></div>
+            </div>
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Colores del negocio</div>
+              <div class="fg"><label class="fl">Color primario</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="color" id="cp-col1" style="width:44px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px">
+                  <input type="text" class="fi" id="cp-col1t" placeholder="#4CAF7D" style="flex:1" oninput="syncColor('cp-col1','cp-col1t')">
+                </div>
+              </div>
+              <div class="fg"><label class="fl">Color secundario</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="color" id="cp-col2" style="width:44px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px">
+                  <input type="text" class="fi" id="cp-col2t" placeholder="#F5C842" style="flex:1" oninput="syncColor('cp-col2','cp-col2t')">
+                </div>
+              </div>
+              <div class="fg"><label class="fl">Color acento / texto</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="color" id="cp-col3" style="width:44px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:2px">
+                  <input type="text" class="fi" id="cp-col3t" placeholder="#5c3317" style="flex:1" oninput="syncColor('cp-col3','cp-col3t')">
+                </div>
+              </div>
+              <div style="background:var(--gr);border-radius:10px;padding:12px;font-size:12px;color:var(--t2)">
+                Preview de colores:
+                <div style="display:flex;gap:6px;margin-top:8px">
+                  <div id="prev-col1" style="flex:1;height:28px;border-radius:6px;background:#4CAF7D"></div>
+                  <div id="prev-col2" style="flex:1;height:28px;border-radius:6px;background:#F5C842"></div>
+                  <div id="prev-col3" style="flex:1;height:28px;border-radius:6px;background:#5c3317"></div>
+                </div>
+              </div>
+            </div>
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Tipos de cliente</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Personaliza cómo llamas a cada tipo de cliente en tu negocio</div>
+              <div class="fg"><label class="fl">Tipo 1 (estándar)</label><input type="text" class="fi" id="cp-t1" placeholder="cliente"></div>
+              <div class="fg"><label class="fl">Tipo 2 (especial)</label><input type="text" class="fi" id="cp-t2" placeholder="embajador"></div>
+              <div class="fg"><label class="fl">Tipo 3 (premium)</label><input type="text" class="fi" id="cp-t3" placeholder="fitclub"></div>
+            </div>
           </div>
         </div>
+
+        <!-- TAB: Tarjeta -->
+        <div id="ct-tarjeta" class="cfg-tab-panel" style="display:none">
+          <div class="g2">
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Textos de la tarjeta</div>
+              <div class="fg"><label class="fl">Nombre del miembro (ej: "Dopilover")</label><input type="text" class="fi" id="cp-mlbl" placeholder="Dopilover"></div>
+              <div class="fg"><label class="fl">Frase del anverso</label><input type="text" class="fi" id="cp-ff" placeholder="Date el gusto de ser feliz."></div>
+              <div class="fg"><label class="fl">Texto de agradecimiento</label><input type="text" class="fi" id="cp-fg" placeholder="Gracias 🧡"></div>
+              <div class="fg"><label class="fl">Frase del reverso</label><textarea class="fi" id="cp-fr" rows="2" placeholder="La felicidad más dulce es aquella que se comparte."></textarea></div>
+              <hr class="dv">
+              <div class="st" style="font-size:13.5px">Celdas especiales del waffle</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Las 2 celdas inferiores del waffle tienen texto especial</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+                <div class="fg"><label class="fl">Celda izquierda</label><input type="text" class="fi" id="cp-c1" placeholder="5%"></div>
+                <div class="fg"><label class="fl">Celda derecha</label><input type="text" class="fi" id="cp-c2" placeholder="SORPRESA"></div>
+              </div>
+            </div>
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Imagen reverso de tarjeta</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Sube la imagen de tu tarjeta física (reverso) para usarla como fondo de la tarjeta digital</div>
+              <div id="card-img-preview" style="background:var(--gr);border-radius:12px;overflow:hidden;margin-bottom:12px;min-height:180px;display:flex;align-items:center;justify-content:center">
+                <img id="card-img-thumb" style="width:100%;border-radius:12px;display:none">
+                <div id="card-img-placeholder" style="text-align:center;padding:20px;color:var(--t3)">
+                  <div style="font-size:32px">🃏</div>
+                  <div style="font-size:12px">Sin imagen</div>
+                </div>
+              </div>
+              <label class="btn bs" style="width:100%;justify-content:center;cursor:pointer">
+                📤 Subir imagen de tarjeta
+                <input type="file" accept="image/*" style="display:none" onchange="subirCardImagen(event)">
+              </label>
+              <div style="font-size:11px;color:var(--t3);margin-top:6px">JPG, PNG o WebP · Máx 5MB · Proporción recomendada: 3:5 (vertical)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Puntos -->
+        <div id="ct-puntos" class="cfg-tab-panel" style="display:none">
+          <div class="g2">
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Reglas de puntos</div>
+              <div class="fg"><label class="fl">Puntos por S/ 1 gastado</label><input type="number" class="fi" id="cp-pps" min="0.1" step="0.1"></div>
+              <div class="fg"><label class="fl">Bono bienvenida (pts)</label><input type="number" class="fi" id="cp-bv" min="0"></div>
+              <div class="fg"><label class="fl">Bono cumpleaños (pts)</label><input type="number" class="fi" id="cp-bc" min="0"></div>
+              <hr class="dv">
+              <div class="st" style="font-size:13.5px">Segmentación</div>
+              <div class="fg"><label class="fl">Puntos mínimos para VIP</label><input type="number" class="fi" id="cp-vip" min="1"></div>
+              <div class="fg"><label class="fl">Días sin visita para "Dormido"</label><input type="number" class="fi" id="cp-dorm" min="1"></div>
+            </div>
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Tarjeta de sellos ☕</div>
+              <div class="fg"><label class="fl">Visitas para premio</label><input type="number" class="fi" id="cp-sellos" min="2" max="20"></div>
+              <div style="font-size:11.5px;color:var(--t3);margin-bottom:16px">Cada visita = 1 sello. Al completar → consumo gratis</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Agente WA -->
+        <div id="ct-agente" class="cfg-tab-panel" style="display:none">
+          <div class="g2">
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Personalidad del agente</div>
+              <div class="fg"><label class="fl">Tono del agente</label>
+                <input type="text" class="fi" id="cp-tono" placeholder="amigable, energico, saludable, joven">
+                <div style="font-size:11px;color:var(--t3);margin-top:4px">Separados por coma. Ej: formal, profesional, cálido</div>
+              </div>
+              <div class="fg"><label class="fl">Horario de atención</label><input type="text" class="fi" id="cp-hor" placeholder="Lunes a Domingo 8am - 10pm"></div>
+            </div>
+            <div class="cv">
+              <div class="st" style="font-size:13.5px">Productos que ofrece</div>
+              <div class="fg"><label class="fl">Lista de productos (uno por línea)</label>
+                <textarea class="fi" id="cp-prod" rows="6" placeholder="Waffles proteicos&#10;Frappés saludables&#10;Tés fríos y calientes&#10;Shots de energía"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Recompensas -->
+        <div id="ct-recompensas" class="cfg-tab-panel" style="display:none">
+          <div class="cv" style="max-width:500px">
+            <div class="st" style="font-size:13.5px">Recompensas canjeables con puntos</div>
+            <div id="rw-cfg"></div>
+            <button class="btn bs bsm" style="margin-top:10px" onclick="openM('m-nrw')">+ Agregar recompensa</button>
+          </div>
+        </div>
+
       </div>
 
       <!-- SEGURIDAD -->
@@ -757,9 +889,114 @@ function tUM(){document.getElementById('u-dd').classList.toggle('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.um'))document.getElementById('u-dd')?.classList.remove('open');});
 
 // ===================== CONFIG =====================
-async function ldCfg(){const{data}=await SB.from('config').select('*').single();if(data){CFG=data;document.getElementById('sb-nm').textContent=CFG.nombre||'Dopamina';document.getElementById('sb-ft').textContent=(CFG.nombre||'Dopamina')+' · '+(CFG.ciudad||'Lima');}}
-function rdCfg(){document.getElementById('cp-pps').value=CFG.pts_por_sol||1;document.getElementById('cp-bv').value=CFG.pts_bienvenida||20;document.getElementById('cp-bc').value=CFG.pts_cumple||50;document.getElementById('cp-vip').value=CFG.vip_min||500;document.getElementById('cp-dorm').value=CFG.dormido_dias||30;document.getElementById('cp-sellos').value=CFG.sellos_meta||10;document.getElementById('cp-nm').value=CFG.nombre||'';document.getElementById('cp-wa').value=CFG.whatsapp||'';document.getElementById('cp-ci').value=CFG.ciudad||'';ldRwCfg();}
-async function saveCfg(){const data={id:1,nombre:document.getElementById('cp-nm').value,whatsapp:document.getElementById('cp-wa').value,ciudad:document.getElementById('cp-ci').value,pts_por_sol:parseFloat(document.getElementById('cp-pps').value)||1,pts_bienvenida:parseInt(document.getElementById('cp-bv').value)||20,pts_cumple:parseInt(document.getElementById('cp-bc').value)||50,vip_min:parseInt(document.getElementById('cp-vip').value)||500,dormido_dias:parseInt(document.getElementById('cp-dorm').value)||30,sellos_meta:parseInt(document.getElementById('cp-sellos').value)||10};showLo(true);await SB.from('config').upsert(data,{onConflict:'id'});await ldCfg();showLo(false);toast2('✓ Configuración guardada');}
+async function ldCfg(){
+  const{data}=await SB.from('config').select('*').single();
+  if(data){
+    CFG=data;
+    document.getElementById('sb-nm').textContent=CFG.nombre||'Dopamina';
+    document.getElementById('sb-ft').textContent=(CFG.nombre||'Dopamina')+' · '+(CFG.ciudad||'Lima');
+    // Aplicar colores del negocio a la app
+    if(CFG.color_primario){
+      document.documentElement.style.setProperty('--g',CFG.color_primario);
+      document.documentElement.style.setProperty('--gd',CFG.color_primario);
+    }
+    if(CFG.color_secundario){
+      document.documentElement.style.setProperty('--y',CFG.color_secundario);
+    }
+  }
+}
+function rdCfg(){
+  // Puntos
+  document.getElementById('cp-pps').value=CFG.pts_por_sol||1;
+  document.getElementById('cp-bv').value=CFG.pts_bienvenida||20;
+  document.getElementById('cp-bc').value=CFG.pts_cumple||50;
+  document.getElementById('cp-vip').value=CFG.vip_min||500;
+  document.getElementById('cp-dorm').value=CFG.dormido_dias||30;
+  document.getElementById('cp-sellos').value=CFG.sellos_meta||10;
+  // Negocio
+  document.getElementById('cp-nm').value=CFG.nombre||'';
+  document.getElementById('cp-slogan').value=CFG.slogan||'';
+  document.getElementById('cp-wa').value=CFG.whatsapp||'';
+  document.getElementById('cp-ci').value=CFG.ciudad||'';
+  document.getElementById('cp-dir').value=CFG.direccion||'';
+  document.getElementById('cp-del').value=CFG.delivery_tel||'';
+  document.getElementById('cp-ig').value=CFG.instagram||'';
+  document.getElementById('cp-tt').value=CFG.tiktok||'';
+  // Colores
+  const c1=CFG.color_primario||'#4CAF7D';
+  const c2=CFG.color_secundario||'#F5C842';
+  const c3=CFG.color_acento||'#5c3317';
+  document.getElementById('cp-col1').value=c1;document.getElementById('cp-col1t').value=c1;document.getElementById('prev-col1').style.background=c1;
+  document.getElementById('cp-col2').value=c2;document.getElementById('cp-col2t').value=c2;document.getElementById('prev-col2').style.background=c2;
+  document.getElementById('cp-col3').value=c3;document.getElementById('cp-col3t').value=c3;document.getElementById('prev-col3').style.background=c3;
+  // Tipos de cliente
+  document.getElementById('cp-t1').value=CFG.tipo_cliente1||'cliente';
+  document.getElementById('cp-t2').value=CFG.tipo_cliente2||'embajador';
+  document.getElementById('cp-t3').value=CFG.tipo_cliente3||'fitclub';
+  // Tarjeta
+  document.getElementById('cp-mlbl').value=CFG.tarjeta_miembro_label||'Dopilover';
+  document.getElementById('cp-ff').value=CFG.tarjeta_frase_frente||'Date el gusto de ser feliz.';
+  document.getElementById('cp-fg').value=CFG.tarjeta_gracias||'Gracias 🧡';
+  document.getElementById('cp-fr').value=CFG.tarjeta_frase_reverso||'La felicidad más dulce es aquella que se comparte.';
+  document.getElementById('cp-c1').value=CFG.tarjeta_celda1||'5%';
+  document.getElementById('cp-c2').value=CFG.tarjeta_celda2||'SORPRESA';
+  // Preview imagen tarjeta
+  if(CFG.card_reverso_url){
+    document.getElementById('card-img-thumb').src=CFG.card_reverso_url;
+    document.getElementById('card-img-thumb').style.display='block';
+    document.getElementById('card-img-placeholder').style.display='none';
+  }
+  // Agente
+  document.getElementById('cp-tono').value=CFG.agente_tono||'';
+  document.getElementById('cp-hor').value=CFG.agente_horario||'';
+  document.getElementById('cp-prod').value=CFG.agente_productos||'';
+  ldRwCfg();
+}
+async function saveCfg(){
+  const data={
+    id:1,
+    // Negocio
+    nombre:document.getElementById('cp-nm').value,
+    slogan:document.getElementById('cp-slogan').value,
+    whatsapp:document.getElementById('cp-wa').value,
+    ciudad:document.getElementById('cp-ci').value,
+    direccion:document.getElementById('cp-dir').value,
+    delivery_tel:document.getElementById('cp-del').value,
+    instagram:document.getElementById('cp-ig').value,
+    tiktok:document.getElementById('cp-tt').value,
+    // Colores
+    color_primario:document.getElementById('cp-col1t').value||'#4CAF7D',
+    color_secundario:document.getElementById('cp-col2t').value||'#F5C842',
+    color_acento:document.getElementById('cp-col3t').value||'#5c3317',
+    // Tipos de cliente
+    tipo_cliente1:document.getElementById('cp-t1').value||'cliente',
+    tipo_cliente2:document.getElementById('cp-t2').value||'embajador',
+    tipo_cliente3:document.getElementById('cp-t3').value||'fitclub',
+    // Puntos
+    pts_por_sol:parseFloat(document.getElementById('cp-pps').value)||1,
+    pts_bienvenida:parseInt(document.getElementById('cp-bv').value)||20,
+    pts_cumple:parseInt(document.getElementById('cp-bc').value)||50,
+    vip_min:parseInt(document.getElementById('cp-vip').value)||500,
+    dormido_dias:parseInt(document.getElementById('cp-dorm').value)||30,
+    sellos_meta:parseInt(document.getElementById('cp-sellos').value)||10,
+    // Tarjeta
+    tarjeta_miembro_label:document.getElementById('cp-mlbl').value||'Dopilover',
+    tarjeta_frase_frente:document.getElementById('cp-ff').value,
+    tarjeta_gracias:document.getElementById('cp-fg').value,
+    tarjeta_frase_reverso:document.getElementById('cp-fr').value,
+    tarjeta_celda1:document.getElementById('cp-c1').value||'5%',
+    tarjeta_celda2:document.getElementById('cp-c2').value||'SORPRESA',
+    // Agente
+    agente_tono:document.getElementById('cp-tono').value,
+    agente_horario:document.getElementById('cp-hor').value,
+    agente_productos:document.getElementById('cp-prod').value,
+  };
+  showLo(true);
+  await SB.from('config').upsert(data,{onConflict:'id'});
+  await ldCfg();
+  showLo(false);
+  toast2('✓ Configuración guardada');
+}
 
 // ===================== SEG =====================
 function getSeg(c){if((c.puntos||0)>=(CFG.vip_min||500))return'VIP';if(c.ultima_visita&&(new Date()-new Date(c.ultima_visita))/86400000>=(CFG.dormido_dias||30))return'Dormido';if(c.created_at&&(new Date()-new Date(c.created_at))/86400000<=7)return'Nuevo';return'Regular';}
@@ -1030,6 +1267,58 @@ async function procesarQR(rawUrl){
   if(ganoGratis)toast2('🎉 ¡'+c.nombre+' completó su tarjeta! Consumo GRATIS',false);
   else toast2('✓ Visita de '+c.nombre+' registrada · Sello '+(sellosAhora)+'/'+sellosMax);
 }
+// ===================== CONFIG HELPERS =====================
+function cfgTab(btn, panelId){
+  document.querySelectorAll('.cfg-tab').forEach(b=>{b.classList.remove('active');b.style.background='';b.style.color='';b.style.borderColor='';});
+  document.querySelectorAll('.cfg-tab-panel').forEach(p=>p.style.display='none');
+  btn.classList.add('active');
+  document.getElementById(panelId).style.display='block';
+}
+
+function syncColor(pickerId, textId){
+  const val=document.getElementById(textId).value;
+  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
+    document.getElementById(pickerId).value=val;
+    const prev={'cp-col1':'prev-col1','cp-col2':'prev-col2','cp-col3':'prev-col3'}[pickerId];
+    if(prev)document.getElementById(prev).style.background=val;
+  }
+}
+
+// Sync color picker → text input
+document.addEventListener('change',e=>{
+  const map={'cp-col1':'cp-col1t','cp-col2':'cp-col2t','cp-col3':'cp-col3t'};
+  if(map[e.target.id]){
+    document.getElementById(map[e.target.id]).value=e.target.value;
+    const prev={'cp-col1':'prev-col1','cp-col2':'prev-col2','cp-col3':'prev-col3'}[e.target.id];
+    if(prev)document.getElementById(prev).style.background=e.target.value;
+  }
+});
+
+async function subirCardImagen(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){toast2('⚠ Imagen máx 5MB',true);return;}
+  if(!file.type.startsWith('image/')){toast2('⚠ Solo imágenes',true);return;}
+  showLo(true);
+  try{
+    const ext=file.name.split('.').pop();
+    const path=`card_reverso_${Date.now()}.${ext}`;
+    const{data:upData,error:upErr}=await SB.storage.from('fotos-clientes').upload(path,file,{upsert:true,contentType:file.type});
+    if(upErr)throw upErr;
+    const{data:urlData}=SB.storage.from('fotos-clientes').getPublicUrl(path);
+    const url=urlData.publicUrl;
+    // Guardar en config
+    await SB.from('config').update({card_reverso_url:url}).eq('id',1);
+    CFG.card_reverso_url=url;
+    // Preview
+    document.getElementById('card-img-thumb').src=url;
+    document.getElementById('card-img-thumb').style.display='block';
+    document.getElementById('card-img-placeholder').style.display='none';
+    showLo(false);
+    toast2('✓ Imagen de tarjeta actualizada');
+  }catch(e){showLo(false);toast2('⚠ Error: '+e.message,true);}
+}
+
 async function subirFoto(event, clienteId){
   const file = event.target.files[0];
   if(!file) return;
