@@ -116,11 +116,11 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
           </svg>
         </div>
         <div class="front-bottom">
-          <div class="frase-main">Date el gusto de ser feliz.</div>
-          <div class="gracias-txt">Gracias 🧡</div>
+          <div class="frase-main" id="card-frase-frente">Date el gusto de ser feliz.</div>
+          <div class="gracias-txt" id="card-gracias">Gracias 🧡</div>
           <div class="dopilover-lbl" id="card-num">Dopilover #0000</div>
           <div class="cliente-nom" id="cliente-nombre">—</div>
-          <div class="redes-txt">Síguenos 🎵 Dopamina.pee<br>Delivery: 📱 908 922 055</div>
+          <div class="redes-txt" id="card-redes">Síguenos 🎵 Dopamina.pee<br>Delivery: 📱 908 922 055</div>
         </div>
       </div>
     </div>
@@ -199,7 +199,22 @@ async function init(){
     const visitas=c.visitas||0;
     const nombre=c.nombre?.split(' ')[0]||c.nombre||'Cliente';
     document.getElementById('cliente-nombre').textContent=nombre;
-    document.getElementById('card-num').textContent='Dopilover #'+String(c.id).padStart(4,'0');
+    document.getElementById('card-num').textContent=(cfg?.tarjeta_miembro_label||'Dopilover')+' #'+String(c.id).padStart(4,'0');
+    // Textos dinámicos desde config
+    const fraseFr=document.getElementById('card-frase-frente');
+    if(fraseFr)fraseFr.textContent=cfg?.tarjeta_frase_frente||'Date el gusto de ser feliz.';
+    const gracias=document.getElementById('card-gracias');
+    if(gracias)gracias.textContent=cfg?.tarjeta_gracias||'Gracias 🧡';
+    const redes=document.getElementById('card-redes');
+    if(redes){
+      const ig=cfg?.instagram||'@dopamina.pee';
+      const del_tel=cfg?.delivery_tel||'908 922 055';
+      const tt=cfg?.tiktok||'Dopamina.pee';
+      redes.innerHTML=`Síguenos 🎵 ${tt}<br>Delivery: 📱 ${del_tel}`;
+    }
+    // Imagen de tarjeta dinámica
+    const backImg=document.querySelector('.back-img');
+    if(backImg&&cfg?.card_reverso_url)backImg.src=cfg.card_reverso_url;
     document.getElementById('back-nombre').textContent=nombre+' · #'+String(c.id).padStart(4,'0');
     document.getElementById('puntos-num').textContent=(c.puntos||0).toLocaleString();
     renderSellos(sellos,sellosMax);
