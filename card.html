@@ -205,12 +205,30 @@ async function init(){
     if(fraseFr)fraseFr.textContent=cfg?.tarjeta_frase_frente||'Date el gusto de ser feliz.';
     const gracias=document.getElementById('card-gracias');
     if(gracias)gracias.textContent=cfg?.tarjeta_gracias||'Gracias 🧡';
-    const redes=document.getElementById('card-redes');
-    if(redes){
-      const ig=cfg?.instagram||'@dopamina.pee';
-      const del_tel=cfg?.delivery_tel||'908 922 055';
-      const tt=cfg?.tiktok||'Dopamina.pee';
-      redes.innerHTML=`Síguenos 🎵 ${tt}<br>Delivery: 📱 ${del_tel}`;
+    const redesEl=document.getElementById('card-redes');
+    if(redesEl){
+      try{
+        const raw=cfg?.tarjeta_redes;
+        const redesSelec=raw?(typeof raw==='string'?JSON.parse(raw):raw):null;
+        const lista=redesSelec&&redesSelec.length?redesSelec:[{red:'instagram',icono:'📸'},{red:'tiktok',icono:'🎵'}];
+        // Mapear cada red a su valor en config
+        const vals={
+          instagram:cfg?.instagram,tiktok:cfg?.tiktok,facebook:cfg?.facebook,
+          youtube:cfg?.youtube,twitter:cfg?.twitter,linkedin:cfg?.linkedin,
+          web:cfg?.web,whatsapp:cfg?.delivery_tel,delivery_tel:cfg?.delivery_tel
+        };
+        const labels={
+          instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',
+          youtube:'YouTube',twitter:'X',linkedin:'LinkedIn',
+          web:'Web',whatsapp:'WhatsApp',delivery_tel:'Delivery'
+        };
+        redesEl.innerHTML=lista
+          .filter(r=>vals[r.red])
+          .map(r=>`${r.icono} ${labels[r.red]||r.red}: ${vals[r.red]}`)
+          .join('<br>');
+      }catch(e){
+        redesEl.innerHTML=`📸 ${cfg?.instagram||'@dopamina.pee'}<br>🎵 ${cfg?.tiktok||'Dopamina.pee'}`;
+      }
     }
     // Imagen de tarjeta dinámica
     const backImg=document.querySelector('.back-img');
