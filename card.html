@@ -2,10 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5e6c8">
 <title>Mi Tarjeta Dopamina</title>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
@@ -13,503 +12,213 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --cream:#f5e6c8;--cream2:#ede0c0;--beige:#e8d5a3;
-  --brown:#5c3317;--brown2:#8B4513;--brown3:#a0522d;
-  --yellow:#F5C842;--yellow2:#e6b800;
-  --green:#22c55e;--green2:#16a34a;
-  --white:#fff;--gray:#9ca3af;
-  --shadow:0 20px 60px rgba(92,51,23,.18);
-}
-body{
-  background:linear-gradient(135deg,#f5e6c8 0%,#ede0c0 50%,#e8d5a3 100%);
-  min-height:100vh;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;font-family:'Nunito',sans-serif;padding:24px 16px;
-  overflow-x:hidden;
-}
-/* Patrón DpM de fondo */
-body::before{
-  content:'';position:fixed;inset:0;
-  background-image:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(92,51,23,.04) 30px,rgba(92,51,23,.04) 31px);
-  pointer-events:none;z-index:0;
-}
-
-/* ── LOADER ── */
-#loader{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .5s}
+body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:'Nunito',sans-serif;padding:20px 16px 32px;overflow-x:hidden}
+#loader{position:fixed;inset:0;background:linear-gradient(160deg,#f5e0b0,#e8cc90);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .6s ease}
 #loader.hide{opacity:0;pointer-events:none}
-.loader-logo{font-family:'Baloo 2',sans-serif;font-size:32px;font-weight:800;color:var(--brown);margin-bottom:16px}
-.loader-dot{width:8px;height:8px;background:var(--yellow2);border-radius:50%;animation:bounce .6s ease-in-out infinite alternate}
-.loader-dot:nth-child(2){animation-delay:.2s}
-.loader-dot:nth-child(3){animation-delay:.4s}
-.loader-dots{display:flex;gap:8px}
-@keyframes bounce{to{transform:translateY(-12px)}}
-
-/* ── TARJETA FLIP ── */
-.scene{
-  width:min(340px,100%);position:relative;z-index:1;
-  perspective:1200px;cursor:pointer;
-}
-.card-flip{
-  width:100%;padding-bottom:162%;
-  position:relative;transform-style:preserve-3d;
-  transition:transform .7s cubic-bezier(.4,0,.2,1);
-}
+.loader-logo{font-family:'Baloo 2',sans-serif;font-size:36px;font-weight:800;color:#5c3317;margin-bottom:20px}
+.loader-dots{display:flex;gap:10px}
+.loader-dot{width:10px;height:10px;background:#8B4513;border-radius:50%;animation:ldot .7s ease-in-out infinite alternate}
+.loader-dot:nth-child(2){animation-delay:.2s;background:#F5C842}
+.loader-dot:nth-child(3){animation-delay:.4s;background:#5c3317}
+@keyframes ldot{to{transform:translateY(-14px);opacity:.4}}
+.scene{width:min(360px,100%);perspective:1400px;cursor:pointer;margin-bottom:12px}
+.card-flip{width:100%;aspect-ratio:840/1460;position:relative;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.4,0,.2,1)}
 .card-flip.flipped{transform:rotateY(180deg)}
-.card-face{
-  position:absolute;inset:0;backface-visibility:hidden;
-  border-radius:20px;overflow:hidden;
-  box-shadow:var(--shadow);
-}
+.card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;overflow:hidden;box-shadow:0 24px 64px rgba(92,51,23,.28),0 8px 24px rgba(92,51,23,.15)}
 .card-back-face{transform:rotateY(180deg)}
-
-/* ── FONDO PATRÓN DpM ── */
-.dpm-bg{
-  position:absolute;inset:0;
-  background-color:var(--cream);
-  overflow:hidden;
-}
-.dpm-pattern{
-  position:absolute;inset:-10px;
-  display:grid;grid-template-columns:repeat(5,1fr);
-  gap:0;opacity:.12;
-}
-.dpm-item{
-  font-family:'Baloo 2',sans-serif;font-size:18px;font-weight:700;
-  color:var(--brown);display:flex;align-items:center;justify-content:center;
-  padding:8px;transform:rotate(-20deg);
-}
-
-/* ── ESQUINA LOGO ── */
-.logo-corner{
-  position:absolute;top:0;left:0;
-  background:var(--yellow);
-  width:130px;height:90px;
-  border-radius:0 0 100% 0;
-  display:flex;flex-direction:column;
-  align-items:flex-start;justify-content:flex-start;
-  padding:14px 16px;
-}
-.logo-text{
-  font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:800;
-  color:var(--brown);line-height:1;
-}
-.logo-sub{font-size:7px;color:var(--brown2);font-weight:600;letter-spacing:.3px;margin-top:1px}
-
-/* ── CAPIBARA + WAFFLE SVG ── */
-.waffle-zone{
-  position:absolute;top:55px;left:50%;transform:translateX(-50%);
-  width:200px;
-}
-.waffle-zone svg{width:100%;height:auto}
-
-/* ── CONTENIDO ANVERSO ── */
-.front-content{
-  position:absolute;bottom:0;left:0;right:0;
-  padding:0 20px 16px;text-align:center;
-}
-.frase{
-  font-family:'Baloo 2',sans-serif;font-size:17px;font-weight:700;
-  color:var(--brown);line-height:1.3;margin-bottom:6px;
-}
-.gracias{
-  font-family:'Baloo 2',sans-serif;font-size:20px;font-weight:800;
-  color:var(--brown2);margin-bottom:8px;
-}
-.dopilover-num{font-size:12px;color:var(--brown3);font-weight:600;margin-bottom:2px}
-.cliente-nombre{
-  font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:800;
-  color:var(--brown);border-bottom:2px solid var(--brown2);
-  padding-bottom:4px;margin-bottom:10px;display:inline-block;
-}
-.redes{font-size:11px;color:var(--brown3);line-height:1.8;font-weight:600}
-.redes span{display:block}
-
-/* ── CONTENIDO REVERSO ── */
-.back-content{position:absolute;bottom:0;left:0;right:0;padding:0 20px 16px;text-align:center}
-.frase-back{
-  font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;
-  color:var(--brown);line-height:1.4;margin-bottom:8px;
-}
-.ig-tag{font-size:12px;color:var(--brown3);font-weight:600}
-
-/* ── SELLOS en el waffle ── */
-.sello{
-  position:absolute;width:26px;height:26px;border-radius:6px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;transition:all .4s cubic-bezier(.34,1.56,.64,1);
-}
-.sello.activo{background:var(--green);transform:scale(1.1)}
-.sello.vacio{background:rgba(255,255,255,.3);border:1.5px dashed rgba(92,51,23,.3)}
-.sello.especial{background:linear-gradient(135deg,#fbbf24,#f59e0b);font-size:11px;font-weight:700;color:var(--brown)}
-
-/* ── FLIP HINT ── */
-.flip-hint{
-  position:absolute;bottom:-36px;left:50%;transform:translateX(-50%);
-  font-size:12px;color:var(--brown3);font-weight:600;white-space:nowrap;
-  display:flex;align-items:center;gap:6px;opacity:.7;
-}
-.flip-hint svg{width:16px;height:16px;animation:spin 2s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── QR ZONA ── */
-.qr-zone{
-  position:absolute;right:12px;bottom:60px;
-  background:white;border-radius:10px;padding:6px;
-  box-shadow:0 4px 12px rgba(0,0,0,.15);
-}
-.qr-label{font-size:7px;text-align:center;color:var(--brown3);font-weight:700;margin-top:3px;letter-spacing:.5px}
-
-/* ── PUNTOS BADGE ── */
-.puntos-badge{
-  position:absolute;left:12px;bottom:60px;
-  background:var(--yellow);border-radius:10px;
-  padding:8px 10px;text-align:center;
-  box-shadow:0 4px 12px rgba(0,0,0,.15);
-}
-.puntos-num{font-family:'Baloo 2',sans-serif;font-size:22px;font-weight:800;color:var(--brown);line-height:1}
-.puntos-label{font-size:8px;color:var(--brown2);font-weight:700;letter-spacing:.5px}
-
-/* ── BOTÓN AGREGAR A PANTALLA ── */
-.add-btn{
-  margin-top:48px;position:relative;z-index:1;
-  background:var(--brown);color:white;border:none;
-  padding:14px 28px;border-radius:50px;font-family:'Nunito',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;
-  display:flex;align-items:center;gap:8px;
-  box-shadow:0 8px 24px rgba(92,51,23,.3);
-  transition:transform .2s,box-shadow .2s;
-}
-.add-btn:active{transform:scale(.96);box-shadow:0 4px 12px rgba(92,51,23,.3)}
-.add-btn svg{width:18px;height:18px}
-
-/* ── INFO BADGE ── */
-.info-bar{
-  margin-top:16px;position:relative;z-index:1;
-  display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;
-}
-.info-chip{
-  background:rgba(92,51,23,.1);border-radius:20px;
-  padding:6px 14px;font-size:12px;color:var(--brown);font-weight:600;
-  display:flex;align-items:center;gap:5px;
-}
-
-/* ── ERROR ── */
-#error-view{display:none;text-align:center;position:relative;z-index:1;padding:40px 20px}
-#error-view h2{font-family:'Baloo 2',sans-serif;font-size:24px;color:var(--brown);margin-bottom:8px}
-#error-view p{color:var(--brown3);font-size:14px}
+.front-bg{width:100%;height:100%;background:#f0e0c0;position:relative;overflow:hidden}
+.dpm-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(7,1fr);pointer-events:none}
+.dpm-cell{display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;color:rgba(92,51,23,.1);transform:rotate(-15deg);user-select:none}
+.gold-corner{position:absolute;top:0;left:0;z-index:2;width:38%;height:22%;background:#F5C842;clip-path:ellipse(100% 100% at 0% 0%);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:5% 5% 0 5%}
+.logo-txt{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:clamp(16px,6vw,24px);color:#5c3317;line-height:1}
+.logo-sub{font-size:clamp(6px,2vw,9px);color:#7a4a1a;font-weight:600;margin-top:1px}
+.waffle-zone{position:absolute;top:12%;left:50%;transform:translateX(-50%);width:75%;z-index:2}
+.waffle-zone svg{width:100%;height:auto;filter:drop-shadow(0 8px 20px rgba(92,51,23,.2))}
+.front-bottom{position:absolute;bottom:0;left:0;right:0;z-index:3;padding:0 8% 5%;text-align:center}
+.frase-main{font-family:'Baloo 2',sans-serif;font-size:clamp(13px,4.5vw,18px);font-weight:700;color:#5c3317;line-height:1.3;margin-bottom:3%}
+.gracias-txt{font-family:'Baloo 2',sans-serif;font-size:clamp(15px,5.5vw,22px);font-weight:800;color:#8B4513;margin-bottom:3%}
+.dopilover-lbl{font-size:clamp(9px,3vw,12px);color:#a06030;font-weight:600;margin-bottom:1%}
+.cliente-nom{font-family:'Baloo 2',sans-serif;font-size:clamp(18px,7vw,28px);font-weight:800;color:#5c3317;border-bottom:2px solid #8B4513;padding-bottom:2%;margin-bottom:3%;display:inline-block}
+.redes-txt{font-size:clamp(8px,2.8vw,11px);color:#8B4513;line-height:2;font-weight:600}
+.back-bg{width:100%;height:100%;position:relative;background:#f0e0c0}
+.back-img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.sellos-layer{position:absolute;inset:0;pointer-events:none}
+.sello-pos{position:absolute;width:9.5%;aspect-ratio:1;border-radius:22%;display:flex;align-items:center;justify-content:center;transition:all .5s cubic-bezier(.34,1.56,.64,1)}
+.sello-pos.activo{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 3px 12px rgba(34,197,94,.5);font-size:min(5vw,18px)}
+.sello-pos.vacio{background:rgba(255,255,255,.1);border:1.5px dashed rgba(255,255,255,.4)}
+.qr-overlay{position:absolute;right:4%;bottom:17%;background:white;border-radius:10px;padding:5px;box-shadow:0 4px 16px rgba(0,0,0,.25);z-index:10}
+.qr-overlay-lbl{font-size:7px;text-align:center;color:#5c3317;font-weight:700;margin-top:3px;letter-spacing:.5px}
+.pts-overlay{position:absolute;left:4%;bottom:17%;background:#F5C842;border-radius:10px;padding:8px 10px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:10}
+.pts-num{font-family:'Baloo 2',sans-serif;font-size:clamp(18px,6vw,26px);font-weight:800;color:#5c3317;line-height:1}
+.pts-lbl{font-size:8px;color:#8B4513;font-weight:700;letter-spacing:.5px}
+.back-nombre{position:absolute;top:2.5%;left:50%;transform:translateX(-50%);font-family:'Baloo 2',sans-serif;font-size:clamp(11px,4vw,16px);font-weight:800;color:#5c3317;white-space:nowrap;background:rgba(245,232,192,.88);border-radius:20px;padding:4px 14px;backdrop-filter:blur(4px);z-index:10;box-shadow:0 2px 8px rgba(92,51,23,.15)}
+.flip-hint{font-size:12px;color:rgba(92,51,23,.6);display:flex;align-items:center;gap:5px;font-weight:600;margin-top:8px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+.flip-hint svg{width:14px;height:14px}
+.info-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.chip{background:rgba(92,51,23,.12);border-radius:20px;padding:6px 14px;font-size:12px;color:#5c3317;font-weight:700;display:flex;align-items:center;gap:5px}
+.chip.win{background:#dcfce7;color:#166534}
+.install-btn{margin-top:16px;background:#5c3317;color:white;border:none;padding:14px 28px;border-radius:50px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(92,51,23,.3);transition:transform .2s}
+.install-btn:active{transform:scale(.96)}
+#error-view{display:none;text-align:center;padding:40px 20px}
+#error-view h2{font-family:'Baloo 2',sans-serif;font-size:24px;color:#5c3317;margin-bottom:8px}
+#error-view p{color:#8B4513;font-size:14px}
 </style>
 </head>
 <body>
-
 <div id="loader">
   <div class="loader-logo">Dopamina</div>
   <div class="loader-dots">
-    <div class="loader-dot"></div>
-    <div class="loader-dot"></div>
-    <div class="loader-dot"></div>
+    <div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div>
   </div>
 </div>
-
-<div id="error-view">
-  <h2>Tarjeta no encontrada</h2>
-  <p>El enlace de esta tarjeta no es válido o expiró.</p>
-</div>
-
+<div id="error-view"><h2>Tarjeta no encontrada</h2><p>El enlace no es válido.</p></div>
 <div class="scene" id="card-scene" style="display:none" onclick="flipCard()">
   <div class="card-flip" id="card-flip">
-
-    <!-- ══════════ ANVERSO ══════════ -->
+    <!-- ANVERSO -->
     <div class="card-face">
-      <div class="dpm-bg">
-        <div class="dpm-pattern" id="pattern-front"></div>
-      </div>
-      <div class="logo-corner">
-        <div class="logo-text">Dopamina</div>
-        <div class="logo-sub">Alimentando tu felicidad</div>
-      </div>
-
-      <!-- Capibara + waffle anverso -->
-      <div class="waffle-zone" style="top:50px">
-        <svg viewBox="0 0 200 190" xmlns="http://www.w3.org/2000/svg">
-          <!-- Waffle -->
-          <circle cx="100" cy="130" r="62" fill="#e8a020" stroke="#8B4513" stroke-width="3"/>
-          <circle cx="100" cy="130" r="56" fill="#f0b030"/>
-          <!-- Grid del waffle -->
-          <line x1="60" y1="108" x2="60" y2="155" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-          <line x1="80" y1="96" x2="80" y2="165" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-          <line x1="100" y1="90" x2="100" y2="170" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-          <line x1="120" y1="96" x2="120" y2="165" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-          <line x1="140" y1="108" x2="140" y2="155" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-          <line x1="47" y1="118" x2="153" y2="118" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-          <line x1="42" y1="132" x2="158" y2="132" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-          <line x1="47" y1="146" x2="153" y2="146" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-          <!-- Frutillas -->
-          <ellipse cx="98" cy="142" rx="18" ry="14" fill="#e05050" opacity=".9"/>
-          <ellipse cx="112" cy="148" rx="15" ry="12" fill="#cc4040" opacity=".85"/>
-          <path d="M86 136 Q98 128 110 136" fill="#f07070" opacity=".6"/>
-          <!-- Capibara durmiendo -->
-          <ellipse cx="105" cy="82" rx="42" ry="28" fill="#8B5E3C"/>
-          <ellipse cx="68" cy="88" rx="14" ry="16" fill="#7a5232"/>
-          <ellipse cx="68" cy="80" rx="10" ry="10" fill="#8B5E3C"/>
-          <!-- Cara capibara -->
-          <ellipse cx="68" cy="86" rx="8" ry="6" fill="#a06840"/>
-          <circle cx="64" cy="83" r="2" fill="#3d2b1f"/>
-          <circle cx="72" cy="83" r="2" fill="#3d2b1f"/>
-          <!-- Nariz capibara -->
-          <ellipse cx="68" cy="89" rx="4" ry="2.5" fill="#c08060"/>
-          <!-- Mejilla -->
-          <circle cx="62" cy="90" r="4" fill="#e8a0a0" opacity=".5"/>
-          <!-- Gorra Dopamina -->
-          <ellipse cx="68" cy="76" rx="13" ry="6" fill="#F5C842"/>
-          <rect x="57" y="72" width="22" height="8" rx="4" fill="#e6b800"/>
-          <text x="68" y="79" text-anchor="middle" font-size="5" fill="#5c3317" font-weight="700" font-family="sans-serif">Dopa</text>
-          <!-- Zzz sueño -->
-          <text x="82" y="68" font-size="9" fill="#8B4513" opacity=".5" font-weight="700" font-family="sans-serif">z</text>
-          <text x="89" y="61" font-size="12" fill="#8B4513" opacity=".4" font-weight="700" font-family="sans-serif">z</text>
-          <text x="98" y="52" font-size="15" fill="#8B4513" opacity=".3" font-weight="700" font-family="sans-serif">z</text>
-        </svg>
-      </div>
-
-      <div class="front-content">
-        <div class="frase">Date el gusto de ser feliz.</div>
-        <div class="gracias">Gracias 🧡</div>
-        <div class="dopilover-num" id="card-num">Dopilover #0000</div>
-        <div class="cliente-nombre" id="cliente-nombre">—</div>
-        <div class="redes">
-          <span>Síguenos &nbsp;🎵 Dopamina.pee</span>
-          <span>Delivery: 📱 908 922 055</span>
+      <div class="front-bg">
+        <div class="dpm-grid" id="dpm-grid"></div>
+        <div class="gold-corner">
+          <div class="logo-txt">Dopamina</div>
+          <div class="logo-sub">Alimentando tu felicidad</div>
         </div>
-      </div>
-
-      <div class="flip-hint">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-        </svg>
-        Toca para ver reverso
-      </div>
-    </div>
-
-    <!-- ══════════ REVERSO ══════════ -->
-    <div class="card-face card-back-face">
-      <div class="dpm-bg">
-        <div class="dpm-pattern" id="pattern-back"></div>
-      </div>
-      <div class="logo-corner">
-        <div class="logo-text">Dopamina</div>
-        <div class="logo-sub">Alimentando tu felicidad</div>
-      </div>
-
-      <!-- Capibara + waffle reverso con sellos -->
-      <div class="waffle-zone" style="top:50px;position:absolute;left:50%;transform:translateX(-50%);width:210px">
-        <div style="position:relative">
-          <svg viewBox="0 0 210 200" xmlns="http://www.w3.org/2000/svg">
-            <!-- Waffle -->
-            <circle cx="105" cy="138" r="66" fill="#e8a020" stroke="#8B4513" stroke-width="3"/>
-            <circle cx="105" cy="138" r="60" fill="#f0b030"/>
-            <!-- Grid -->
-            <line x1="63" y1="114" x2="63" y2="162" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-            <line x1="84" y1="102" x2="84" y2="174" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-            <line x1="105" y1="96" x2="105" y2="180" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-            <line x1="126" y1="102" x2="126" y2="174" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-            <line x1="147" y1="114" x2="147" y2="162" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-            <line x1="48" y1="124" x2="162" y2="124" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-            <line x1="44" y1="140" x2="166" y2="140" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-            <line x1="48" y1="156" x2="162" y2="156" stroke="#8B4513" stroke-width="2.5" opacity=".4"/>
-            <!-- Frutillas -->
-            <ellipse cx="103" cy="150" rx="18" ry="14" fill="#e05050" opacity=".9"/>
-            <ellipse cx="117" cy="156" rx="15" ry="12" fill="#cc4040" opacity=".85"/>
-            <!-- Capibara -->
-            <ellipse cx="108" cy="86" rx="44" ry="30" fill="#8B5E3C"/>
-            <ellipse cx="70" cy="92" rx="15" ry="17" fill="#7a5232"/>
-            <ellipse cx="70" cy="84" rx="11" ry="11" fill="#8B5E3C"/>
-            <ellipse cx="70" cy="90" rx="8" ry="6" fill="#a06840"/>
-            <circle cx="66" cy="87" r="2" fill="#3d2b1f"/>
-            <circle cx="74" cy="87" r="2" fill="#3d2b1f"/>
-            <ellipse cx="70" cy="93" rx="4" ry="2.5" fill="#c08060"/>
-            <circle cx="64" cy="94" r="4" fill="#e8a0a0" opacity=".5"/>
-            <ellipse cx="70" cy="79" rx="14" ry="6" fill="#F5C842"/>
-            <rect x="58" y="75" width="24" height="8" rx="4" fill="#e6b800"/>
-            <text x="70" y="82" text-anchor="middle" font-size="5" fill="#5c3317" font-weight="700" font-family="sans-serif">Dopamina</text>
+        <div class="waffle-zone">
+          <svg viewBox="0 0 240 220" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="120" cy="150" r="72" fill="#e8a020" stroke="#6b3010" stroke-width="4"/>
+            <circle cx="120" cy="150" r="65" fill="#f5b535"/>
+            <line x1="58" y1="132" x2="182" y2="132" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+            <line x1="50" y1="150" x2="190" y2="150" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+            <line x1="58" y1="168" x2="182" y2="168" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+            <line x1="76" y1="112" x2="76" y2="188" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+            <line x1="96" y1="103" x2="96" y2="196" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+            <line x1="120" y1="98" x2="120" y2="200" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+            <line x1="144" y1="103" x2="144" y2="196" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+            <line x1="164" y1="112" x2="164" y2="188" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
+            <ellipse cx="118" cy="162" rx="20" ry="16" fill="#cc3030" opacity=".9"/>
+            <ellipse cx="136" cy="170" rx="17" ry="13" fill="#bb2828" opacity=".85"/>
+            <ellipse cx="104" cy="168" rx="13" ry="10" fill="#dd4040" opacity=".8"/>
+            <path d="M114 156 C114 152 108 148 108 154 C108 158 114 164 114 164 C114 164 120 158 120 154 C120 148 114 152 114 156Z" fill="#ff6060" opacity=".7"/>
+            <ellipse cx="124" cy="90" rx="52" ry="34" fill="#8B5E3C"/>
+            <ellipse cx="78" cy="96" rx="16" ry="18" fill="#7a5232"/>
+            <ellipse cx="78" cy="88" rx="12" ry="12" fill="#8B5E3C"/>
+            <ellipse cx="78" cy="93" rx="10" ry="8" fill="#9a6842"/>
+            <circle cx="73" cy="90" r="3" fill="#2d1a0a"/>
+            <circle cx="83" cy="90" r="3" fill="#2d1a0a"/>
+            <circle cx="70" cy="97" r="5" fill="#e08080" opacity=".55"/>
+            <ellipse cx="78" cy="97" rx="5" ry="3.5" fill="#c07848"/>
+            <ellipse cx="78" cy="82" rx="16" ry="7" fill="#F5C842"/>
+            <rect x="64" y="77" width="28" height="10" rx="5" fill="#e6b800"/>
+            <text x="78" y="85" text-anchor="middle" font-size="5.5" fill="#5c3317" font-weight="700" font-family="sans-serif">Dopamina</text>
+            <text x="96" y="72" font-size="10" fill="#8B4513" opacity=".5" font-weight="700" font-family="sans-serif">z</text>
+            <text x="104" y="62" font-size="13" fill="#8B4513" opacity=".35" font-weight="700" font-family="sans-serif">z</text>
+            <text x="115" y="50" font-size="16" fill="#8B4513" opacity=".25" font-weight="700" font-family="sans-serif">z</text>
           </svg>
-          <!-- Sellos superpuestos al waffle -->
-          <div id="sellos-container" style="position:absolute;top:0;left:0;width:100%;height:100%"></div>
+        </div>
+        <div class="front-bottom">
+          <div class="frase-main">Date el gusto de ser feliz.</div>
+          <div class="gracias-txt">Gracias 🧡</div>
+          <div class="dopilover-lbl" id="card-num">Dopilover #0000</div>
+          <div class="cliente-nom" id="cliente-nombre">—</div>
+          <div class="redes-txt">Síguenos 🎵 Dopamina.pee<br>Delivery: 📱 908 922 055</div>
         </div>
       </div>
-
-      <!-- QR y puntos -->
-      <div class="qr-zone">
-        <div id="qr-code"></div>
-        <div class="qr-label">ESCANEAR</div>
-      </div>
-
-      <div class="puntos-badge">
-        <div class="puntos-num" id="puntos-num">0</div>
-        <div class="puntos-label">PUNTOS</div>
-      </div>
-
-      <div class="back-content">
-        <div class="frase-back">"La felicidad más dulce es<br>aquella que se comparte."</div>
-        <div class="ig-tag">📸 @dopamina.pee</div>
+    </div>
+    <!-- REVERSO -->
+    <div class="card-face card-back-face">
+      <div class="back-bg">
+        <img class="back-img" src="https://cuofpfajzeyezerubytc.supabase.co/storage/v1/object/public/fotos-clientes/card_reverso.png" alt="Tarjeta Dopamina">
+        <div class="back-nombre" id="back-nombre">—</div>
+        <div class="sellos-layer" id="sellos-layer"></div>
+        <div class="qr-overlay"><div id="qr-code"></div><div class="qr-overlay-lbl">ESCANEAR</div></div>
+        <div class="pts-overlay"><div class="pts-num" id="puntos-num">0</div><div class="pts-lbl">PUNTOS</div></div>
       </div>
     </div>
-
   </div>
 </div>
-
-<button class="add-btn" id="install-btn" style="display:none" onclick="installApp()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-    <path d="M12 16l-4-4h3V4h2v8h3l-4 4z"/><rect x="4" y="18" width="16" height="2" rx="1"/>
-  </svg>
+<div class="flip-hint" id="flip-hint" style="display:none">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+  Toca la tarjeta para ver el reverso
+</div>
+<div class="info-bar" id="info-bar" style="display:none">
+  <div class="chip">📅 <span id="chip-visitas">0 visitas</span></div>
+  <div class="chip">☕ <span id="chip-sellos">0/10 sellos</span></div>
+  <div class="chip win" id="chip-gratis" style="display:none">🎁 ¡Consumo gratis!</div>
+</div>
+<button class="install-btn" id="install-btn" style="display:none" onclick="installPWA()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M12 16l-4-4h3V4h2v8h3l-4 4z"/><rect x="4" y="18" width="16" height="2" rx="1"/></svg>
   Agregar a mi pantalla
 </button>
-
-<div class="info-bar" id="info-bar" style="display:none">
-  <div class="info-chip">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-    <span id="chip-visitas">0 visitas</span>
-  </div>
-  <div class="info-chip">
-    ☕ <span id="chip-sellos">0/10 sellos</span>
-  </div>
-  <div class="info-chip" id="chip-gratis" style="display:none">
-    🎁 ¡Consumo gratis disponible!
-  </div>
-</div>
-
 <script>
 const SBURL='https://cuofpfajzeyezerubytc.supabase.co';
 const SBKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1b2ZwZmFqemV5ZXplcnVieXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzU1MTMsImV4cCI6MjA5MDExMTUxM30.5Tog6Ata3CbYflwxOhezXZegrwagiboQF2u0fVX9oZ4';
-const SB = supabase.createClient(SBURL, SBKEY);
-
-// Generar patrón DpM
-function genPattern(id){
-  const el=document.getElementById(id);
-  if(!el)return;
-  for(let i=0;i<35;i++){
-    const d=document.createElement('div');
-    d.className='dpm-item';
-    d.textContent='DpM';
-    el.appendChild(d);
-  }
-}
-genPattern('pattern-front');
-genPattern('pattern-back');
-
-// Obtener ID del cliente desde la URL
-function getClienteId(){
-  const p=new URLSearchParams(window.location.search);
-  return p.get('id')||p.get('c');
-}
-
-// Posiciones de los sellos sobre el waffle (coordenadas % dentro del SVG)
+const SB=supabase.createClient(SBURL,SBKEY);
+(function(){const g=document.getElementById('dpm-grid');for(let i=0;i<28;i++){const d=document.createElement('div');d.className='dpm-cell';d.textContent='DpM';g.appendChild(d);}})();
+function getClienteId(){const p=new URLSearchParams(window.location.search);return p.get('id')||p.get('c');}
+function flipCard(){document.getElementById('card-flip').classList.toggle('flipped');}
+// Posiciones de sellos calibradas sobre la imagen real
+// Fila 1 (4 sellos): ~34% top
+// Fila 2 (2 sellos laterales, frutillas tapan centro): ~47% top
+// Fila 3 (4 sellos): ~60% top
 const SELLO_POS=[
-  {top:'37%',left:'22%'},{top:'37%',left:'36%'},
-  {top:'37%',left:'52%'},{top:'37%',left:'66%'},
-  {top:'52%',left:'22%'},                        // sello 5
-  {top:'52%',left:'66%'},                        // sello 6
-  {top:'67%',left:'22%'},{top:'67%',left:'36%'},
-  {top:'67%',left:'52%'},{top:'67%',left:'66%'},
+  {l:'18%',t:'33%'},{l:'33%',t:'33%'},{l:'52%',t:'33%'},{l:'67%',t:'33%'},
+  {l:'18%',t:'46%'},{l:'67%',t:'46%'},
+  {l:'18%',t:'59%'},{l:'33%',t:'59%'},{l:'52%',t:'59%'},{l:'67%',t:'59%'}
 ];
-const ESPECIAL=[{top:'77%',left:'22%',label:'5%'},{top:'77%',left:'66%',label:'SORPRESA'}];
-
-function renderSellos(sellosActivos, sellosMax){
-  const cont=document.getElementById('sellos-container');
-  cont.innerHTML='';
-  const max=Math.min(sellosMax,10);
-  
-  SELLO_POS.slice(0,max).forEach((pos,i)=>{
+function renderSellos(activos,max){
+  const layer=document.getElementById('sellos-layer');
+  layer.innerHTML='';
+  const n=Math.min(max,10);
+  SELLO_POS.slice(0,n).forEach((pos,i)=>{
     const div=document.createElement('div');
-    div.className='sello '+(i<sellosActivos?'activo':'vacio');
-    div.style.cssText=`position:absolute;top:${pos.top};left:${pos.left};width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .4s cubic-bezier(.34,1.56,.64,1) ${i*.05}s`;
-    div.style.background=i<sellosActivos?'#22c55e':'rgba(255,255,255,.3)';
-    div.style.border=i<sellosActivos?'none':'1.5px dashed rgba(92,51,23,.3)';
-    div.style.boxShadow=i<sellosActivos?'0 2px 8px rgba(34,197,94,.4)':'none';
-    div.textContent=i<sellosActivos?'✅':'';
-    cont.appendChild(div);
-  });
-  
-  // Especiales (5% y SORPRESA)
-  ESPECIAL.forEach(sp=>{
-    const div=document.createElement('div');
-    div.style.cssText=`position:absolute;top:${sp.top};left:${sp.left};background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:5px;padding:2px 5px;font-size:8px;font-weight:700;color:#5c3317;box-shadow:0 2px 6px rgba(0,0,0,.2)`;
-    div.textContent=sp.label;
-    cont.appendChild(div);
+    div.className='sello-pos '+(i<activos?'activo':'vacio');
+    div.style.left=pos.l;div.style.top=pos.t;
+    if(i<activos){div.textContent='✅';div.style.transitionDelay=(i*.06)+'s';}
+    layer.appendChild(div);
   });
 }
-
-function flipCard(){
-  document.getElementById('card-flip').classList.toggle('flipped');
+function genQR(url){
+  const el=document.getElementById('qr-code');el.innerHTML='';
+  try{new QRCode(el,{text:url,width:72,height:72,colorDark:'#5c3317',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}
+  catch(e){console.warn('QR',e);}
 }
-
 let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredPrompt=e;
-  document.getElementById('install-btn').style.display='flex';
-});
-function installApp(){
-  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;document.getElementById('install-btn').style.display='none';}
-  else{alert('Para agregar: toca el menú de tu navegador → "Agregar a pantalla de inicio"');}
-}
-
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-btn').style.display='flex';});
+function installPWA(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;document.getElementById('install-btn').style.display='none';}else alert('Menú del navegador → "Agregar a pantalla de inicio"');}
 async function init(){
   const id=getClienteId();
-  if(!id){
-    document.getElementById('loader').classList.add('hide');
-    document.getElementById('error-view').style.display='block';
-    return;
-  }
-  
+  if(!id){document.getElementById('loader').classList.add('hide');document.getElementById('error-view').style.display='block';return;}
   try{
-    const[{data:c},{data:cfg}]=await Promise.all([
+    const[{data:c,error:ce},{data:cfg}]=await Promise.all([
       SB.from('clientes').select('*').eq('id',id).single(),
       SB.from('config').select('*').single()
     ]);
-    
-    if(!c){
-      document.getElementById('loader').classList.add('hide');
-      document.getElementById('error-view').style.display='block';
-      return;
-    }
-    
+    if(ce||!c)throw new Error('no cliente');
     const sellosMax=cfg?.sellos_meta||10;
-    const sellosActivos=c.sellos_activos||0;
+    const sellos=c.sellos_activos||0;
     const visitas=c.visitas||0;
-    
-    // Rellenar datos
-    document.getElementById('cliente-nombre').textContent=c.nombre?.split(' ')[0]||c.nombre||'Cliente';
-    document.getElementById('card-num').textContent=`Dopilover #${String(c.id).padStart(4,'0')}`;
+    const nombre=c.nombre?.split(' ')[0]||c.nombre||'Cliente';
+    document.getElementById('cliente-nombre').textContent=nombre;
+    document.getElementById('card-num').textContent='Dopilover #'+String(c.id).padStart(4,'0');
+    document.getElementById('back-nombre').textContent=nombre+' · #'+String(c.id).padStart(4,'0');
     document.getElementById('puntos-num').textContent=(c.puntos||0).toLocaleString();
-    
-    // Chips info
-    document.getElementById('chip-visitas').textContent=`${visitas} visita${visitas!==1?'s':''}`;
-    document.getElementById('chip-sellos').textContent=`${sellosActivos}/${sellosMax} sellos`;
-    if(sellosActivos>=sellosMax)document.getElementById('chip-gratis').style.display='flex';
-    
-    // Sellos
-    renderSellos(sellosActivos,sellosMax);
-    
-    // QR con la URL de esta tarjeta
-    const cardUrl=window.location.href;
-    new QRCode(document.getElementById('qr-code'),{
-      text:cardUrl,width:70,height:70,
-      colorDark:'#5c3317',colorLight:'#ffffff',
-      correctLevel:QRCode.CorrectLevel.M
-    });
-    
-    // Mostrar todo
+    renderSellos(sellos,sellosMax);
+    genQR(window.location.href);
+    document.getElementById('chip-visitas').textContent=visitas+' visita'+(visitas!==1?'s':'');
+    document.getElementById('chip-sellos').textContent=sellos+'/'+sellosMax+' sellos';
+    if(sellos>=sellosMax)document.getElementById('chip-gratis').style.display='flex';
     setTimeout(()=>{
       document.getElementById('loader').classList.add('hide');
       document.getElementById('card-scene').style.display='block';
+      document.getElementById('flip-hint').style.display='flex';
       document.getElementById('info-bar').style.display='flex';
-    },800);
-    
+    },700);
   }catch(e){
     console.error(e);
     document.getElementById('loader').classList.add('hide');
     document.getElementById('error-view').style.display='block';
   }
 }
-
 init();
 </script>
 </body>
