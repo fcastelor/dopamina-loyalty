@@ -457,7 +457,11 @@ textarea.fi{resize:vertical;min-height:78px}
               <div class="fg"><label class="fl">Texto de agradecimiento</label><input type="text" class="fi" id="cp-fg" placeholder="Gracias 🧡"></div>
               <div class="fg"><label class="fl">Frase del reverso</label><textarea class="fi" id="cp-fr" rows="2" placeholder="La felicidad más dulce es aquella que se comparte."></textarea></div>
               <hr class="dv">
-              <div class="st" style="font-size:13.5px">Celdas especiales del waffle</div>
+              <div class="st" style="font-size:13.5px">Redes en la tarjeta</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Selecciona qué redes mostrar en el anverso de la tarjeta y en qué orden. Máximo 3.</div>
+              <div id="redes-tarjeta-lista"></div>
+              <button class="btn bs bsm" onclick="agregarRedTarjeta()" style="margin-top:6px;width:100%;justify-content:center">+ Agregar red a la tarjeta</button>
+              <div style="font-size:11px;color:var(--t3);margin-top:6px">Solo se mostrarán si el negocio tiene ese campo completado en la pestaña Negocio</div>
               <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Las 2 celdas inferiores del waffle tienen texto especial</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
                 <div class="fg"><label class="fl">Celda izquierda</label><input type="text" class="fi" id="cp-c1" placeholder="5%"></div>
@@ -961,6 +965,12 @@ function rdCfg(){
   document.getElementById('cp-fr').value=CFG.tarjeta_frase_reverso||'La felicidad más dulce es aquella que se comparte.';
   document.getElementById('cp-c1').value=CFG.tarjeta_celda1||'5%';
   document.getElementById('cp-c2').value=CFG.tarjeta_celda2||'SORPRESA';
+  // Redes en tarjeta
+  try{
+    const raw=CFG.tarjeta_redes;
+    const redes=raw?(typeof raw==='string'?JSON.parse(raw):raw):null;
+    renderRedesTarjeta(redes&&redes.length?redes:[{red:'instagram',icono:'📸'},{red:'tiktok',icono:'🎵'}]);
+  }catch(e){renderRedesTarjeta([{red:'instagram',icono:'📸'},{red:'tiktok',icono:'🎵'}]);}
   // Preview imagen tarjeta
   if(CFG.card_reverso_url){
     document.getElementById('card-img-thumb').src=CFG.card_reverso_url;
@@ -1010,6 +1020,7 @@ async function saveCfg(){
     tarjeta_frase_reverso:document.getElementById('cp-fr').value,
     tarjeta_celda1:document.getElementById('cp-c1').value||'5%',
     tarjeta_celda2:document.getElementById('cp-c2').value||'SORPRESA',
+    tarjeta_redes:JSON.stringify(getRedesTarjeta()),
     // Agente
     agente_tono:document.getElementById('cp-tono').value,
     agente_horario:document.getElementById('cp-hor').value,
@@ -1291,6 +1302,86 @@ async function procesarQR(rawUrl){
   if(ganoGratis)toast2('🎉 ¡'+c.nombre+' completó su tarjeta! Consumo GRATIS',false);
   else toast2('✓ Visita de '+c.nombre+' registrada · Sello '+(sellosAhora)+'/'+sellosMax);
 }
+// ===================== REDES EN TARJETA =====================
+const REDES_DISPONIBLES=[
+  {id:'instagram', label:'Instagram', icono:'📸'},
+  {id:'tiktok',    label:'TikTok',    icono:'🎵'},
+  {id:'facebook',  label:'Facebook',  icono:'📘'},
+  {id:'youtube',   label:'YouTube',   icono:'▶️'},
+  {id:'twitter',   label:'X/Twitter', icono:'🐦'},
+  {id:'linkedin',  label:'LinkedIn',  icono:'💼'},
+  {id:'web',       label:'Sitio web', icono:'🌐'},
+  {id:'whatsapp',  label:'WhatsApp',  icono:'📱'},
+  {id:'delivery_tel', label:'Delivery', icono:'🛵'},
+];
+
+function renderRedesTarjeta(redes){
+  const lista=document.getElementById('redes-tarjeta-lista');
+  if(!lista)return;
+  lista.innerHTML='';
+  (redes||[]).forEach((r,i)=>{
+    const info=REDES_DISPONIBLES.find(x=>x.id===r.red)||{id:r.red,label:r.red,icono:'🔗'};
+    const div=document.createElement('div');
+    div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px;background:var(--gr);padding:8px 10px;border-radius:10px;border:1px solid var(--b)';
+    div.innerHTML=`
+      <span style="font-size:18px;flex-shrink:0">${info.icono}</span>
+      <select class="fi" style="flex:1;margin:0" onchange="cambiarRedTarjeta(this,${i})">
+        ${REDES_DISPONIBLES.map(rd=>`<option value="${rd.id}" ${rd.id===r.red?'selected':''}>${rd.icono} ${rd.label}</option>`).join('')}
+      </select>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        ${i>0?`<button class="btn bs" style="padding:3px 7px;font-size:11px" onclick="moverRedTarjeta(${i},-1)" title="Subir">↑</button>`:'<div style="height:22px"></div>'}
+        ${i<(redes.length-1)?`<button class="btn bs" style="padding:3px 7px;font-size:11px" onclick="moverRedTarjeta(${i},1)" title="Bajar">↓</button>`:'<div style="height:22px"></div>'}
+      </div>
+      <button class="btn bdr bsm" onclick="quitarRedTarjeta(${i})" style="padding:6px 8px;flex-shrink:0">✕</button>`;
+    lista.appendChild(div);
+  });
+  // Aviso límite
+  const aviso=document.getElementById('redes-tarjeta-aviso');
+  if(aviso)aviso.style.display=(redes||[]).length>=3?'block':'none';
+}
+
+function getRedesTarjeta(){
+  const lista=document.getElementById('redes-tarjeta-lista');
+  if(!lista)return[];
+  return Array.from(lista.querySelectorAll('select')).map(s=>{
+    const info=REDES_DISPONIBLES.find(x=>x.id===s.value)||{id:s.value,icono:'🔗'};
+    return{red:s.value,icono:info.icono};
+  });
+}
+
+function agregarRedTarjeta(){
+  const actual=getRedesTarjeta();
+  if(actual.length>=3){toast2('⚠ Máximo 3 redes en la tarjeta',true);return;}
+  // Agregar una que no esté ya seleccionada
+  const usadas=actual.map(r=>r.red);
+  const libre=REDES_DISPONIBLES.find(r=>!usadas.includes(r.id));
+  if(!libre){toast2('⚠ Ya tienes todas las redes',true);return;}
+  renderRedesTarjeta([...actual,{red:libre.id,icono:libre.icono}]);
+}
+
+function quitarRedTarjeta(idx){
+  const actual=getRedesTarjeta();
+  actual.splice(idx,1);
+  renderRedesTarjeta(actual);
+}
+
+function cambiarRedTarjeta(sel,idx){
+  const actual=getRedesTarjeta();
+  const info=REDES_DISPONIBLES.find(x=>x.id===sel.value)||{id:sel.value,icono:'🔗'};
+  actual[idx]={red:sel.value,icono:info.icono};
+  // Actualizar icono visible
+  const row=sel.closest('div[style]');
+  if(row)row.querySelector('span').textContent=info.icono;
+}
+
+function moverRedTarjeta(idx,dir){
+  const actual=getRedesTarjeta();
+  const nuevo=idx+dir;
+  if(nuevo<0||nuevo>=actual.length)return;
+  [actual[idx],actual[nuevo]]=[actual[nuevo],actual[idx]];
+  renderRedesTarjeta(actual);
+}
+
 // ===================== TIPOS DE CLIENTE DINÁMICOS =====================
 function renderTipos(tipos){
   const lista=document.getElementById('tipos-lista');
