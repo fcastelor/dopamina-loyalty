@@ -430,36 +430,54 @@ textarea.fi{resize:vertical;min-height:78px}
       <!-- SCANNER QR -->
       <div class="panel" id="panel-scanner">
         <div class="st">Escanear tarjeta del cliente</div>
+        <div style="font-size:13px;color:var(--t2);margin-bottom:16px">Escanea el QR de la tarjeta digital para identificar al cliente y gestionar su cuenta.</div>
         <div class="g2">
           <div class="cv">
             <div class="st" style="font-size:13.5px">Cámara</div>
-            <div id="scanner-box" style="background:#000;border-radius:12px;overflow:hidden;position:relative;min-height:260px;display:flex;align-items:center;justify-content:center">
+            <div id="scanner-box" style="background:#111;border-radius:12px;overflow:hidden;position:relative;min-height:280px;display:flex;align-items:center;justify-content:center">
               <video id="scanner-video" style="width:100%;border-radius:12px;display:none" playsinline autoplay muted></video>
               <canvas id="scanner-canvas" style="display:none"></canvas>
+              <!-- Placeholder -->
               <div id="scanner-placeholder" style="color:rgba(255,255,255,.6);text-align:center;padding:40px">
-                <div style="font-size:48px;margin-bottom:12px">📷</div>
+                <div style="font-size:56px;margin-bottom:14px">📷</div>
                 <div style="font-size:13px">Toca "Activar cámara" para escanear</div>
+                <div style="font-size:11px;margin-top:8px;opacity:.6">Compatible con todos los navegadores</div>
               </div>
-              <div id="scanner-overlay" style="display:none;position:absolute;inset:0;border:3px solid #4CAF7D;border-radius:12px;box-shadow:inset 0 0 0 3000px rgba(0,0,0,.4)">
-                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid #4CAF7D;border-radius:12px;box-shadow:0 0 0 3000px rgba(0,0,0,.4)"></div>
-                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:3px;background:#4CAF7D;animation:scan 2s ease-in-out infinite"></div>
+              <!-- Overlay con marco de escaneo -->
+              <div id="scanner-overlay" style="display:none;position:absolute;inset:0">
+                <div style="position:absolute;inset:0;background:rgba(0,0,0,.45)"></div>
+                <!-- Marco QR -->
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;z-index:2">
+                  <!-- Esquinas del marco -->
+                  <div style="position:absolute;top:0;left:0;width:32px;height:32px;border-top:3px solid #4CAF7D;border-left:3px solid #4CAF7D;border-radius:4px 0 0 0"></div>
+                  <div style="position:absolute;top:0;right:0;width:32px;height:32px;border-top:3px solid #4CAF7D;border-right:3px solid #4CAF7D;border-radius:0 4px 0 0"></div>
+                  <div style="position:absolute;bottom:0;left:0;width:32px;height:32px;border-bottom:3px solid #4CAF7D;border-left:3px solid #4CAF7D;border-radius:0 0 0 4px"></div>
+                  <div style="position:absolute;bottom:0;right:0;width:32px;height:32px;border-bottom:3px solid #4CAF7D;border-right:3px solid #4CAF7D;border-radius:0 0 4px 0"></div>
+                  <!-- Línea de escaneo animada -->
+                  <div id="scan-line" style="position:absolute;left:4px;right:4px;height:2px;background:linear-gradient(90deg,transparent,#4CAF7D,transparent);animation:scanLine 1.8s ease-in-out infinite;border-radius:1px"></div>
+                </div>
               </div>
             </div>
             <div style="display:flex;gap:8px;margin-top:12px">
               <button class="btn bp" style="flex:1;justify-content:center" id="btn-scan-start" onclick="startScanner()">📷 Activar cámara</button>
-              <button class="btn bs" style="flex:1;justify-content:center" id="btn-scan-stop" onclick="stopScanner()" style="display:none">⏹ Detener</button>
+              <button class="btn bs" style="flex:1;justify-content:center;display:none" id="btn-scan-stop" onclick="stopScanner()">⏹ Detener</button>
             </div>
-            <div id="scan-status" style="margin-top:10px;text-align:center;font-size:13px;color:var(--t2)">Listo para escanear</div>
+            <div id="scan-status" style="margin-top:10px;text-align:center;font-size:12px;color:var(--t2);min-height:18px"></div>
+            <div style="margin-top:12px;padding:10px;background:var(--gr);border-radius:8px;font-size:11.5px;color:var(--t3);text-align:center">
+              El QR solo puede ser leído desde esta app
+            </div>
           </div>
           <div class="cv">
-            <div class="st" style="font-size:13.5px">Resultado</div>
-            <div id="scan-result" style="min-height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;color:var(--t3)">
-              <div style="font-size:36px">🃏</div>
-              <div style="font-size:13px">Escanea el QR de la tarjeta del cliente para registrar su visita</div>
+            <div class="st" style="font-size:13.5px">Cliente identificado</div>
+            <div id="scan-result" style="min-height:220px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;color:var(--t3)">
+              <div style="font-size:40px">🃏</div>
+              <div style="font-size:13px;line-height:1.5">Escanea el QR de la tarjeta<br>del cliente para identificarlo</div>
             </div>
           </div>
         </div>
-        <style>@keyframes scan{0%,100%{top:30%}50%{top:70%}}</style>
+        <style>
+          @keyframes scanLine{0%{top:10%}50%{top:85%}100%{top:10%}}
+        </style>
       </div>
 
       <!-- IMPORTAR -->
@@ -1277,11 +1295,29 @@ function verTarjeta(id){
 }
 
 // ===================== SCANNER QR =====================
-let scannerStream=null,scannerInterval=null;
+let scannerStream=null,scannerInterval=null,jsQRLoaded=false;
+
+// Cargar jsQR — librería que funciona en TODOS los browsers (sin BarcodeDetector)
+function loadJsQR(){
+  return new Promise((resolve,reject)=>{
+    if(window.jsQR){resolve();return;}
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+    s.onload=()=>{jsQRLoaded=true;resolve();};
+    s.onerror=()=>reject(new Error('No se pudo cargar jsQR'));
+    document.head.appendChild(s);
+  });
+}
 
 async function startScanner(){
+  const statusEl=document.getElementById('scan-status');
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    statusEl.textContent='Cargando lector QR...';
+    await loadJsQR();
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}},
+      audio:false
+    });
     scannerStream=stream;
     const video=document.getElementById('scanner-video');
     video.srcObject=stream;
@@ -1290,11 +1326,17 @@ async function startScanner(){
     document.getElementById('scanner-overlay').style.display='block';
     document.getElementById('btn-scan-start').style.display='none';
     document.getElementById('btn-scan-stop').style.display='flex';
-    document.getElementById('scan-status').textContent='Apunta al QR de la tarjeta...';
-    // Escanear frames
-    scannerInterval=setInterval(()=>scanFrame(video),500);
+    statusEl.textContent='📷 Apunta al QR de la tarjeta Dopamina...';
+    // Esperar a que el video cargue antes de escanear
+    video.onloadedmetadata=()=>{
+      scannerInterval=setInterval(()=>scanFrame(video),300);
+    };
   }catch(e){
-    document.getElementById('scan-status').textContent='⚠ No se pudo acceder a la cámara: '+e.message;
+    if(e.name==='NotAllowedError'){
+      statusEl.innerHTML='⚠ Permiso de cámara denegado. <button class="btn bp bsm" onclick="scanManual()" style="margin-top:6px">Ingresar ID manual</button>';
+    } else {
+      statusEl.innerHTML='⚠ '+e.message+' <button class="btn bp bsm" onclick="scanManual()" style="margin-top:6px">Ingresar ID manual</button>';
+    }
   }
 }
 
@@ -1302,116 +1344,177 @@ function stopScanner(){
   if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}
   if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}
   const video=document.getElementById('scanner-video');
-  video.style.display='none';video.srcObject=null;
-  document.getElementById('scanner-placeholder').style.display='flex';
-  document.getElementById('scanner-overlay').style.display='none';
-  document.getElementById('btn-scan-start').style.display='flex';
-  document.getElementById('btn-scan-stop').style.display='none';
-  document.getElementById('scan-status').textContent='Listo para escanear';
+  if(video){video.style.display='none';video.srcObject=null;}
+  const ph=document.getElementById('scanner-placeholder');
+  if(ph)ph.style.display='flex';
+  const ov=document.getElementById('scanner-overlay');
+  if(ov)ov.style.display='none';
+  const bs=document.getElementById('btn-scan-start');
+  if(bs)bs.style.display='flex';
+  const bst=document.getElementById('btn-scan-stop');
+  if(bst)bst.style.display='none';
+  const st=document.getElementById('scan-status');
+  if(st)st.textContent='';
 }
 
-async function scanFrame(video){
-  if(!video.videoWidth)return;
+function scanFrame(video){
+  if(!video.videoWidth||!video.videoHeight)return;
   const canvas=document.getElementById('scanner-canvas');
-  canvas.width=video.videoWidth;canvas.height=video.videoHeight;
-  const ctx=canvas.getContext('2d');
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
   ctx.drawImage(video,0,0);
   try{
     const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-    // Usar BarcodeDetector si está disponible
-    if('BarcodeDetector' in window){
-      const detector=new BarcodeDetector({formats:['qr_code']});
-      const codes=await detector.detect(canvas);
-      if(codes.length>0){
-        const raw=codes[0].rawValue;
-        await procesarQR(raw);
-      }
-    } else {
-      // Fallback: pedir al usuario que escriba el ID
-      document.getElementById('scan-status').innerHTML='Tu navegador no soporta escáner nativo.<br><button class="btn bp bsm" onclick="scanManual()" style="margin-top:8px">Ingresar ID manual</button>';
-      clearInterval(scannerInterval);scannerInterval=null;
+    const code=window.jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'dontInvert'});
+    if(code&&code.data){
+      procesarQR(code.data);
     }
   }catch(e){}
 }
 
-async function scanManual(){
-  const id=prompt('Ingresa el ID del cliente (número):');
-  if(!id||isNaN(id))return;
-  await procesarQR(`https://dopamina-loyalty.vercel.app/card.html?id=${id}`);
+function scanManual(){
+  const id=prompt('Ingresa el número de tarjeta del cliente (ID):');
+  if(!id||isNaN(id.trim()))return;
+  procesarQR('DOPI-'+id.trim());
 }
 
-async function procesarQR(rawUrl){
-  // Extraer ID del URL
-  let clienteId=null;
-  try{
-    const url=new URL(rawUrl);
-    clienteId=url.searchParams.get('id')||url.searchParams.get('c');
-  }catch(e){
-    // Si es solo un número
-    if(!isNaN(rawUrl.trim()))clienteId=rawUrl.trim();
+async function procesarQR(raw){
+  // Solo acepta códigos DOPI-{id} — rechaza URLs y otros formatos
+  const match=raw.match(/^DOPI-(\d+)$/);
+  if(!match){
+    document.getElementById('scan-status').innerHTML=
+      '⚠ QR no reconocido como tarjeta Dopamina<br><span style="font-size:11px;color:var(--t3)">Solo se aceptan tarjetas emitidas por esta app</span>';
+    return;
   }
-  if(!clienteId){document.getElementById('scan-status').textContent='QR no reconocido';return;}
-  
-  // Evitar doble escaneo
-  clearInterval(scannerInterval);scannerInterval=null;
+  const clienteId=match[1];
+
+  // Detener escáner
+  if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}
   stopScanner();
-  
-  document.getElementById('scan-status').textContent='✓ QR detectado — cargando cliente...';
-  document.getElementById('scan-result').innerHTML='<div style="font-size:24px;animation:spin 1s linear infinite">⏳</div>';
-  
+
+  document.getElementById('scan-status').textContent='✓ Tarjeta Dopamina detectada — buscando cliente...';
+  document.getElementById('scan-result').innerHTML=`
+    <div style="font-size:32px;animation:spin 1s linear infinite">⏳</div>
+    <div style="font-size:13px;color:var(--t2)">Identificando cliente...</div>`;
+
   showLo(true);
   const{data:c,error}=await SB.from('clientes').select('*').eq('id',clienteId).single();
-  if(error||!c){showLo(false);document.getElementById('scan-result').innerHTML='<div style="color:var(--r)">⚠ Cliente no encontrado</div>';return;}
-  
-  // Registrar visita
+  showLo(false);
+
+  if(error||!c){
+    document.getElementById('scan-result').innerHTML=`
+      <div style="font-size:36px">❌</div>
+      <div style="color:var(--r);font-weight:600">Cliente no encontrado</div>
+      <div style="font-size:12px;color:var(--t3)">ID: ${clienteId}</div>
+      <button class="btn bp bsm" onclick="startScanner()" style="margin-top:12px">📷 Escanear de nuevo</button>`;
+    return;
+  }
+
+  // Mostrar cliente identificado con acciones
+  const s=getSeg(c);
+  const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';
+  const avatarHtml=c.foto_url
+    ?`<img src="${c.foto_url}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--g)">`
+    :`<div class="av" style="width:80px;height:80px;font-size:26px;background:${aC(c.nombre)}">${ini(c.nombre)}</div>`;
+
+  document.getElementById('scan-result').innerHTML=`
+    <div style="width:100%;padding:4px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:16px">
+        ${avatarHtml}
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800">${c.nombre}</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="bg ${bc}">${s}</span>
+          <span style="font-size:12px;color:var(--t3)">#${String(c.id).padStart(4,'0')}</span>
+        </div>
+      </div>
+      <!-- Stats rápidos -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+        <div style="background:var(--gr);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--g)">${(c.puntos||0).toLocaleString()}</div>
+          <div style="font-size:10px;color:var(--t3)">PUNTOS</div>
+        </div>
+        <div style="background:var(--gr);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--g)">${c.sellos_activos||0}/${CFG?.sellos_meta||10}</div>
+          <div style="font-size:10px;color:var(--t3)">SELLOS</div>
+        </div>
+        <div style="background:var(--gr);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--g)">${c.visitas||0}</div>
+          <div style="font-size:10px;color:var(--t3)">VISITAS</div>
+        </div>
+      </div>
+      <!-- Acciones principales -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn bp" style="width:100%;justify-content:center;font-size:14px" onclick="irARegistrarVenta(${c.id})">
+          🛒 Registrar venta / puntos
+        </button>
+        <button class="btn bs" style="width:100%;justify-content:center" onclick="registrarSoloVisita(${c.id})">
+          ☕ Registrar solo visita (sello)
+        </button>
+        <button class="btn bs" style="width:100%;justify-content:center" onclick="verPerf(${c.id});openM('m-pf')">
+          👤 Ver perfil completo
+        </button>
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn bs bsm" style="width:100%;justify-content:center;font-size:12px" onclick="startScanner()">
+          📷 Escanear otro cliente
+        </button>
+      </div>
+    </div>`;
+
+  // Notificación si está cerca del gratis
+  const sellosActivos=c.sellos_activos||0;
+  const sellosMax=CFG?.sellos_meta||10;
+  if(sellosActivos===sellosMax-1){
+    toast2('🔥 ¡'+c.nombre+' le falta 1 sello para su consumo gratis!');
+  } else {
+    toast2('✓ Cliente identificado: '+c.nombre);
+  }
+}
+
+// Ir al panel de puntos con el cliente pre-seleccionado
+function irARegistrarVenta(clienteId){
+  closeM('m-pf');
+  nav('puntos');
+  setTimeout(()=>preSel(clienteId),200);
+}
+
+// Registrar solo visita/sello sin venta
+async function registrarSoloVisita(clienteId){
+  showLo(true);
+  const{data:c}=await SB.from('clientes').select('*').eq('id',clienteId).single();
+  if(!c){showLo(false);toast2('⚠ Error',true);return;}
+
   const sellosMax=CFG?.sellos_meta||10;
   const sellosAhora=(c.sellos_activos||0)+1;
   const ganoGratis=sellosAhora>=sellosMax;
   const nuevosSellos=ganoGratis?0:sellosAhora;
-  
+
   await SB.from('clientes').update({
     visitas:(c.visitas||0)+1,
     sellos_activos:nuevosSellos,
     total_canjes_sello:(c.total_canjes_sello||0)+(ganoGratis?1:0),
     ultima_visita:new Date().toISOString()
-  }).eq('id',c.id);
-  
+  }).eq('id',clienteId);
+
   await SB.from('historial').insert({
-    cliente_id:c.id,tipo:'visita',
-    descripcion:`Visita registrada via QR · Sello ${ganoGratis?sellosMax:sellosAhora}/${sellosMax}`,
+    cliente_id:clienteId,tipo:'visita',
+    descripcion:`Visita QR · Sello ${ganoGratis?sellosMax:sellosAhora}/${sellosMax}`,
     puntos:0
   });
-  
+
   showLo(false);
-  
-  const s=getSeg(c);
-  const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';
-  document.getElementById('scan-result').innerHTML=`
-    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px;width:100%">
-      ${c.foto_url?`<img src="${c.foto_url}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid var(--g)">`
-        :`<div class="av" style="width:70px;height:70px;font-size:22px;background:${aC(c.nombre)}">${ini(c.nombre)}</div>`}
-      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700">${c.nombre}</div>
-      <span class="bg ${bc}">${s}</span>
-      <div style="display:flex;gap:12px;margin-top:4px">
-        <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--g)">${(c.puntos||0).toLocaleString()}</div><div style="font-size:10px;color:var(--t3)">PUNTOS</div></div>
-        <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--g)">${nuevosSellos}/${sellosMax}</div><div style="font-size:10px;color:var(--t3)">SELLOS</div></div>
-        <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--g)">${(c.visitas||0)+1}</div><div style="font-size:10px;color:var(--t3)">VISITAS</div></div>
-      </div>
-      ${ganoGratis?`<div style="background:#e8f7ef;border:2px solid var(--g);border-radius:12px;padding:12px 16px;text-align:center;width:100%">
-        <div style="font-size:24px">🎉</div>
-        <div style="font-weight:700;color:var(--gd)">¡Tarjeta completa!</div>
-        <div style="font-size:12px;color:var(--t2)">Consumo gratis ganado</div>
-      </div>`:''}
-      <div style="background:#e8f7ef;border-radius:10px;padding:10px 16px;width:100%;text-align:center">
-        <div style="font-weight:600;color:var(--gd)">✓ Visita registrada</div>
-        <div style="font-size:11px;color:var(--t2)">${new Date().toLocaleTimeString('es-PE')}</div>
-      </div>
-      <button class="btn bp" style="width:100%;justify-content:center;margin-top:4px" onclick="startScanner()">📷 Escanear otro</button>
-    </div>`;
-  
-  if(ganoGratis)toast2('🎉 ¡'+c.nombre+' completó su tarjeta! Consumo GRATIS',false);
-  else toast2('✓ Visita de '+c.nombre+' registrada · Sello '+(sellosAhora)+'/'+sellosMax);
+
+  if(ganoGratis){
+    toast2('🎉 ¡'+c.nombre+' completó su tarjeta! Consumo GRATIS ganado');
+  } else {
+    toast2('☕ Visita registrada — Sello '+sellosAhora+'/'+sellosMax+' para '+c.nombre);
+  }
+
+  // Recargar el resultado con datos actualizados
+  procesarQR('DOPI-'+clienteId);
 }
+
 // ===================== REDES EN TARJETA =====================
 const REDES_DISPONIBLES=[
   {id:'instagram', label:'Instagram', icono:'📸'},
