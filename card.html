@@ -267,7 +267,7 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 const SBURL='https://cuofpfajzeyezerubytc.supabase.co';
 const SBKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1b2ZwZmFqemV5ZXplcnVieXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzU1MTMsImV4cCI6MjA5MDExMTUxM30.5Tog6Ata3CbYflwxOhezXZegrwagiboQF2u0fVX9oZ4';
 const SB=supabase.createClient(SBURL,SBKEY);
-(function(){const g=document.getElementById('dpm-grid');for(let i=0;i<28;i++){const d=document.createElement('div');d.className='dpm-cell';d.textContent='DpM';g.appendChild(d);}})();
+(function(){const g=document.getElementById('dpm-grid');if(g)for(let i=0;i<28;i++){const d=document.createElement('div');d.className='dpm-cell';d.textContent='DpM';g.appendChild(d);}})();
 function getClienteId(){const p=new URLSearchParams(window.location.search);return p.get('id')||p.get('c');}
 function flipCard(){document.getElementById('card-flip').classList.toggle('flipped');}
 // Posiciones de sellos calibradas sobre la imagen real
