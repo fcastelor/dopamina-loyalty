@@ -1360,14 +1360,22 @@ function stopScanner(){
 function scanFrame(video){
   if(!video.videoWidth||!video.videoHeight)return;
   const canvas=document.getElementById('scanner-canvas');
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
+  // Escalar al doble para mejor detección
+  const scale=2;
+  canvas.width=video.videoWidth*scale;
+  canvas.height=video.videoHeight*scale;
   const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  ctx.scale(scale,scale);
   ctx.drawImage(video,0,0);
   try{
     const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-    const code=window.jsQR(imageData.data,imageData.width,imageData.height,{inversionAttempts:'dontInvert'});
+    const code=window.jsQR(imageData.data,imageData.width,imageData.height,{
+      inversionAttempts:'attemptBoth'
+    });
     if(code&&code.data){
+      // Feedback visual — parpadear overlay en verde
+      const ov=document.getElementById('scanner-overlay');
+      if(ov){ov.style.borderColor='#4CAF7D';setTimeout(()=>{if(ov)ov.style.borderColor='';},500);}
       procesarQR(code.data);
     }
   }catch(e){}
@@ -1380,14 +1388,26 @@ function scanManual(){
 }
 
 async function procesarQR(raw){
-  // Solo acepta códigos DOPI-{id} — rechaza URLs y otros formatos
-  const match=raw.match(/^DOPI-(\d+)$/);
-  if(!match){
+  // Acepta formato nativo DOPI-{id} O la URL de la tarjeta (card.html?id=X)
+  let clienteId=null;
+  const matchDopi=raw.match(/^DOPI-(\d+)$/);
+  if(matchDopi){
+    clienteId=matchDopi[1];
+  } else {
+    // Intentar extraer ID de URL (tarjetas antiguas o cámara externa)
+    try{
+      const url=new URL(raw);
+      if(url.pathname.includes('card')){
+        clienteId=url.searchParams.get('id')||url.searchParams.get('c');
+      }
+    }catch(e){}
+  }
+
+  if(!clienteId){
     document.getElementById('scan-status').innerHTML=
-      '⚠ QR no reconocido como tarjeta Dopamina<br><span style="font-size:11px;color:var(--t3)">Solo se aceptan tarjetas emitidas por esta app</span>';
+      '⚠ QR no reconocido<br><span style="font-size:11px;color:var(--t3)">Solo se aceptan tarjetas Dopamina</span>';
     return;
   }
-  const clienteId=match[1];
 
   // Detener escáner
   if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}
