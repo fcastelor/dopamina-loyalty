@@ -51,20 +51,57 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 .card-flip.flipped{transform:rotateY(180deg)}
 .card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;overflow:hidden;box-shadow:0 24px 64px rgba(92,51,23,.28),0 8px 24px rgba(92,51,23,.15)}
 .card-back-face{transform:rotateY(180deg)}
-.front-bg{width:100%;height:100%;background:#f0e0c0;position:relative;overflow:hidden}
-.dpm-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(7,1fr);pointer-events:none}
-.dpm-cell{display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;color:rgba(92,51,23,.1);transform:rotate(-15deg);user-select:none}
-.gold-corner{position:absolute;top:0;left:0;z-index:2;width:38%;height:22%;background:#F5C842;clip-path:ellipse(100% 100% at 0% 0%);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:5% 5% 0 5%}
+/* ── ANVERSO REDISEÑADO ── */
+.front-bg{width:100%;height:100%;position:relative;overflow:hidden;background:#1a0f05}
+/* SVG capibara+waffle como fondo full */
+.front-bg-art{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.front-bg-art svg{width:100%;height:100%;object-fit:cover}
+/* Gradiente oscuro bottom para legibilidad */
+.front-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(
+    to bottom,
+    rgba(26,15,5,.15) 0%,
+    rgba(26,15,5,.1) 35%,
+    rgba(26,15,5,.7) 58%,
+    rgba(26,15,5,.92) 100%
+  );
+  z-index:2;
+}
+/* Logo esquina dorada */
+.gold-corner{position:absolute;top:0;left:0;z-index:5;width:38%;height:20%;background:#F5C842;clip-path:ellipse(100% 100% at 0% 0%);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:5% 5% 0 5%}
 .logo-txt{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:clamp(16px,6vw,24px);color:#5c3317;line-height:1}
 .logo-sub{font-size:clamp(6px,2vw,9px);color:#7a4a1a;font-weight:600;margin-top:1px}
-.waffle-zone{position:absolute;top:12%;left:50%;transform:translateX(-50%);width:75%;z-index:2}
-.waffle-zone svg{width:100%;height:auto;filter:drop-shadow(0 8px 20px rgba(92,51,23,.2))}
-.front-bottom{position:absolute;bottom:0;left:0;right:0;z-index:3;padding:0 8% 5%;text-align:center}
-.frase-main{font-family:'Baloo 2',sans-serif;font-size:clamp(13px,4.5vw,18px);font-weight:700;color:#5c3317;line-height:1.3;margin-bottom:3%}
-.gracias-txt{font-family:'Baloo 2',sans-serif;font-size:clamp(15px,5.5vw,22px);font-weight:800;color:#8B4513;margin-bottom:3%}
-.dopilover-lbl{font-size:clamp(9px,3vw,12px);color:#a06030;font-weight:600;margin-bottom:1%}
-.cliente-nom{font-family:'Baloo 2',sans-serif;font-size:clamp(18px,7vw,28px);font-weight:800;color:#5c3317;border-bottom:2px solid #8B4513;padding-bottom:2%;margin-bottom:3%;display:inline-block}
-.redes-txt{font-size:clamp(8px,2.8vw,11px);color:#8B4513;line-height:2;font-weight:600}
+/* Contenido bottom — Dopilover + Nombre + QR */
+.front-bottom{
+  position:absolute;bottom:0;left:0;right:0;z-index:3;
+  padding:0 7% 5%;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;
+}
+.dopilover-lbl{
+  font-size:clamp(9px,3vw,13px);color:rgba(255,220,150,.85);
+  font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:2px;
+}
+.cliente-nom{
+  font-family:'Baloo 2',sans-serif;
+  font-size:clamp(20px,8vw,32px);
+  font-weight:800;color:white;
+  line-height:1;margin-bottom:5%;
+  text-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+/* QR en el anverso */
+.front-qr-wrap{
+  background:white;border-radius:12px;
+  padding:8px;
+  box-shadow:0 4px 24px rgba(0,0,0,.4);
+  margin-bottom:4%;
+}
+.front-redes{
+  font-size:clamp(7px,2.5vw,10px);color:rgba(255,220,150,.75);
+  font-weight:600;line-height:1.8;
+}
 .back-bg{width:100%;height:100%;position:relative;background:#f5e6c8;display:flex;flex-direction:column}
 .back-img{width:100%;height:42%;object-fit:cover;object-position:top;display:block;flex-shrink:0}
 .sellos-layer{position:absolute;top:0;left:0;width:100%;height:42%;pointer-events:none}
@@ -111,50 +148,89 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
     <!-- ANVERSO -->
     <div class="card-face">
       <div class="front-bg">
-        <div class="dpm-grid" id="dpm-grid"></div>
+
+        <!-- FONDO: capibara + waffle a pantalla completa -->
+        <div class="front-bg-art">
+          <svg viewBox="0 0 300 520" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <!-- Fondo cálido -->
+            <rect width="300" height="520" fill="#f5e0b0"/>
+            <!-- Patrón DpM sutil -->
+            <text x="20"  y="60"  font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,20,60)">DpM</text>
+            <text x="120" y="40"  font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,120,40)">DpM</text>
+            <text x="220" y="70"  font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,220,70)">DpM</text>
+            <text x="60"  y="130" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,60,130)">DpM</text>
+            <text x="190" y="140" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,190,140)">DpM</text>
+            <text x="10"  y="200" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,10,200)">DpM</text>
+            <text x="240" y="210" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,240,210)">DpM</text>
+            <text x="100" y="250" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,100,250)">DpM</text>
+
+            <!-- WAFFLE grande y centrado -->
+            <circle cx="152" cy="230" r="110" fill="#e8a020" stroke="#6b3010" stroke-width="5"/>
+            <circle cx="152" cy="230" r="100" fill="#f5b535"/>
+            <!-- Grid waffle -->
+            <line x1="72"  y1="200" x2="72"  y2="268" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="97"  y1="180" x2="97"  y2="288" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="122" y1="170" x2="122" y2="298" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="152" y1="165" x2="152" y2="305" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="182" y1="170" x2="182" y2="298" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="207" y1="180" x2="207" y2="288" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="232" y1="200" x2="232" y2="268" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="55"  y1="210" x2="250" y2="210" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="48"  y1="232" x2="258" y2="232" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <line x1="55"  y1="254" x2="250" y2="254" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
+            <!-- Frutillas -->
+            <ellipse cx="148" cy="248" rx="28" ry="22" fill="#cc3030" opacity=".92"/>
+            <ellipse cx="172" cy="258" rx="23" ry="18" fill="#bb2828" opacity=".88"/>
+            <ellipse cx="126" cy="254" rx="18" ry="14" fill="#dd4040" opacity=".82"/>
+            <path d="M136 240 C136 234 126 228 126 236 C126 242 136 252 136 252 C136 252 146 242 146 236 C146 228 136 234 136 240Z" fill="#ff7070" opacity=".75"/>
+            <path d="M158 236 C158 231 150 226 150 233 C150 238 158 246 158 246 C158 246 166 238 166 233 C166 226 158 231 158 236Z" fill="#ff7070" opacity=".65"/>
+
+            <!-- CAPIBARA grande sobre el waffle -->
+            <!-- Cuerpo -->
+            <ellipse cx="160" cy="140" rx="72" ry="48" fill="#8B5E3C"/>
+            <!-- Hocico / cabeza -->
+            <ellipse cx="96"  cy="150" rx="22" ry="25" fill="#7a5232"/>
+            <ellipse cx="96"  cy="138" rx="17" ry="17" fill="#8B5E3C"/>
+            <ellipse cx="96"  cy="146" rx="14" ry="11" fill="#9a6842"/>
+            <!-- Ojos -->
+            <circle cx="89"  cy="142" r="4.5" fill="#1a0f05"/>
+            <circle cx="103" cy="142" r="4.5" fill="#1a0f05"/>
+            <circle cx="90"  cy="141" r="1.5" fill="white" opacity=".7"/>
+            <circle cx="104" cy="141" r="1.5" fill="white" opacity=".7"/>
+            <!-- Mejilla -->
+            <circle cx="85"  cy="152" r="7" fill="#e08080" opacity=".5"/>
+            <!-- Nariz -->
+            <ellipse cx="96"  cy="152" rx="7" ry="4.5" fill="#c07848"/>
+            <!-- Gorra Dopamina -->
+            <ellipse cx="96"  cy="128" rx="22" ry="9" fill="#F5C842"/>
+            <rect x="77" y="122" width="38" height="13" rx="6.5" fill="#e6b800"/>
+            <text x="96" y="132" text-anchor="middle" font-size="7" fill="#5c3317" font-weight="700" font-family="sans-serif">Dopamina</text>
+            <!-- Zzz -->
+            <text x="124" y="112" font-size="13" fill="#8B4513" opacity=".45" font-weight="700" font-family="sans-serif">z</text>
+            <text x="136" y="100" font-size="17" fill="#8B4513" opacity=".32" font-weight="700" font-family="sans-serif">z</text>
+            <text x="152" y="86"  font-size="21" fill="#8B4513" opacity=".22" font-weight="700" font-family="sans-serif">z</text>
+          </svg>
+        </div>
+
+        <!-- OVERLAY degradado oscuro (solo parte inferior) -->
+        <div class="front-overlay"></div>
+
+        <!-- ESQUINA LOGO -->
         <div class="gold-corner">
           <div class="logo-txt">Dopamina</div>
           <div class="logo-sub">Alimentando tu felicidad</div>
         </div>
-        <div class="waffle-zone">
-          <svg viewBox="0 0 240 220" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="120" cy="150" r="72" fill="#e8a020" stroke="#6b3010" stroke-width="4"/>
-            <circle cx="120" cy="150" r="65" fill="#f5b535"/>
-            <line x1="58" y1="132" x2="182" y2="132" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-            <line x1="50" y1="150" x2="190" y2="150" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-            <line x1="58" y1="168" x2="182" y2="168" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-            <line x1="76" y1="112" x2="76" y2="188" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-            <line x1="96" y1="103" x2="96" y2="196" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-            <line x1="120" y1="98" x2="120" y2="200" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-            <line x1="144" y1="103" x2="144" y2="196" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-            <line x1="164" y1="112" x2="164" y2="188" stroke="#6b3010" stroke-width="3" opacity=".5" stroke-linecap="round"/>
-            <ellipse cx="118" cy="162" rx="20" ry="16" fill="#cc3030" opacity=".9"/>
-            <ellipse cx="136" cy="170" rx="17" ry="13" fill="#bb2828" opacity=".85"/>
-            <ellipse cx="104" cy="168" rx="13" ry="10" fill="#dd4040" opacity=".8"/>
-            <path d="M114 156 C114 152 108 148 108 154 C108 158 114 164 114 164 C114 164 120 158 120 154 C120 148 114 152 114 156Z" fill="#ff6060" opacity=".7"/>
-            <ellipse cx="124" cy="90" rx="52" ry="34" fill="#8B5E3C"/>
-            <ellipse cx="78" cy="96" rx="16" ry="18" fill="#7a5232"/>
-            <ellipse cx="78" cy="88" rx="12" ry="12" fill="#8B5E3C"/>
-            <ellipse cx="78" cy="93" rx="10" ry="8" fill="#9a6842"/>
-            <circle cx="73" cy="90" r="3" fill="#2d1a0a"/>
-            <circle cx="83" cy="90" r="3" fill="#2d1a0a"/>
-            <circle cx="70" cy="97" r="5" fill="#e08080" opacity=".55"/>
-            <ellipse cx="78" cy="97" rx="5" ry="3.5" fill="#c07848"/>
-            <ellipse cx="78" cy="82" rx="16" ry="7" fill="#F5C842"/>
-            <rect x="64" y="77" width="28" height="10" rx="5" fill="#e6b800"/>
-            <text x="78" y="85" text-anchor="middle" font-size="5.5" fill="#5c3317" font-weight="700" font-family="sans-serif">Dopamina</text>
-            <text x="96" y="72" font-size="10" fill="#8B4513" opacity=".5" font-weight="700" font-family="sans-serif">z</text>
-            <text x="104" y="62" font-size="13" fill="#8B4513" opacity=".35" font-weight="700" font-family="sans-serif">z</text>
-            <text x="115" y="50" font-size="16" fill="#8B4513" opacity=".25" font-weight="700" font-family="sans-serif">z</text>
-          </svg>
-        </div>
+
+        <!-- CONTENIDO: Dopilover + Nombre + QR -->
         <div class="front-bottom">
-          <div class="frase-main" id="card-frase-frente">Date el gusto de ser feliz.</div>
-          <div class="gracias-txt" id="card-gracias">Gracias 🧡</div>
           <div class="dopilover-lbl" id="card-num">Dopilover #0000</div>
           <div class="cliente-nom" id="cliente-nombre">—</div>
-          <div class="redes-txt" id="card-redes">Síguenos 🎵 Dopamina.pee<br>Delivery: 📱 908 922 055</div>
+          <div class="front-qr-wrap">
+            <div id="qr-front"></div>
+          </div>
+          <div class="front-redes" id="card-redes">🎵 Dopamina.pee &nbsp;·&nbsp; 📱 908 922 055</div>
         </div>
+
       </div>
     </div>
     <!-- REVERSO -->
@@ -229,12 +305,22 @@ function renderSellos(activos,max){
   });
 }
 function genQR(url){
-  const el=document.getElementById('qr-code');el.innerHTML='';
-  // QR grande — adaptado al ancho de la tarjeta, mínimo 140px
-  const cardW=document.querySelector('.scene')?.offsetWidth||300;
-  const qrSize=Math.max(Math.min(Math.floor(cardW*0.5),160),140);
-  try{new QRCode(el,{text:url,width:qrSize,height:qrSize,colorDark:'#5c3317',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}
-  catch(e){console.warn('QR',e);}
+  // QR en el anverso (grande, fondo tarjeta)
+  const elFront=document.getElementById('qr-front');
+  if(elFront){
+    elFront.innerHTML='';
+    const cardW=document.querySelector('.scene')?.offsetWidth||300;
+    const qrFrontSize=Math.max(Math.min(Math.floor(cardW*0.44),148),110);
+    try{new QRCode(elFront,{text:url,width:qrFrontSize,height:qrFrontSize,colorDark:'#5c3317',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}
+  }
+  // QR en el reverso (zona blanca)
+  const elBack=document.getElementById('qr-code');
+  if(elBack){
+    elBack.innerHTML='';
+    const cardW=document.querySelector('.scene')?.offsetWidth||300;
+    const qrSize=Math.max(Math.min(Math.floor(cardW*0.5),160),140);
+    try{new QRCode(elBack,{text:url,width:qrSize,height:qrSize,colorDark:'#5c3317',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}
+  }
 }
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-btn').style.display='flex';});
@@ -253,12 +339,8 @@ async function init(){
     const visitas=c.visitas||0;
     const nombre=c.nombre?.split(' ')[0]||c.nombre||'Cliente';
     document.getElementById('cliente-nombre').textContent=nombre;
+    // Anverso: solo Dopilover + nombre + redes
     document.getElementById('card-num').textContent=(cfg?.tarjeta_miembro_label||'Dopilover')+' #'+String(c.id).padStart(4,'0');
-    // Textos dinámicos desde config
-    const fraseFr=document.getElementById('card-frase-frente');
-    if(fraseFr)fraseFr.textContent=cfg?.tarjeta_frase_frente||'Date el gusto de ser feliz.';
-    const gracias=document.getElementById('card-gracias');
-    if(gracias)gracias.textContent=cfg?.tarjeta_gracias||'Gracias 🧡';
     const redesEl=document.getElementById('card-redes');
     if(redesEl){
       try{
