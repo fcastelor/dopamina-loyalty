@@ -165,6 +165,79 @@ textarea.fi{resize:vertical;min-height:78px}
 .udi.dr{color:var(--r)}
 .ms{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 7px;border-radius:20px;font-weight:500}
 .ms-on{background:#e8f7ef;color:#1a6b3c}.ms-off{background:#fff0f0;color:#b92b2b}
+
+/* ── RESPONSIVE MÓVIL ── */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;backdrop-filter:blur(2px)}
+.sb-overlay.open{display:block}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--t);transition:background .15s}
+.hamburger:hover{background:var(--gr)}
+.hamburger svg{width:22px;height:22px;display:block}
+.sb-close{display:none;position:absolute;top:14px;right:14px;background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px;cursor:pointer;color:white;line-height:0}
+.sb-close svg{width:18px;height:18px}
+
+@media (max-width: 768px){
+  :root{--sw:280px}
+
+  /* Sidebar oculto por defecto en móvil */
+  .sb{
+    transform:translateX(-100%);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+    z-index:200;
+    box-shadow:none;
+  }
+  .sb.open{
+    transform:translateX(0);
+    box-shadow:8px 0 32px rgba(0,0,0,.3);
+  }
+  .sb-close{display:flex;align-items:center;justify-content:center;}
+
+  /* Contenido ocupa todo el ancho */
+  .main{margin-left:0 !important}
+
+  /* Topbar con hamburguesa */
+  .topbar{padding:10px 14px;gap:10px}
+  .tb-t{font-size:15px}
+  .hamburger{display:flex;align-items:center;justify-content:center}
+
+  /* Buscador más compacto */
+  .sb-x{max-width:140px}
+  .sb-x input{font-size:13px}
+
+  /* Botón nuevo más pequeño */
+  .topbar .btn.bp.bsm{padding:7px 12px;font-size:12px}
+
+  /* Grids a 1 columna */
+  .g2{grid-template-columns:1fr !important}
+  .sg{grid-template-columns:repeat(2,1fr) !important}
+
+  /* Contenido con menos padding */
+  .content{padding:14px}
+
+  /* Tabla con scroll horizontal */
+  .cv table{min-width:500px}
+  .cv [style*="overflow-x:auto"]{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  /* Scanner más grande en móvil */
+  #scanner-box{min-height:340px !important}
+
+  /* Modal full screen en móvil */
+  .mc{margin:12px;max-height:calc(100vh - 24px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+  /* Analytics chips más pequeños */
+  .sg.sg-analytics{grid-template-columns:repeat(2,1fr) !important}
+
+  /* Usuario dropdown alineado a izquierda en móvil */
+  .ud{right:auto;left:0}
+
+  /* Tabs de config en scroll horizontal */
+  #panel-config > div:nth-child(2){overflow-x:auto;flex-wrap:nowrap !important;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+}
+
+@media (max-width: 400px){
+  .sg{grid-template-columns:repeat(2,1fr) !important}
+  .sv{font-size:20px !important}
+  .topbar{padding:8px 10px}
+}
 </style>
 </head>
 <body>
@@ -238,7 +311,14 @@ textarea.fi{resize:vertical;min-height:78px}
 
 <!-- APP -->
 <div id="app">
-  <nav class="sb">
+  <!-- Overlay para cerrar sidebar en móvil -->
+  <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+  <nav class="sb" id="sidebar">
+    <button class="sb-close" onclick="closeSidebar()" aria-label="Cerrar menú">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
     <div class="sb-lg"><div class="sb-lm" id="sb-nm">Dopamina</div><div class="sb-ls">Club de Fidelización</div></div>
     <div class="sb-nv">
       <div class="nl">Principal</div>
@@ -257,7 +337,14 @@ textarea.fi{resize:vertical;min-height:78px}
   </nav>
   <div class="main">
     <div class="topbar">
-      <div class="tb-t" id="tb-t">Dashboard</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="hamburger" onclick="toggleSidebar()" aria-label="Menú">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="tb-t" id="tb-t">Dashboard</div>
+      </div>
       <div style="display:flex;align-items:center;gap:9px">
         <div class="sb-x"><span style="color:var(--t3)">⌕</span><input type="text" placeholder="Buscar cliente..." id="s-g" oninput="gSearch(this.value)"></div>
         <button class="btn bp bsm" onclick="openM('m-nc')">+ Nuevo</button>
@@ -2038,8 +2125,27 @@ async function disableMFA(){if(!confirm('¿Desactivar MFA? Tu cuenta quedará me
 // ===================== BÚSQUEDA =====================
 async function gSearch(q){if(!q||q.length<2)return;nav('clientes');const{data}=await SB.from('clientes').select('*').or(`nombre.ilike.%${q}%,dni.ilike.%${q}%`).limit(30);const tb=document.getElementById('tbl-cl');if(!data?.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--t3)">Sin resultados para "'+q+'"</td></tr>';return;}tb.innerHTML=data.map(c=>{const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';return`<tr onclick="verPerf(${c.id})"><td><div style="display:flex;align-items:center;gap:7px"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div style="font-weight:500">${c.nombre}</div></div></td><td style="font-family:monospace;font-size:12px">${c.dni||'—'}</td><td>${c.celular||'—'}</td><td><strong>${(c.puntos||0).toLocaleString()}</strong></td><td><span class="bg ${bc}">${s}</span></td><td class="tm">${c.ultima_visita?fmtD(c.ultima_visita):'—'}</td><td onclick="event.stopPropagation()"><button class="btn bs bsm" onclick="verPerf(${c.id})">Ver</button></td></tr>`;}).join('');}
 
+// ===================== SIDEBAR MÓVIL =====================
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sb-overlay');
+  const isOpen=sb.classList.contains('open');
+  if(isOpen){closeSidebar();}
+  else{sb.classList.add('open');ov.classList.add('open');document.body.style.overflow='hidden';}
+}
+function closeSidebar(){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sb-overlay');
+  sb.classList.remove('open');
+  ov.classList.remove('open');
+  document.body.style.overflow='';
+}
+
 // ===================== NAV =====================
-function nav(p){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad',usuarios:'Administradores',scanner:'Escanear QR',analytics:'Analytics'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();if(p==='usuarios')ldUsuarios();if(p==='analytics')ldAnalytics();if(p!=='scanner')stopScanner();}
+function nav(p){
+  // Cerrar sidebar en móvil al navegar
+  if(window.innerWidth<=768)closeSidebar();
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+p).classList.add('active');const T={dashboard:'Dashboard',clientes:'Clientes',puntos:'Registrar puntos',campanas:'Campañas WhatsApp',importar:'Importar CSV',config:'Configuración',seguridad:'Seguridad',usuarios:'Administradores',scanner:'Escanear QR',analytics:'Analytics'};document.getElementById('tb-t').textContent=T[p]||p;document.querySelectorAll('.ni').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+p+"'"))n.classList.add('active');});if(p==='dashboard')ldDash();if(p==='clientes')loadCL();if(p==='campanas')updDst();if(p==='config')rdCfg();if(p==='puntos')rdReglas();if(p==='seguridad')ldSeg();if(p==='usuarios')ldUsuarios();if(p==='analytics')ldAnalytics();if(p!=='scanner')stopScanner();}
 
 // ===================== UTILS =====================
 function setTab(el,id){['tc-c','tc-h'].forEach(t=>{const e=document.getElementById(t);if(e)e.style.display='none';});document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(id).style.display='block';el.classList.add('active');if(id==='tc-h')ldCampHist();}
