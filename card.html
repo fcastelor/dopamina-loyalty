@@ -261,7 +261,8 @@ async function init(){
     document.getElementById('back-nombre').textContent=nombre+' · #'+String(c.id).padStart(4,'0');
     document.getElementById('puntos-num').textContent=(c.puntos||0).toLocaleString();
     renderSellos(sellos,sellosMax);
-    genQR(window.location.href);
+    // QR con código interno — solo legible por la app Dopamina
+    genQR(`DOPI-${c.id}`);
     document.getElementById('chip-visitas').textContent=visitas+' visita'+(visitas!==1?'s':'');
     document.getElementById('chip-sellos').textContent=sellos+'/'+sellosMax+' sellos';
     if(sellos>=sellosMax)document.getElementById('chip-gratis').style.display='flex';
