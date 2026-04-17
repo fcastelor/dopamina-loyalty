@@ -52,21 +52,23 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 .card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;overflow:hidden;box-shadow:0 24px 64px rgba(92,51,23,.28),0 8px 24px rgba(92,51,23,.15)}
 .card-back-face{transform:rotateY(180deg)}
 /* ── ANVERSO REDISEÑADO ── */
-.front-bg{width:100%;height:100%;position:relative;overflow:hidden;background:#1a0f05}
-/* SVG capibara+waffle como fondo full */
-.front-bg-art{position:absolute;inset:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-.front-bg-art svg{width:100%;height:100%;object-fit:cover}
-/* Gradiente oscuro bottom para legibilidad */
+.front-bg{width:100%;height:100%;position:relative;overflow:hidden;background:#f5e0b0}
+/* Imagen real como fondo full */
+.front-bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
+/* Sellos sobre el waffle del anverso */
+.front-sellos-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
+.front-sello{position:absolute;width:8%;aspect-ratio:1;border-radius:20%;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);transition:all .5s cubic-bezier(.34,1.56,.64,1)}
+.front-sello.activo{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 2px 10px rgba(34,197,94,.6);font-size:min(4vw,15px)}
+.front-sello.vacio{background:rgba(255,255,255,.15);border:1.5px dashed rgba(255,255,255,.5)}
+/* Overlay solo en la parte inferior (35% bottom) para los datos */
 .front-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(
-    to bottom,
-    rgba(26,15,5,.15) 0%,
-    rgba(26,15,5,.1) 35%,
-    rgba(26,15,5,.7) 58%,
+  position:absolute;bottom:0;left:0;right:0;height:42%;
+  background:linear-gradient(to bottom,
+    rgba(26,15,5,0) 0%,
+    rgba(26,15,5,.75) 40%,
     rgba(26,15,5,.92) 100%
   );
-  z-index:2;
+  z-index:3;
 }
 /* Logo esquina dorada */
 .gold-corner{position:absolute;top:0;left:0;z-index:5;width:38%;height:20%;background:#F5C842;clip-path:ellipse(100% 100% at 0% 0%);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:5% 5% 0 5%}
@@ -74,8 +76,8 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 .logo-sub{font-size:clamp(6px,2vw,9px);color:#7a4a1a;font-weight:600;margin-top:1px}
 /* Contenido bottom — Dopilover + Nombre + QR */
 .front-bottom{
-  position:absolute;bottom:0;left:0;right:0;z-index:3;
-  padding:0 7% 5%;
+  position:absolute;bottom:0;left:0;right:0;z-index:4;
+  padding:0 7% 4%;
   display:flex;flex-direction:column;align-items:center;
   text-align:center;
 }
@@ -142,77 +144,16 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
     <div class="card-face">
       <div class="front-bg">
 
-        <!-- FONDO: capibara + waffle a pantalla completa -->
-        <div class="front-bg-art">
-          <svg viewBox="0 0 300 520" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-            <!-- Fondo cálido -->
-            <rect width="300" height="520" fill="#f5e0b0"/>
-            <!-- Patrón DpM sutil -->
-            <text x="20"  y="60"  font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,20,60)">DpM</text>
-            <text x="120" y="40"  font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,120,40)">DpM</text>
-            <text x="220" y="70"  font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,220,70)">DpM</text>
-            <text x="60"  y="130" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,60,130)">DpM</text>
-            <text x="190" y="140" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,190,140)">DpM</text>
-            <text x="10"  y="200" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,10,200)">DpM</text>
-            <text x="240" y="210" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,240,210)">DpM</text>
-            <text x="100" y="250" font-size="18" fill="rgba(92,51,23,.07)" font-weight="700" font-family="sans-serif" transform="rotate(-20,100,250)">DpM</text>
+        <!-- Imagen real como fondo completo -->
+        <img class="front-bg-img"
+          src="https://cuofpfajzeyezerubytc.supabase.co/storage/v1/object/public/fotos-clientes/card_frontal.png"
+          alt="Tarjeta Dopamina">
 
-            <!-- WAFFLE grande y centrado -->
-            <circle cx="152" cy="230" r="110" fill="#e8a020" stroke="#6b3010" stroke-width="5"/>
-            <circle cx="152" cy="230" r="100" fill="#f5b535"/>
-            <!-- Grid waffle -->
-            <line x1="72"  y1="200" x2="72"  y2="268" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="97"  y1="180" x2="97"  y2="288" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="122" y1="170" x2="122" y2="298" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="152" y1="165" x2="152" y2="305" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="182" y1="170" x2="182" y2="298" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="207" y1="180" x2="207" y2="288" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="232" y1="200" x2="232" y2="268" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="55"  y1="210" x2="250" y2="210" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="48"  y1="232" x2="258" y2="232" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <line x1="55"  y1="254" x2="250" y2="254" stroke="#6b3010" stroke-width="3.5" opacity=".45" stroke-linecap="round"/>
-            <!-- Frutillas -->
-            <ellipse cx="148" cy="248" rx="28" ry="22" fill="#cc3030" opacity=".92"/>
-            <ellipse cx="172" cy="258" rx="23" ry="18" fill="#bb2828" opacity=".88"/>
-            <ellipse cx="126" cy="254" rx="18" ry="14" fill="#dd4040" opacity=".82"/>
-            <path d="M136 240 C136 234 126 228 126 236 C126 242 136 252 136 252 C136 252 146 242 146 236 C146 228 136 234 136 240Z" fill="#ff7070" opacity=".75"/>
-            <path d="M158 236 C158 231 150 226 150 233 C150 238 158 246 158 246 C158 246 166 238 166 233 C166 226 158 231 158 236Z" fill="#ff7070" opacity=".65"/>
+        <!-- Sellos sobre las celdas del waffle -->
+        <div class="front-sellos-layer" id="front-sellos-layer"></div>
 
-            <!-- CAPIBARA grande sobre el waffle -->
-            <!-- Cuerpo -->
-            <ellipse cx="160" cy="140" rx="72" ry="48" fill="#8B5E3C"/>
-            <!-- Hocico / cabeza -->
-            <ellipse cx="96"  cy="150" rx="22" ry="25" fill="#7a5232"/>
-            <ellipse cx="96"  cy="138" rx="17" ry="17" fill="#8B5E3C"/>
-            <ellipse cx="96"  cy="146" rx="14" ry="11" fill="#9a6842"/>
-            <!-- Ojos -->
-            <circle cx="89"  cy="142" r="4.5" fill="#1a0f05"/>
-            <circle cx="103" cy="142" r="4.5" fill="#1a0f05"/>
-            <circle cx="90"  cy="141" r="1.5" fill="white" opacity=".7"/>
-            <circle cx="104" cy="141" r="1.5" fill="white" opacity=".7"/>
-            <!-- Mejilla -->
-            <circle cx="85"  cy="152" r="7" fill="#e08080" opacity=".5"/>
-            <!-- Nariz -->
-            <ellipse cx="96"  cy="152" rx="7" ry="4.5" fill="#c07848"/>
-            <!-- Gorra Dopamina -->
-            <ellipse cx="96"  cy="128" rx="22" ry="9" fill="#F5C842"/>
-            <rect x="77" y="122" width="38" height="13" rx="6.5" fill="#e6b800"/>
-            <text x="96" y="132" text-anchor="middle" font-size="7" fill="#5c3317" font-weight="700" font-family="sans-serif">Dopamina</text>
-            <!-- Zzz -->
-            <text x="124" y="112" font-size="13" fill="#8B4513" opacity=".45" font-weight="700" font-family="sans-serif">z</text>
-            <text x="136" y="100" font-size="17" fill="#8B4513" opacity=".32" font-weight="700" font-family="sans-serif">z</text>
-            <text x="152" y="86"  font-size="21" fill="#8B4513" opacity=".22" font-weight="700" font-family="sans-serif">z</text>
-          </svg>
-        </div>
-
-        <!-- OVERLAY degradado oscuro (solo parte inferior) -->
+        <!-- Overlay gradiente en la parte inferior para legibilidad del texto -->
         <div class="front-overlay"></div>
-
-        <!-- ESQUINA LOGO -->
-        <div class="gold-corner">
-          <div class="logo-txt">Dopamina</div>
-          <div class="logo-sub">Alimentando tu felicidad</div>
-        </div>
 
         <!-- CONTENIDO: Dopilover + Nombre + QR -->
         <div class="front-bottom">
@@ -279,17 +220,49 @@ const SELLO_POS=[
   {l:'18%',t:'46%'},{l:'67%',t:'46%'},
   {l:'18%',t:'59%'},{l:'33%',t:'59%'},{l:'52%',t:'59%'},{l:'67%',t:'59%'}
 ];
-function renderSellos(activos,max){
-  const layer=document.getElementById('sellos-layer');
+// Posiciones de los sellos sobre las celdas del waffle de la imagen real
+// Imagen 806x1354, coordinadas en % de la tarjeta
+// Las celdas vacías del waffle (sin frutillas) son:
+// Fila 1: 4 celdas superiores
+// Fila 2: 2 celdas laterales (frutillas en el centro)
+// Fila 3: 4 celdas inferiores (incl. las de "5%" y "SORPRESA")
+const SELLO_POS_FRENTE=[
+  {l:'19%',t:'32%'},{l:'33%',t:'32%'},{l:'67%',t:'32%'},{l:'80%',t:'32%'},
+  {l:'19%',t:'43%'},{l:'80%',t:'43%'},
+  {l:'19%',t:'65%'},{l:'33%',t:'65%'},{l:'67%',t:'65%'},{l:'80%',t:'65%'},
+];
+
+function renderSellosFrente(activos,max){
+  const layer=document.getElementById('front-sellos-layer');
+  if(!layer)return;
   layer.innerHTML='';
   const n=Math.min(max,10);
-  SELLO_POS.slice(0,n).forEach((pos,i)=>{
+  SELLO_POS_FRENTE.slice(0,n).forEach((pos,i)=>{
     const div=document.createElement('div');
-    div.className='sello-pos '+(i<activos?'activo':'vacio');
+    div.className='front-sello '+(i<activos?'activo':'vacio');
     div.style.left=pos.l;div.style.top=pos.t;
-    if(i<activos){div.textContent='✅';div.style.transitionDelay=(i*.06)+'s';}
+    div.style.transitionDelay=(i*.06)+'s';
+    if(i<activos)div.textContent='✅';
     layer.appendChild(div);
   });
+}
+
+function renderSellos(activos,max){
+  // Reverso
+  const layer=document.getElementById('sellos-layer');
+  if(layer){
+    layer.innerHTML='';
+    const n=Math.min(max,10);
+    SELLO_POS.slice(0,n).forEach((pos,i)=>{
+      const div=document.createElement('div');
+      div.className='sello-pos '+(i<activos?'activo':'vacio');
+      div.style.left=pos.l;div.style.top=pos.t;
+      if(i<activos){div.textContent='✅';div.style.transitionDelay=(i*.06)+'s';}
+      layer.appendChild(div);
+    });
+  }
+  // Anverso
+  renderSellosFrente(activos,max);
 }
 function genQR(url){
   // QR solo en el anverso
