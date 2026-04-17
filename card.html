@@ -303,9 +303,20 @@ function genQR(url){
   const el=document.getElementById('qr-code-back');
   if(!el)return;
   el.innerHTML='';
-  // QR grande — ocupa ~55% del ancho de la tarjeta
-  const cardW=document.querySelector('.scene')?.offsetWidth||300;
-  const qrSize=Math.max(Math.min(Math.floor(cardW*0.65),220),160);
+  // Usar tamaño calibrado desde config, sino proporcional al ancho
+  let qrSize=160;
+  try{
+    const pos=typeof CFG?.posiciones_reverso==='string'
+      ?JSON.parse(CFG.posiciones_reverso):CFG?.posiciones_reverso;
+    if(pos?.qr?.size) qrSize=parseInt(pos.qr.size);
+    else{
+      const cardW=document.querySelector('.scene')?.offsetWidth||300;
+      qrSize=Math.max(Math.min(Math.floor(cardW*0.65),220),120);
+    }
+  }catch(e){
+    const cardW=document.querySelector('.scene')?.offsetWidth||300;
+    qrSize=Math.max(Math.min(Math.floor(cardW*0.65),220),120);
+  }
   try{new QRCode(el,{text:url,width:qrSize,height:qrSize,colorDark:'#5c3317',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}
 }
 let deferredPrompt=null;
