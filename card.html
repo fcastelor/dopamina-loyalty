@@ -306,6 +306,18 @@ async function init(){
     const sellos=c.sellos_activos||0;
     const visitas=c.visitas||0;
     const nombre=c.nombre?.split(' ')[0]||c.nombre||'Cliente';
+
+    // Cargar posiciones de sellos desde config (si están guardadas)
+    if(cfg?.sello_posiciones){
+      try{
+        const pos=typeof cfg.sello_posiciones==='string'
+          ?JSON.parse(cfg.sello_posiciones):cfg.sello_posiciones;
+        if(Array.isArray(pos)&&pos.length===10){
+          // Sobreescribir las posiciones por defecto con las calibradas
+          for(let i=0;i<10;i++) SELLO_POS_FRENTE[i]=pos[i];
+        }
+      }catch(e){}
+    }
     document.getElementById('cliente-nombre').textContent=nombre;
     // Anverso: solo Dopilover + nombre + redes
     document.getElementById('card-num').textContent=(cfg?.tarjeta_miembro_label||'Dopilover')+' #'+String(c.id).padStart(4,'0');
