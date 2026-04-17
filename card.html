@@ -246,12 +246,23 @@ function renderSellosFrente(activos,max){
   if(!layer)return;
   layer.innerHTML='';
   const n=Math.min(max,10);
+  const isDebug=new URLSearchParams(window.location.search).get('debug')==='1';
   SELLO_POS_FRENTE.slice(0,n).forEach((pos,i)=>{
     const div=document.createElement('div');
-    div.className='front-sello '+(i<activos?'activo':'vacio');
-    div.style.left=pos.l;div.style.top=pos.t;
-    div.style.transitionDelay=(i*.06)+'s';
-    if(i<activos)div.textContent='✅';
+    if(isDebug){
+      // Modo debug: punto rojo con número
+      div.style.cssText=`position:absolute;left:${pos.l};top:${pos.t};
+        transform:translate(-50%,-50%);width:20px;height:20px;
+        background:red;border:2px solid white;border-radius:50%;
+        z-index:20;display:flex;align-items:center;justify-content:center;
+        color:white;font-size:9px;font-weight:900`;
+      div.textContent=i+1;
+    } else {
+      div.className='front-sello '+(i<activos?'activo':'vacio');
+      div.style.left=pos.l;div.style.top=pos.t;
+      div.style.transitionDelay=(i*.06)+'s';
+      if(i<activos)div.textContent='✅';
+    }
     layer.appendChild(div);
   });
 }
