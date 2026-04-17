@@ -98,7 +98,7 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 /* QR grande centrado — tapa capibara, respeta logo Dopamina arriba (~12%) */
 .back-qr-center{
   position:absolute;
-  top:12%;left:50%;transform:translateX(-50%);
+  top:12%;left:50%;transform:translate(-50%,-50%);
   z-index:10;
   display:flex;flex-direction:column;align-items:center;gap:8px;
 }
@@ -109,11 +109,9 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
   display:flex;flex-direction:column;align-items:center;
 }
 .back-qr-lbl{font-size:8px;color:#5c3317;font-weight:700;margin-top:4px;letter-spacing:.5px;text-align:center}
-/* Badges puntos+sellos debajo del QR */
 .back-pts-wrap{display:flex;gap:8px;}
-/* Nombre + número — justo encima de la línea de firma (~69-71%) */
 .back-nombre-wrap{
-  position:absolute;top:63%;left:50%;transform:translateX(-50%);
+  position:absolute;top:63%;left:50%;transform:translate(-50%,-50%);
   z-index:10;text-align:center;width:85%;
 }
 .back-dopilover-lbl{
@@ -395,23 +393,50 @@ async function init(){
     const sellosEl=document.getElementById('sellos-num');
     if(sellosEl)sellosEl.textContent=(c.sellos_activos||0)+'/'+sellosMax;
 
-    // Aplicar posiciones calibradas del reverso
+    // Aplicar posiciones calibradas del reverso desde config
     try{
-      const pos=cfg?.posiciones_reverso;
-      if(pos){
-        const p=typeof pos==='string'?JSON.parse(pos):pos;
+      const raw=cfg?.posiciones_reverso;
+      const p=raw?(typeof raw==='string'?JSON.parse(raw):raw):null;
+      if(p){
+        // Función helper: agrega % si no lo tiene
+        const px=v=>String(v).includes('%')?String(v):v+'%';
+
+        // QR — posición y tamaño
         const qrEl=document.querySelector('.back-qr-center');
-        const numEl=document.querySelector('.back-nombre-wrap');
-        const ptsEl=document.querySelector('.back-bottom');
-        if(p.qr&&qrEl){qrEl.style.left=p.qr.l;qrEl.style.top=p.qr.t;qrEl.style.transform='translate(-50%,-50%)';}
-        if(p.numero&&numEl){numEl.style.top=p.numero.t;numEl.style.left=p.numero.l;numEl.style.transform='translate(-50%,-50%)';}
-        if(p.nombre){
-          const nEl=document.getElementById('back-nombre');
-          if(nEl){nEl.style.position='absolute';nEl.style.top=p.nombre.t;nEl.style.left=p.nombre.l;nEl.style.transform='translate(-50%,-50%)';}
+        if(p.qr&&qrEl){
+          qrEl.style.position='absolute';
+          qrEl.style.left=px(p.qr.l);
+          qrEl.style.top=px(p.qr.t);
+          qrEl.style.transform='translate(-50%,-50%)';
         }
-        if(p.puntos&&ptsEl){ptsEl.style.top=p.puntos.t;ptsEl.style.bottom='auto';ptsEl.style.left=p.puntos.l;ptsEl.style.transform='translate(-50%,-50%)';}
+        // Número Dopilover
+        const numEl=document.querySelector('.back-nombre-wrap');
+        if(p.numero&&numEl){
+          numEl.style.position='absolute';
+          numEl.style.left=px(p.numero.l);
+          numEl.style.top=px(p.numero.t);
+          numEl.style.transform='translate(-50%,-50%)';
+        }
+        // Nombre del cliente (si está separado del número)
+        const nomEl=document.getElementById('back-nombre');
+        if(p.nombre&&nomEl&&!numEl){
+          nomEl.style.position='absolute';
+          nomEl.style.left=px(p.nombre.l);
+          nomEl.style.top=px(p.nombre.t);
+          nomEl.style.transform='translate(-50%,-50%)';
+        }
+        // Puntos y sellos
+        const ptsEl=document.querySelector('.back-bottom');
+        if(p.puntos&&ptsEl){
+          ptsEl.style.display='flex';
+          ptsEl.style.position='absolute';
+          ptsEl.style.left=px(p.puntos.l);
+          ptsEl.style.top=px(p.puntos.t);
+          ptsEl.style.bottom='auto';
+          ptsEl.style.transform='translate(-50%,-50%)';
+        }
       }
-    }catch(e){}
+    }catch(e){console.warn('posiciones_reverso error:',e);}
 
     // Renderizar sellos DESPUÉS de que la imagen frontal cargue
     // para que calcSelloPos() tenga las dimensiones reales
