@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Calibrar Sellos</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a1a;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px}
+h2{color:white;font-size:14px;margin-bottom:8px;text-align:center}
+.scene{position:relative;width:min(340px,100%);border-radius:16px;overflow:hidden;touch-action:none}
+.scene img{width:100%;display:block;border-radius:16px}
+.dot{position:absolute;width:32px;height:32px;background:rgba(255,50,50,0.85);border:3px solid white;border-radius:50%;transform:translate(-50%,-50%);cursor:grab;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.5);touch-action:none;user-select:none}
+.dot.dragging{background:rgba(50,200,50,0.9);cursor:grabbing;z-index:100}
+#coords{background:#111;color:#0f0;font-family:monospace;font-size:11px;padding:10px;border-radius:8px;width:min(340px,100%);margin-top:8px;white-space:pre;max-height:200px;overflow-y:auto}
+#copy-btn{background:#4CAF7D;color:white;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;margin-top:8px;cursor:pointer;width:min(340px,100%)}
+</style>
+</head>
+<body>
+<h2>🎯 Arrastra los puntos a las celdas del waffle</h2>
+<div class="scene" id="scene">
+  <img id="card-img" 
+    src="https://cuofpfajzeyezerubytc.supabase.co/storage/v1/object/public/fotos-clientes/card_frontal.png"
+    draggable="false">
+</div>
+<div id="coords">Cargando...</div>
+<button id="copy-btn" onclick="copyCoords()">📋 Copiar coordenadas</button>
+
+<script>
+const SBURL='https://cuofpfajzeyezerubytc.supabase.co';
+const SBKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1b2ZwZmFqemV5ZXplcnVieXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzU1MTMsImV4cCI6MjA5MDExMTUxM30.5Tog6Ata3CbYflwxOhezXZegrwagiboQF2u0fVX9oZ4';
+
+// Posiciones iniciales (actuales) de los 10 sellos
+const initialPos = [
+  {l:15.7, t:44.3}, {l:31.9, t:44.3},
+  {l:63.9, t:44.3}, {l:79.7, t:44.3},
+  {l:15.7, t:55.0}, {l:79.7, t:55.0},
+  {l:15.7, t:70.3}, {l:31.9, t:70.3},
+  {l:63.9, t:70.3}, {l:79.7, t:70.3},
+];
+
+const scene = document.getElementById('scene');
+const dots = [];
+let dragging = null, startX, startY, startL, startT;
+
+function createDots() {
+  initialPos.forEach((pos, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.textContent = i + 1;
+    d.style.left = pos.l + '%';
+    d.style.top = pos.t + '%';
+    d.dataset.l = pos.l;
+    d.dataset.t = pos.t;
+    scene.appendChild(d);
+    dots.push(d);
+
+    // Touch
+    d.addEventListener('touchstart', e => {
+      e.preventDefault();
+      dragging = d;
+      d.classList.add('dragging');
+      const t = e.touches[0];
+      startX = t.clientX;
+      startY = t.clientY;
+      startL = parseFloat(d.dataset.l);
+      startT = parseFloat(d.dataset.t);
+    }, {passive:false});
+  });
+}
+
+document.addEventListener('touchmove', e => {
+  if (!dragging) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  const r = scene.getBoundingClientRect();
+  const dx = (t.clientX - startX) / r.width * 100;
+  const dy = (t.clientY - startY) / r.height * 100;
+  const newL = Math.max(0, Math.min(100, startL + dx));
+  const newT = Math.max(0, Math.min(100, startT + dy));
+  dragging.style.left = newL + '%';
+  dragging.style.top = newT + '%';
+  dragging.dataset.l = newL.toFixed(1);
+  dragging.dataset.t = newT.toFixed(1);
+  updateCoords();
+}, {passive:false});
+
+document.addEventListener('touchend', () => {
+  if (dragging) dragging.classList.remove('dragging');
+  dragging = null;
+});
+
+// Mouse también
+document.addEventListener('mousedown', e => {
+  if (!e.target.classList.contains('dot')) return;
+  dragging = e.target;
+  dragging.classList.add('dragging');
+  startX = e.clientX; startY = e.clientY;
+  startL = parseFloat(dragging.dataset.l);
+  startT = parseFloat(dragging.dataset.t);
+});
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const r = scene.getBoundingClientRect();
+  const dx = (e.clientX - startX) / r.width * 100;
+  const dy = (e.clientY - startY) / r.height * 100;
+  const newL = Math.max(0, Math.min(100, startL + dx));
+  const newT = Math.max(0, Math.min(100, startT + dy));
+  dragging.style.left = newL + '%';
+  dragging.style.top = newT + '%';
+  dragging.dataset.l = newL.toFixed(1);
+  dragging.dataset.t = newT.toFixed(1);
+  updateCoords();
+});
+document.addEventListener('mouseup', () => {
+  if (dragging) dragging.classList.remove('dragging');
+  dragging = null;
+});
+
+function updateCoords() {
+  const lines = dots.map((d,i) => 
+    `  {l:'${parseFloat(d.dataset.l).toFixed(1)}%',t:'${parseFloat(d.dataset.t).toFixed(1)}%'}`
+  );
+  document.getElementById('coords').textContent = 
+    'const SELLO_POS_FRENTE=[\n' + lines.join(',\n') + '\n];';
+}
+
+function copyCoords() {
+  const text = document.getElementById('coords').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById('copy-btn').textContent = '✅ Copiado!';
+    setTimeout(() => document.getElementById('copy-btn').textContent = '📋 Copiar coordenadas', 2000);
+  });
+}
+
+document.getElementById('card-img').onload = () => { createDots(); updateCoords(); };
+document.getElementById('card-img').onerror = () => {
+  document.getElementById('card-img').src = 
+    'https://cuofpfajzeyezerubytc.supabase.co/storage/v1/object/public/fotos-clientes/card_frontal.png';
+};
+</script>
+</body>
+</html>
