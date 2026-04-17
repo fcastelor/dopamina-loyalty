@@ -95,44 +95,39 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 }
 .back-bg{width:100%;height:100%;position:relative;background:#f5e6c8}
 .back-img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
-/* QR grande — centrado sobre el capibara, entre logo y línea de firma */
+/* QR grande centrado — tapa capibara, respeta logo Dopamina arriba (~12%) */
 .back-qr-center{
   position:absolute;
   top:12%;left:50%;transform:translateX(-50%);
   z-index:10;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
 }
 .back-qr-wrap{
   background:white;border-radius:14px;padding:8px;
-  box-shadow:0 6px 24px rgba(0,0,0,.25);
+  box-shadow:0 6px 28px rgba(92,51,23,.3);
+  border:3px solid rgba(92,51,23,.15);
   display:flex;flex-direction:column;align-items:center;
 }
 .back-qr-lbl{font-size:8px;color:#5c3317;font-weight:700;margin-top:4px;letter-spacing:.5px;text-align:center}
-/* Puntos badge debajo del QR */
-.back-pts-wrap{
-  display:flex;gap:8px;
-}
-/* Nombre del cliente + número — justo encima de la línea de firma */
+/* Badges puntos+sellos debajo del QR */
+.back-pts-wrap{display:flex;gap:8px;}
+/* Nombre + número — justo encima de la línea de firma (~69-71%) */
 .back-nombre-wrap{
-  position:absolute;top:60%;left:50%;transform:translateX(-50%);
-  z-index:10;text-align:center;width:80%;
+  position:absolute;top:63%;left:50%;transform:translateX(-50%);
+  z-index:10;text-align:center;width:85%;
 }
 .back-dopilover-lbl{
-  font-size:clamp(8px,2.5vw,11px);color:#a06030;font-weight:700;
+  font-size:clamp(9px,3vw,13px);color:#a06030;font-weight:700;
   letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px;
+  text-shadow:0 1px 3px rgba(255,255,255,.9);
 }
 .back-nombre{
-  font-family:'Baloo 2',sans-serif;font-size:clamp(16px,6vw,24px);
+  font-family:'Baloo 2',sans-serif;font-size:clamp(18px,7vw,28px);
   font-weight:800;color:#5c3317;
   text-shadow:0 1px 4px rgba(255,255,255,.9);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-/* Badges abajo en la zona beige inferior */
-.back-bottom{
-  position:absolute;bottom:2%;left:0;right:0;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:0 6%;z-index:10;
-}
+.back-bottom{display:none}
 .back-badges-col{display:flex;gap:8px;}
 
 .flip-hint{font-size:12px;color:rgba(92,51,23,.6);display:flex;align-items:center;gap:5px;font-weight:600;margin-top:8px;animation:pulse 2s ease-in-out infinite}
@@ -310,7 +305,7 @@ function genQR(url){
   el.innerHTML='';
   // QR grande — ocupa ~55% del ancho de la tarjeta
   const cardW=document.querySelector('.scene')?.offsetWidth||300;
-  const qrSize=Math.max(Math.min(Math.floor(cardW*0.55),190),150);
+  const qrSize=Math.max(Math.min(Math.floor(cardW*0.65),220),160);
   try{new QRCode(el,{text:url,width:qrSize,height:qrSize,colorDark:'#5c3317',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}
 }
 let deferredPrompt=null;
