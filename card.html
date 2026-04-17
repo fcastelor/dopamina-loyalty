@@ -110,10 +110,20 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 }
 .back-qr-lbl{font-size:8px;color:#5c3317;font-weight:700;margin-top:4px;letter-spacing:.5px;text-align:center}
 .back-pts-wrap{display:flex;gap:8px;}
-.back-nombre-wrap{
-  position:absolute;top:63%;left:50%;transform:translate(-50%,-50%);
-  z-index:10;text-align:center;width:85%;
+/* Elementos independientes del reverso */
+.back-numero-el{
+  position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);
+  z-index:11;text-align:center;
 }
+.back-nombre-el{
+  position:absolute;top:64%;left:50%;transform:translate(-50%,-50%);
+  z-index:11;text-align:center;
+}
+.back-pts-el{
+  position:absolute;top:75%;left:50%;transform:translate(-50%,-50%);
+  z-index:11;display:flex;justify-content:center;
+}
+.back-nombre-wrap{display:none}/* legacy — ya no se usa */
 .back-dopilover-lbl{
   font-size:clamp(9px,3vw,13px);color:#a06030;font-weight:700;
   letter-spacing:.8px;text-transform:uppercase;margin-bottom:2px;
@@ -183,12 +193,26 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
           alt="Tarjeta Dopamina">
 
         <!-- QR grande centrado — tapa el capibara, respeta logo arriba -->
-        <div class="back-qr-center">
+        <!-- QR — elemento independiente posicionable -->
+        <div class="back-qr-center" id="back-qr-el">
           <div class="back-qr-wrap">
             <div id="qr-code-back"></div>
             <div class="back-qr-lbl">📷 ESCANEAR EN LA APP</div>
           </div>
-          <!-- Puntos y sellos debajo del QR -->
+        </div>
+
+        <!-- Número Dopilover — elemento independiente -->
+        <div class="back-numero-el" id="back-numero-el">
+          <div class="back-dopilover-lbl" id="back-dopilover-lbl">Dopilover #0001</div>
+        </div>
+
+        <!-- Nombre cliente — elemento independiente -->
+        <div class="back-nombre-el" id="back-nombre-el">
+          <div class="back-nombre" id="back-nombre">—</div>
+        </div>
+
+        <!-- Puntos + sellos — elemento independiente -->
+        <div class="back-pts-el" id="back-pts-el">
           <div class="back-pts-wrap">
             <div class="qr-badge">
               <div class="qr-badge-num" id="puntos-num">0</div>
@@ -199,12 +223,6 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
               <div class="qr-badge-lbl">SELLOS ☕</div>
             </div>
           </div>
-        </div>
-
-        <!-- Nombre + número justo encima de la línea de firma -->
-        <div class="back-nombre-wrap">
-          <div class="back-dopilover-lbl" id="back-dopilover-lbl">Dopilover #0001</div>
-          <div class="back-nombre" id="back-nombre">—</div>
         </div>
 
       </div>
@@ -397,46 +415,21 @@ async function init(){
     try{
       const raw=cfg?.posiciones_reverso;
       const p=raw?(typeof raw==='string'?JSON.parse(raw):raw):null;
+      const px=v=>String(v).includes('%')?String(v):v+'%';
+      const applyPos=(el,pos)=>{
+        if(!el||!pos)return;
+        el.style.position='absolute';
+        el.style.left=px(pos.l);
+        el.style.top=px(pos.t);
+        el.style.transform='translate(-50%,-50%)';
+      };
       if(p){
-        // Función helper: agrega % si no lo tiene
-        const px=v=>String(v).includes('%')?String(v):v+'%';
-
-        // QR — posición y tamaño
-        const qrEl=document.querySelector('.back-qr-center');
-        if(p.qr&&qrEl){
-          qrEl.style.position='absolute';
-          qrEl.style.left=px(p.qr.l);
-          qrEl.style.top=px(p.qr.t);
-          qrEl.style.transform='translate(-50%,-50%)';
-        }
-        // Número Dopilover
-        const numEl=document.querySelector('.back-nombre-wrap');
-        if(p.numero&&numEl){
-          numEl.style.position='absolute';
-          numEl.style.left=px(p.numero.l);
-          numEl.style.top=px(p.numero.t);
-          numEl.style.transform='translate(-50%,-50%)';
-        }
-        // Nombre del cliente (si está separado del número)
-        const nomEl=document.getElementById('back-nombre');
-        if(p.nombre&&nomEl&&!numEl){
-          nomEl.style.position='absolute';
-          nomEl.style.left=px(p.nombre.l);
-          nomEl.style.top=px(p.nombre.t);
-          nomEl.style.transform='translate(-50%,-50%)';
-        }
-        // Puntos y sellos
-        const ptsEl=document.querySelector('.back-bottom');
-        if(p.puntos&&ptsEl){
-          ptsEl.style.display='flex';
-          ptsEl.style.position='absolute';
-          ptsEl.style.left=px(p.puntos.l);
-          ptsEl.style.top=px(p.puntos.t);
-          ptsEl.style.bottom='auto';
-          ptsEl.style.transform='translate(-50%,-50%)';
-        }
+        applyPos(document.getElementById('back-qr-el'),    p.qr);
+        applyPos(document.getElementById('back-numero-el'), p.numero);
+        applyPos(document.getElementById('back-nombre-el'), p.nombre);
+        applyPos(document.getElementById('back-pts-el'),    p.puntos);
       }
-    }catch(e){console.warn('posiciones_reverso error:',e);}
+    }catch(e){console.warn('posiciones_reverso:',e);}
 
     // Renderizar sellos DESPUÉS de que la imagen frontal cargue
     // para que calcSelloPos() tenga las dimensiones reales
