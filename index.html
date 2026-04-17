@@ -238,6 +238,16 @@ textarea.fi{resize:vertical;min-height:78px}
   .sv{font-size:20px !important}
   .topbar{padding:8px 10px}
 }
+/* ===== CALIBRADOR REVERSO ===== */
+.rv-drag{position:absolute;transform:translate(-50%,-50%);cursor:grab;touch-action:none;user-select:none;display:flex;flex-direction:column;align-items:center;z-index:20}
+.rv-drag.dragging{cursor:grabbing;z-index:30}
+.rv-handle{width:26px;height:5px;background:#4CAF7D;border-radius:3px;margin-bottom:3px}
+.rv-inner{border:2px solid #4CAF7D;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.rv-qr-box{background:white;padding:5px;border-radius:8px;display:flex;flex-direction:column;align-items:center}
+.rv-num-box{background:rgba(200,100,30,0.9);color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;letter-spacing:.4px}
+.rv-nom-box{background:rgba(245,200,66,0.92);color:#5c3317;font-size:13px;font-weight:900;padding:3px 10px;border-radius:6px;white-space:nowrap}
+.rv-pts-box{background:rgba(255,255,255,.9);display:flex;gap:5px;padding:4px 6px;border-radius:8px}
+.rv-badge{background:#F5C842;color:#5c3317;font-size:9px;font-weight:800;padding:2px 6px;border-radius:5px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -714,11 +724,44 @@ textarea.fi{resize:vertical;min-height:78px}
                 <button class="btn bp bsm" style="flex:1;justify-content:center" onclick="saveCalibPos()">💾 Guardar posiciones</button>
               </div>
               <div style="font-size:11px;color:var(--t3);margin-top:6px">Los cambios se aplican automáticamente a todas las tarjetas del negocio</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TAB: Puntos -->
+              <hr class="dv">
+              <div class="st" style="font-size:13.5px">Calibrar reverso de tarjeta 🎯</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Arrastra el QR, el nombre y el número a su posición exacta sobre la imagen del reverso.</div>
+              <div id="reverso-calibrador" style="position:relative;border-radius:12px;overflow:hidden;background:var(--gr);margin-bottom:10px;touch-action:none">
+                <img id="reverso-calib-img" style="width:100%;display:block;border-radius:12px;pointer-events:none" draggable="false">
+                <div id="reverso-calib-placeholder" style="height:180px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--t3)">
+                  <div style="font-size:28px">🃏</div>
+                  <div style="font-size:12px">Sube la imagen del reverso primero</div>
+                </div>
+                <!-- Elementos arrastrables del reverso -->
+                <div class="rv-drag" id="rv-qr" style="left:50%;top:33%">
+                  <div class="rv-handle"></div>
+                  <div class="rv-inner rv-qr-box">
+                    <div style="width:60px;height:60px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:22px;border-radius:4px">📱</div>
+                    <div style="font-size:6px;color:#5c3317;font-weight:700;margin-top:2px;text-align:center">QR</div>
+                  </div>
+                </div>
+                <div class="rv-drag" id="rv-numero" style="left:50%;top:63%">
+                  <div class="rv-handle"></div>
+                  <div class="rv-inner rv-num-box">Dopilover #0001</div>
+                </div>
+                <div class="rv-drag" id="rv-nombre" style="left:50%;top:69%">
+                  <div class="rv-handle"></div>
+                  <div class="rv-inner rv-nom-box">NOMBRE CLIENTE</div>
+                </div>
+                <div class="rv-drag" id="rv-pts" style="left:50%;top:80%">
+                  <div class="rv-handle"></div>
+                  <div class="rv-inner rv-pts-box">
+                    <span class="rv-badge">248 PTS</span>
+                    <span class="rv-badge" style="background:#e8f7ef;color:#1a6b3c">2/12 ☕</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn bs bsm" style="flex:1;justify-content:center" onclick="resetCalibReverso()">↺ Resetear</button>
+                <button class="btn bp bsm" style="flex:1;justify-content:center" onclick="saveCalibReverso()">💾 Guardar reverso</button>
+              </div>
+              <div style="font-size:11px;color:var(--t3);margin-top:6px">Los cambios se aplican automáticamente a todas las tarjetas del negocio</div>
         <div id="ct-puntos" class="cfg-tab-panel" style="display:none">
           <div class="g2">
             <div class="cv">
@@ -1215,6 +1258,14 @@ function rdCfg(){
     const pos=savedPos?(typeof savedPos==='string'?JSON.parse(savedPos):savedPos):null;
     initCalibrador(calibImgUrl, pos);
   }catch(e){initCalibrador(calibImgUrl, null);}
+
+  // Iniciar calibrador del reverso
+  try{
+    const revImgUrl=CFG.card_reverso_url||null;
+    const revPos=CFG.posiciones_reverso;
+    const rp=revPos?(typeof revPos==='string'?JSON.parse(revPos):revPos):null;
+    initCalibReverso(revImgUrl, rp);
+  }catch(e){initCalibReverso(null, null);}
   // Agente
   document.getElementById('cp-tono').value=CFG.agente_tono||'';
   document.getElementById('cp-hor').value=CFG.agente_horario||'';
@@ -1935,6 +1986,92 @@ function resetCalibPos(){
   const imgUrl=CFG.logo_url||CFG.card_frontal_url||null;
   initCalibrador(imgUrl, CALIB_DEFAULT);
 }
+
+// ===================== CALIBRADOR REVERSO =====================
+let rvDragging=null,rvStartX,rvStartY,rvStartL,rvStartT;
+
+const RV_DEFAULTS={
+  qr:    {l:'50',t:'33'},
+  numero:{l:'50',t:'63'},
+  nombre:{l:'50',t:'69'},
+  puntos:{l:'50',t:'80'}
+};
+
+function initCalibReverso(imgUrl, pos){
+  const wrap=document.getElementById('reverso-calibrador');
+  const img=document.getElementById('reverso-calib-img');
+  const ph=document.getElementById('reverso-calib-placeholder');
+  if(!imgUrl){ph.style.display='flex';img.style.display='none';
+    wrap.querySelectorAll('.rv-drag').forEach(d=>d.style.display='none');return;}
+  img.src=imgUrl; img.style.display='block'; ph.style.display='none';
+  wrap.querySelectorAll('.rv-drag').forEach(d=>d.style.display='flex');
+
+  const p=pos||RV_DEFAULTS;
+  const set=(id,v)=>{
+    const el=document.getElementById(id);
+    if(el&&v){el.style.left=v.l+'%';el.style.top=v.t+'%';}
+  };
+  set('rv-qr',p.qr); set('rv-numero',p.numero);
+  set('rv-nombre',p.nombre); set('rv-pts',p.puntos);
+
+  // Inicializar drag si no está hecho
+  if(!wrap.dataset.rvInit){
+    wrap.dataset.rvInit='1';
+    wrap.querySelectorAll('.rv-drag').forEach(el=>{
+      el.addEventListener('touchstart',e=>{
+        e.preventDefault();e.stopPropagation();
+        rvDragging=el;el.classList.add('dragging');
+        const t=e.touches[0];
+        rvStartX=t.clientX;rvStartY=t.clientY;
+        rvStartL=parseFloat(el.style.left);rvStartT=parseFloat(el.style.top);
+      },{passive:false});
+      el.addEventListener('mousedown',e=>{
+        e.preventDefault();
+        rvDragging=el;el.classList.add('dragging');
+        rvStartX=e.clientX;rvStartY=e.clientY;
+        rvStartL=parseFloat(el.style.left);rvStartT=parseFloat(el.style.top);
+      });
+    });
+    document.addEventListener('touchmove',e=>{
+      if(!rvDragging)return; e.preventDefault();
+      const t=e.touches[0];
+      const r=wrap.getBoundingClientRect();
+      const nl=Math.max(0,Math.min(100,rvStartL+(t.clientX-rvStartX)/r.width*100));
+      const nt=Math.max(0,Math.min(100,rvStartT+(t.clientY-rvStartY)/r.height*100));
+      rvDragging.style.left=nl+'%'; rvDragging.style.top=nt+'%';
+    },{passive:false});
+    document.addEventListener('mousemove',e=>{
+      if(!rvDragging)return;
+      const r=wrap.getBoundingClientRect();
+      const nl=Math.max(0,Math.min(100,rvStartL+(e.clientX-rvStartX)/r.width*100));
+      const nt=Math.max(0,Math.min(100,rvStartT+(e.clientY-rvStartY)/r.height*100));
+      rvDragging.style.left=nl+'%'; rvDragging.style.top=nt+'%';
+    });
+    document.addEventListener('touchend',()=>{if(rvDragging)rvDragging.classList.remove('dragging');rvDragging=null;});
+    document.addEventListener('mouseup',()=>{if(rvDragging)rvDragging.classList.remove('dragging');rvDragging=null;});
+  }
+}
+
+function getRvPos(){
+  const g=id=>({l:parseFloat(document.getElementById(id).style.left).toFixed(1),
+                 t:parseFloat(document.getElementById(id).style.top).toFixed(1)});
+  return {qr:g('rv-qr'),numero:g('rv-numero'),nombre:g('rv-nombre'),puntos:g('rv-pts')};
+}
+
+async function saveCalibReverso(){
+  const pos=getRvPos();
+  showLo(true);
+  await SB.from('config').update({posiciones_reverso:pos}).eq('id',1);
+  CFG.posiciones_reverso=pos;
+  showLo(false);
+  toast2('✓ Reverso calibrado — aplica en todas las tarjetas');
+}
+
+function resetCalibReverso(){
+  const imgUrl=CFG.card_reverso_url||null;
+  initCalibReverso(imgUrl, RV_DEFAULTS);
+}
+// ===================== FIN CALIBRADOR REVERSO =====================
 
 async function subirCardImagen(event){
   const file=event.target.files[0];
