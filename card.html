@@ -351,9 +351,32 @@ async function init(){
     const {data:c,error:ce}=await query;
     if(ce||!c)throw new Error('no cliente');
 
-    // 2. Cargar config del negocio al que pertenece el cliente
+    // 2. Cargar config Y negocio en paralelo
     const negocioId=c.negocio_id||1;
-    const {data:cfg}=await SB.from('config').select('*').eq('negocio_id',negocioId).single();
+    const [{data:cfg},{data:neg}]=await Promise.all([
+      SB.from('config').select('*').eq('negocio_id',negocioId).single(),
+      SB.from('negocios').select('*').eq('id',negocioId).single()
+    ]);
+
+    // 3. Aplicar identidad visual del negocio (colores, logo)
+    if(neg){
+      const c1=neg.color_primario||'#4CAF7D';
+      const c2=neg.color_secundario||'#F5C842';
+      const c3=neg.color_acento||'#5c3317';
+      document.documentElement.style.setProperty('--pa',c1);
+      document.documentElement.style.setProperty('--pb',c1+'22');
+      document.documentElement.style.setProperty('--y',c2);
+      // Logo en la esquina dorada del anverso si existe
+      if(neg.logo_url){
+        const logoImgs=document.querySelectorAll('.logo-img');
+        logoImgs.forEach(img=>{img.src=neg.logo_url;img.style.display='block';});
+      }
+      // Nombre del negocio en logo text si aplica
+      const logoTxt=document.querySelector('.logo-txt');
+      if(logoTxt&&neg.nombre)logoTxt.textContent=neg.nombre;
+      const logoSub=document.querySelector('.logo-sub');
+      if(logoSub&&neg.slogan)logoSub.textContent=neg.slogan;
+    }
 
     const sellosMax=cfg?.sellos_meta||10;
     const sellos=c.sellos_activos||0;
