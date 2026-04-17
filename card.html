@@ -297,11 +297,14 @@ async function init(){
   const id=getClienteId();
   if(!id){document.getElementById('loader').classList.add('hide');document.getElementById('error-view').style.display='block';return;}
   try{
-    const[{data:c,error:ce},{data:cfg}]=await Promise.all([
-      SB.from('clientes').select('*').eq('id',id).single(),
-      SB.from('config').select('*').single()
-    ]);
+    // 1. Cargar cliente primero para obtener su negocio_id
+    const {data:c,error:ce}=await SB.from('clientes').select('*').eq('id',id).single();
     if(ce||!c)throw new Error('no cliente');
+
+    // 2. Cargar config del negocio al que pertenece el cliente
+    const negocioId=c.negocio_id||1;
+    const {data:cfg}=await SB.from('config').select('*').eq('negocio_id',negocioId).single();
+
     const sellosMax=cfg?.sellos_meta||10;
     const sellos=c.sellos_activos||0;
     const visitas=c.visitas||0;
