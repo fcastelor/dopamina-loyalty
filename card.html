@@ -60,13 +60,13 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 .front-sello{position:absolute;width:8%;aspect-ratio:1;border-radius:20%;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);transition:all .5s cubic-bezier(.34,1.56,.64,1)}
 .front-sello.activo{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 2px 10px rgba(34,197,94,.6);font-size:min(4vw,15px)}
 .front-sello.vacio{background:rgba(255,255,255,.15);border:1.5px dashed rgba(255,255,255,.5)}
-/* Overlay solo en la parte inferior (35% bottom) para los datos */
+/* Overlay solo en la franja inferior — no tapa el texto de la imagen */
 .front-overlay{
-  position:absolute;bottom:0;left:0;right:0;height:42%;
+  position:absolute;bottom:0;left:0;right:0;height:22%;
   background:linear-gradient(to bottom,
     rgba(26,15,5,0) 0%,
-    rgba(26,15,5,.75) 40%,
-    rgba(26,15,5,.92) 100%
+    rgba(26,15,5,.88) 55%,
+    rgba(26,15,5,.97) 100%
   );
   z-index:3;
 }
@@ -77,7 +77,7 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 /* Contenido bottom — solo Dopilover + Nombre */
 .front-bottom{
   position:absolute;bottom:0;left:0;right:0;z-index:4;
-  padding:0 7% 6%;
+  padding:0 7% 4%;
   display:flex;flex-direction:column;align-items:center;
   text-align:center;
 }
@@ -230,11 +230,14 @@ const SELLO_POS=[
 // Fila 2: y~700px (51.7%) — solo laterales, frutillas en centro
 // Fila 3: y~940px (69.4%) — fila inferior con "5%"/"SORPRESA"
 const SELLO_POS_FRENTE=[
-  {l:'19.2%',t:'39.9%'},{l:'33.5%',t:'39.1%'},
-  {l:'65.8%',t:'39.1%'},{l:'80.0%',t:'39.9%'},
-  {l:'19.2%',t:'51.7%'},{l:'80.0%',t:'51.7%'},
-  {l:'19.2%',t:'69.4%'},{l:'33.5%',t:'69.4%'},
-  {l:'65.8%',t:'69.4%'},{l:'80.0%',t:'69.4%'},
+  // Fila 1 — celdas superiores del waffle (bajo el capibara)
+  {l:'19.2%',t:'29.5%'},{l:'33.5%',t:'28.8%'},
+  {l:'65.8%',t:'28.8%'},{l:'80.0%',t:'29.5%'},
+  // Fila 2 — solo laterales (frutillas tapan centro)
+  {l:'19.2%',t:'48.0%'},{l:'80.0%',t:'48.0%'},
+  // Fila 3 — inferior
+  {l:'19.2%',t:'66.5%'},{l:'33.5%',t:'66.5%'},
+  {l:'65.8%',t:'66.5%'},{l:'80.0%',t:'66.5%'},
 ];
 
 function renderSellosFrente(activos,max){
