@@ -94,26 +94,25 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
   text-shadow:0 2px 12px rgba(0,0,0,.7);
 }
 .back-bg{width:100%;height:100%;position:relative;background:#f5e6c8}
-.back-img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
-.sellos-layer{position:absolute;inset:0;pointer-events:none}
-.sello-pos{position:absolute;width:9.5%;aspect-ratio:1;border-radius:22%;display:flex;align-items:center;justify-content:center;transition:all .5s cubic-bezier(.34,1.56,.64,1)}
-.sello-pos.activo{background:linear-gradient(135deg,#22c55e,#16a34a);box-shadow:0 3px 12px rgba(34,197,94,.5);font-size:min(5vw,18px)}
-.sello-pos.vacio{background:rgba(255,255,255,.1);border:1.5px dashed rgba(255,255,255,.4)}
-/* Badges puntos/sellos como overlay inferior */
-.back-badges{
-  position:absolute;bottom:4%;left:0;right:0;
-  display:flex;gap:8px;justify-content:center;
-  z-index:10;
+.back-img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+/* Nombre del cliente — sobre la línea de firma (~68% del alto) */
+.back-nombre{
+  position:absolute;top:69%;left:50%;transform:translateX(-50%);
+  font-family:'Baloo 2',sans-serif;font-size:clamp(14px,5vw,22px);
+  font-weight:800;color:#5c3317;white-space:nowrap;
+  text-align:center;z-index:10;
+  text-shadow:0 1px 3px rgba(255,255,255,.8);
+  max-width:80%;overflow:hidden;text-overflow:ellipsis;
 }
-/* Nueva zona inferior reverso: QR a la izquierda + badges a la derecha */
+/* Zona QR + puntos — parte inferior beige */
 .back-bottom{
-  position:absolute;bottom:3%;left:0;right:0;
+  position:absolute;bottom:2%;left:0;right:0;
   display:flex;align-items:center;justify-content:center;gap:10px;
   padding:0 6%;z-index:10;
 }
 .back-qr-wrap{
   background:white;border-radius:12px;padding:6px;
-  box-shadow:0 4px 16px rgba(0,0,0,.25);
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
   display:flex;flex-direction:column;align-items:center;flex-shrink:0;
 }
 .back-qr-lbl{font-size:7px;color:#5c3317;font-weight:700;margin-top:3px;letter-spacing:.4px;text-align:center}
@@ -168,13 +167,15 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
     <!-- REVERSO -->
     <div class="card-face card-back-face">
       <div class="back-bg">
-        <!-- Imagen real completa -->
-        <img class="back-img" src="https://cuofpfajzeyezerubytc.supabase.co/storage/v1/object/public/fotos-clientes/card_reverso.png" alt="Tarjeta Dopamina">
-        <!-- Nombre del cliente arriba -->
+        <!-- Nueva imagen como fondo completo -->
+        <img class="back-img" id="back-img-el"
+          src="https://cuofpfajzeyezerubytc.supabase.co/storage/v1/object/public/fotos-clientes/card_reverso2.png"
+          alt="Tarjeta Dopamina">
+
+        <!-- Nombre del cliente sobre la línea de firma -->
         <div class="back-nombre" id="back-nombre">—</div>
-        <!-- Sellos sobre el waffle -->
-        <div class="sellos-layer" id="sellos-layer"></div>
-        <!-- QR + badges en la parte inferior -->
+
+        <!-- Zona inferior: QR + puntos -->
         <div class="back-bottom">
           <div class="back-qr-wrap">
             <div id="qr-code-back"></div>
