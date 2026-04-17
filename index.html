@@ -613,11 +613,27 @@ textarea.fi{resize:vertical;min-height:78px}
         <div id="ct-negocio" class="cfg-tab-panel">
           <div class="g2">
             <div class="cv">
-              <div class="st" style="font-size:13.5px">Identidad</div>
+              <div class="st" style="font-size:13.5px">Identidad del negocio</div>
               <div class="fg"><label class="fl">Nombre del negocio</label><input type="text" class="fi" id="cp-nm" placeholder="Dopamina"></div>
               <div class="fg"><label class="fl">Slogan</label><input type="text" class="fi" id="cp-slogan" placeholder="Alimentando tu felicidad"></div>
               <div class="fg"><label class="fl">Ciudad</label><input type="text" class="fi" id="cp-ci" placeholder="Lima"></div>
               <div class="fg"><label class="fl">Dirección</label><input type="text" class="fi" id="cp-dir" placeholder="Av. Larco 123, Miraflores"></div>
+              <hr class="dv">
+              <div class="st" style="font-size:13.5px">Logo del negocio</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Se muestra en el panel admin y en las tarjetas de tus clientes</div>
+              <!-- Preview del logo -->
+              <div id="logo-preview-wrap" style="background:var(--gr);border-radius:12px;padding:16px;display:flex;align-items:center;justify-content:center;min-height:100px;margin-bottom:10px">
+                <img id="logo-preview-img" style="max-height:80px;max-width:100%;border-radius:8px;display:none">
+                <div id="logo-preview-ph" style="text-align:center;color:var(--t3)">
+                  <div style="font-size:32px">🏪</div>
+                  <div style="font-size:12px">Sin logo</div>
+                </div>
+              </div>
+              <label class="btn bs" style="width:100%;justify-content:center;cursor:pointer">
+                📤 Subir logo
+                <input type="file" accept="image/*" style="display:none" onchange="subirLogo(event)">
+              </label>
+              <div style="font-size:11px;color:var(--t3);margin-top:6px">PNG, JPG o SVG · Fondo transparente recomendado · Máx 2MB</div>
             </div>
             <div class="cv">
               <div class="st" style="font-size:13.5px">Contacto y redes</div>
@@ -1184,18 +1200,40 @@ document.addEventListener('click',e=>{if(!e.target.closest('.um'))document.getEl
 
 // ===================== CONFIG =====================
 async function ldCfg(){
+  // Cargar config operativa
   const{data}=await SB.from('config').select('*').eq('negocio_id',NEGOCIO_ID).single();
   if(data){
     CFG=data;
-    document.getElementById('sb-nm').textContent=CFG.nombre||'Dopamina';
-    document.getElementById('sb-ft').textContent=(CFG.nombre||'Dopamina')+' · '+(CFG.ciudad||'Lima');
-    // Aplicar colores del negocio
-    if(CFG.color_primario){
-      document.documentElement.style.setProperty('--g',CFG.color_primario);
-      document.documentElement.style.setProperty('--gd',CFG.color_primario);
+    // Cargar identidad visual desde tabla negocios
+    const{data:neg}=await SB.from('negocios').select('*').eq('id',NEGOCIO_ID).single();
+    if(neg){
+      CFG._negocio=neg;
+      // Aplicar nombre
+      document.getElementById('sb-nm').textContent=neg.nombre||CFG.nombre||'Dopamina';
+      document.getElementById('sb-ft').textContent=(neg.nombre||CFG.nombre||'Dopamina')+' · '+(CFG.ciudad||'Lima');
+      // Aplicar colores del negocio (negocios tiene prioridad sobre config)
+      const c1=neg.color_primario||CFG.color_primario||'#4CAF7D';
+      const c2=neg.color_secundario||CFG.color_secundario||'#F5C842';
+      const c3=neg.color_acento||CFG.color_acento||'#5c3317';
+      document.documentElement.style.setProperty('--g',c1);
+      document.documentElement.style.setProperty('--gd',c1);
+      document.documentElement.style.setProperty('--y',c2);
+      document.documentElement.style.setProperty('--pa',c1);
+      // Mostrar logo en topbar si existe
+      if(neg.logo_url){
+        const logoEl=document.getElementById('sb-logo');
+        if(logoEl){logoEl.src=neg.logo_url;logoEl.style.display='block';}
+      }
+    } else {
+      document.getElementById('sb-nm').textContent=CFG.nombre||'Dopamina';
+      document.getElementById('sb-ft').textContent=(CFG.nombre||'Dopamina')+' · '+(CFG.ciudad||'Lima');
+      if(CFG.color_primario){
+        document.documentElement.style.setProperty('--g',CFG.color_primario);
+        document.documentElement.style.setProperty('--gd',CFG.color_primario);
+      }
+      if(CFG.color_secundario)document.documentElement.style.setProperty('--y',CFG.color_secundario);
     }
-    if(CFG.color_secundario)document.documentElement.style.setProperty('--y',CFG.color_secundario);
-    // Poblar selects de tipo de cliente dinámicamente
+    // Poblar tipos de cliente
     try{
       const raw=CFG.tipos_cliente;
       const tipos=raw?(typeof raw==='string'?JSON.parse(raw):raw):null;
@@ -1218,9 +1256,17 @@ function rdCfg(){
   document.getElementById('cp-vip').value=CFG.vip_min||500;
   document.getElementById('cp-dorm').value=CFG.dormido_dias||30;
   document.getElementById('cp-sellos').value=CFG.sellos_meta||10;
-  // Negocio
-  document.getElementById('cp-nm').value=CFG.nombre||'';
-  document.getElementById('cp-slogan').value=CFG.slogan||'';
+  // Negocio — leer de CFG._negocio si existe
+  const neg=CFG._negocio||{};
+  document.getElementById('cp-nm').value=neg.nombre||CFG.nombre||'';
+  document.getElementById('cp-slogan').value=neg.slogan||CFG.slogan||'';
+  // Logo preview
+  const logoUrl=neg.logo_url||null;
+  if(logoUrl){
+    document.getElementById('logo-preview-img').src=logoUrl;
+    document.getElementById('logo-preview-img').style.display='block';
+    document.getElementById('logo-preview-ph').style.display='none';
+  }
   document.getElementById('cp-wa').value=CFG.whatsapp||'';
   document.getElementById('cp-ci').value=CFG.ciudad||'';
   document.getElementById('cp-dir').value=CFG.direccion||'';
@@ -1232,10 +1278,11 @@ function rdCfg(){
   document.getElementById('cp-tw').value=CFG.twitter||'';
   document.getElementById('cp-li').value=CFG.linkedin||'';
   document.getElementById('cp-web').value=CFG.web||'';
-  // Colores
-  const c1=CFG.color_primario||'#4CAF7D';
-  const c2=CFG.color_secundario||'#F5C842';
-  const c3=CFG.color_acento||'#5c3317';
+  // Colores — leer de negocios primero
+  const neg2=CFG._negocio||{};
+  const c1=neg2.color_primario||CFG.color_primario||'#4CAF7D';
+  const c2=neg2.color_secundario||CFG.color_secundario||'#F5C842';
+  const c3=neg2.color_acento||CFG.color_acento||'#5c3317';
   document.getElementById('cp-col1').value=c1;document.getElementById('cp-col1t').value=c1;document.getElementById('prev-col1').style.background=c1;
   document.getElementById('cp-col2').value=c2;document.getElementById('cp-col2t').value=c2;document.getElementById('prev-col2').style.background=c2;
   document.getElementById('cp-col3').value=c3;document.getElementById('cp-col3t').value=c3;document.getElementById('prev-col3').style.background=c3;
@@ -1285,6 +1332,41 @@ function rdCfg(){
   document.getElementById('cp-prod').value=CFG.agente_productos||'';
   ldRwCfg();
 }
+// ===================== LOGO DEL NEGOCIO =====================
+async function subirLogo(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  if(file.size>2*1024*1024){toast2('⚠ Logo máx 2MB',true);return;}
+  if(!file.type.startsWith('image/')){toast2('⚠ Solo imágenes',true);return;}
+  showLo(true);
+  try{
+    const ext=file.name.split('.').pop().toLowerCase();
+    const path=`logos/negocio_${NEGOCIO_ID}.${ext}`;
+    // Subir a Supabase Storage
+    const buf=await file.arrayBuffer();
+    const res=await fetch(`${SBURL}/storage/v1/object/fotos-clientes/${path}`,{
+      method:'POST',
+      headers:{'apikey':SBKEY,'Authorization':`Bearer ${SBKEY}`,'Content-Type':file.type,'x-upsert':'true'},
+      body:buf
+    });
+    if(!res.ok)throw new Error('Error subiendo logo');
+    const url=`${SBURL}/storage/v1/object/public/fotos-clientes/${path}`;
+    // Guardar URL en negocios
+    await SB.from('negocios').update({logo_url:url}).eq('id',NEGOCIO_ID);
+    if(!CFG._negocio)CFG._negocio={};
+    CFG._negocio.logo_url=url;
+    // Mostrar preview
+    document.getElementById('logo-preview-img').src=url+'?t='+Date.now();
+    document.getElementById('logo-preview-img').style.display='block';
+    document.getElementById('logo-preview-ph').style.display='none';
+    // Actualizar topbar
+    const logoEl=document.getElementById('sb-logo');
+    if(logoEl){logoEl.src=url;logoEl.style.display='block';}
+    toast2('✓ Logo actualizado');
+  }catch(e){toast2('⚠ Error: '+e.message,true);}
+  showLo(false);
+}
+
 async function saveCfg(){
   const data={
     id:1,
@@ -1329,6 +1411,17 @@ async function saveCfg(){
     agente_productos:document.getElementById('cp-prod').value,
   };
   showLo(true);
+  // Guardar identidad visual en tabla negocios
+  const negData={
+    nombre:document.getElementById('cp-nm').value,
+    slogan:document.getElementById('cp-slogan').value,
+    color_primario:document.getElementById('cp-col1t').value||'#4CAF7D',
+    color_secundario:document.getElementById('cp-col2t').value||'#F5C842',
+    color_acento:document.getElementById('cp-col3t').value||'#5c3317',
+  };
+  await SB.from('negocios').update(negData).eq('id',NEGOCIO_ID);
+
+  // Guardar config operativa
   await SB.from('config').upsert(data,{onConflict:'id'});
   await ldCfg();
   showLo(false);
