@@ -381,9 +381,26 @@ async function init(){
     if(lblEl)lblEl.textContent=miembroLbl+' #'+String(numVisible).padStart(4,'0');
     document.getElementById('back-nombre').textContent=nombre;
     document.getElementById('puntos-num').textContent=(c.puntos||0).toLocaleString();
-    const miembroLabel=cfg?.tarjeta_miembro_label||'Dopilover';
     const sellosEl=document.getElementById('sellos-num');
     if(sellosEl)sellosEl.textContent=(c.sellos_activos||0)+'/'+sellosMax;
+
+    // Aplicar posiciones calibradas del reverso
+    try{
+      const pos=cfg?.posiciones_reverso;
+      if(pos){
+        const p=typeof pos==='string'?JSON.parse(pos):pos;
+        const qrEl=document.querySelector('.back-qr-center');
+        const numEl=document.querySelector('.back-nombre-wrap');
+        const ptsEl=document.querySelector('.back-bottom');
+        if(p.qr&&qrEl){qrEl.style.left=p.qr.l;qrEl.style.top=p.qr.t;qrEl.style.transform='translate(-50%,-50%)';}
+        if(p.numero&&numEl){numEl.style.top=p.numero.t;numEl.style.left=p.numero.l;numEl.style.transform='translate(-50%,-50%)';}
+        if(p.nombre){
+          const nEl=document.getElementById('back-nombre');
+          if(nEl){nEl.style.position='absolute';nEl.style.top=p.nombre.t;nEl.style.left=p.nombre.l;nEl.style.transform='translate(-50%,-50%)';}
+        }
+        if(p.puntos&&ptsEl){ptsEl.style.top=p.puntos.t;ptsEl.style.bottom='auto';ptsEl.style.left=p.puntos.l;ptsEl.style.transform='translate(-50%,-50%)';}
+      }
+    }catch(e){}
 
     // Renderizar sellos DESPUÉS de que la imagen frontal cargue
     // para que calcSelloPos() tenga las dimensiones reales
