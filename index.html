@@ -698,6 +698,22 @@ textarea.fi{resize:vertical;min-height:78px}
                 <input type="file" accept="image/*" style="display:none" onchange="subirCardImagen(event)">
               </label>
               <div style="font-size:11px;color:var(--t3);margin-top:6px">JPG, PNG o WebP · Máx 5MB · Proporción recomendada: 3:5 (vertical)</div>
+              <hr class="dv">
+              <div class="st" style="font-size:13.5px">Calibrar posición de sellos 🎯</div>
+              <div style="font-size:12px;color:var(--t2);margin-bottom:10px">Arrastra los puntos sobre las celdas del waffle de tu tarjeta. Guarda cuando estén en su lugar.</div>
+              <!-- Calibrador drag & drop -->
+              <div id="sello-calibrador" style="position:relative;border-radius:12px;overflow:hidden;background:var(--gr);margin-bottom:10px">
+                <img id="calib-img" style="width:100%;display:block;border-radius:12px" draggable="false">
+                <div id="calib-placeholder" style="height:180px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--t3)">
+                  <div style="font-size:28px">🃏</div>
+                  <div style="font-size:12px">Sube la imagen del anverso primero</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn bs bsm" style="flex:1;justify-content:center" onclick="resetCalibPos()">↺ Resetear</button>
+                <button class="btn bp bsm" style="flex:1;justify-content:center" onclick="saveCalibPos()">💾 Guardar posiciones</button>
+              </div>
+              <div style="font-size:11px;color:var(--t3);margin-top:6px">Los cambios se aplican automáticamente a todas las tarjetas del negocio</div>
             </div>
           </div>
         </div>
@@ -1192,6 +1208,13 @@ function rdCfg(){
     document.getElementById('card-img-thumb').style.display='block';
     document.getElementById('card-img-placeholder').style.display='none';
   }
+  // Iniciar calibrador con imagen frontal y posiciones guardadas
+  const calibImgUrl=CFG.card_frontal_url||null;
+  try{
+    const savedPos=CFG.sello_posiciones;
+    const pos=savedPos?(typeof savedPos==='string'?JSON.parse(savedPos):savedPos):null;
+    initCalibrador(calibImgUrl, pos);
+  }catch(e){initCalibrador(calibImgUrl, null);}
   // Agente
   document.getElementById('cp-tono').value=CFG.agente_tono||'';
   document.getElementById('cp-hor').value=CFG.agente_horario||'';
@@ -1780,6 +1803,122 @@ document.addEventListener('change',e=>{
     if(prev)document.getElementById(prev).style.background=e.target.value;
   }
 });
+
+// ===================== CALIBRADOR DE SELLOS =====================
+let calibDragging=null, calibStartX, calibStartY, calibStartL, calibStartT;
+const CALIB_DEFAULT=[
+  {l:'25.1%',t:'35.5%'},{l:'39.0%',t:'35.5%'},
+  {l:'61.0%',t:'35.7%'},{l:'74.7%',t:'35.4%'},
+  {l:'23.6%',t:'43.6%'},{l:'23.5%',t:'57.1%'},
+  {l:'25.4%',t:'65.4%'},{l:'39.5%',t:'65.6%'},
+  {l:'61.0%',t:'65.6%'},{l:'74.7%',t:'65.6%'},
+];
+
+function initCalibrador(imgUrl, posiciones){
+  const wrap=document.getElementById('sello-calibrador');
+  const img=document.getElementById('calib-img');
+  const ph=document.getElementById('calib-placeholder');
+  if(!imgUrl){ph.style.display='flex';img.style.display='none';return;}
+
+  img.src=imgUrl;
+  img.style.display='block';
+  ph.style.display='none';
+
+  // Limpiar puntos anteriores
+  wrap.querySelectorAll('.calib-dot').forEach(d=>d.remove());
+
+  const pos=posiciones&&posiciones.length===10?posiciones:CALIB_DEFAULT;
+
+  img.onload=()=>{
+    pos.forEach((p,i)=>{
+      const d=document.createElement('div');
+      d.className='calib-dot';
+      d.dataset.l=parseFloat(p.l);
+      d.dataset.t=parseFloat(p.t);
+      d.textContent=i+1;
+      d.style.cssText=`position:absolute;left:${p.l};top:${p.t};
+        transform:translate(-50%,-50%);width:28px;height:28px;
+        background:rgba(76,175,125,0.9);border:2.5px solid white;
+        border-radius:50%;display:flex;align-items:center;justify-content:center;
+        color:white;font-size:11px;font-weight:900;cursor:grab;
+        box-shadow:0 2px 8px rgba(0,0,0,.4);touch-action:none;user-select:none;z-index:10`;
+      wrap.appendChild(d);
+
+      // Touch drag
+      d.addEventListener('touchstart',e=>{
+        e.preventDefault();e.stopPropagation();
+        calibDragging=d;d.style.background='rgba(245,200,66,0.95)';d.style.cursor='grabbing';
+        const t=e.touches[0];
+        calibStartX=t.clientX;calibStartY=t.clientY;
+        calibStartL=parseFloat(d.dataset.l);calibStartT=parseFloat(d.dataset.t);
+      },{passive:false});
+
+      // Mouse drag
+      d.addEventListener('mousedown',e=>{
+        e.preventDefault();
+        calibDragging=d;d.style.background='rgba(245,200,66,0.95)';d.style.cursor='grabbing';
+        calibStartX=e.clientX;calibStartY=e.clientY;
+        calibStartL=parseFloat(d.dataset.l);calibStartT=parseFloat(d.dataset.t);
+      });
+    });
+  };
+  if(img.complete&&img.naturalWidth)img.onload();
+}
+
+document.addEventListener('touchmove',e=>{
+  if(!calibDragging)return;
+  e.preventDefault();
+  const t=e.touches[0];
+  const r=document.getElementById('sello-calibrador').getBoundingClientRect();
+  const dx=(t.clientX-calibStartX)/r.width*100;
+  const dy=(t.clientY-calibStartY)/r.height*100;
+  const nl=Math.max(0,Math.min(100,calibStartL+dx));
+  const nt=Math.max(0,Math.min(100,calibStartT+dy));
+  calibDragging.style.left=nl+'%';calibDragging.style.top=nt+'%';
+  calibDragging.dataset.l=nl.toFixed(1);calibDragging.dataset.t=nt.toFixed(1);
+},{passive:false});
+
+document.addEventListener('mousemove',e=>{
+  if(!calibDragging)return;
+  const r=document.getElementById('sello-calibrador').getBoundingClientRect();
+  const dx=(e.clientX-calibStartX)/r.width*100;
+  const dy=(e.clientY-calibStartY)/r.height*100;
+  const nl=Math.max(0,Math.min(100,calibStartL+dx));
+  const nt=Math.max(0,Math.min(100,calibStartT+dy));
+  calibDragging.style.left=nl+'%';calibDragging.style.top=nt+'%';
+  calibDragging.dataset.l=nl.toFixed(1);calibDragging.dataset.t=nt.toFixed(1);
+});
+
+document.addEventListener('touchend',()=>{
+  if(calibDragging){calibDragging.style.background='rgba(76,175,125,0.9)';calibDragging.style.cursor='grab';}
+  calibDragging=null;
+});
+document.addEventListener('mouseup',()=>{
+  if(calibDragging){calibDragging.style.background='rgba(76,175,125,0.9)';calibDragging.style.cursor='grab';}
+  calibDragging=null;
+});
+
+function getCalibPos(){
+  return Array.from(document.querySelectorAll('.calib-dot')).map(d=>({
+    l:parseFloat(d.dataset.l).toFixed(1)+'%',
+    t:parseFloat(d.dataset.t).toFixed(1)+'%'
+  }));
+}
+
+async function saveCalibPos(){
+  const pos=getCalibPos();
+  if(pos.length!==10){toast2('⚠ Necesitas 10 puntos',true);return;}
+  showLo(true);
+  await SB.from('config').update({sello_posiciones:pos}).eq('id',1);
+  CFG.sello_posiciones=pos;
+  showLo(false);
+  toast2('✓ Posiciones guardadas — aplican en todas las tarjetas');
+}
+
+function resetCalibPos(){
+  const imgUrl=CFG.logo_url||CFG.card_frontal_url||null;
+  initCalibrador(imgUrl, CALIB_DEFAULT);
+}
 
 async function subirCardImagen(event){
   const file=event.target.files[0];
