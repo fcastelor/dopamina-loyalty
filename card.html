@@ -298,7 +298,12 @@ async function init(){
   if(!id){document.getElementById('loader').classList.add('hide');document.getElementById('error-view').style.display='block';return;}
   try{
     // 1. Cargar cliente primero para obtener su negocio_id
-    const {data:c,error:ce}=await SB.from('clientes').select('*').eq('id',id).single();
+    // Buscar por UUID (ID del sistema, único global) o por id legacy
+    const isUuid = id && id.includes('-');
+    const query = isUuid
+      ? SB.from('clientes').select('*').eq('uuid',id).single()
+      : SB.from('clientes').select('*').eq('id',id).single();
+    const {data:c,error:ce}=await query;
     if(ce||!c)throw new Error('no cliente');
 
     // 2. Cargar config del negocio al que pertenece el cliente
@@ -323,7 +328,7 @@ async function init(){
     }
     document.getElementById('cliente-nombre').textContent=nombre;
     // Anverso: solo Dopilover + nombre + redes
-    document.getElementById('card-num').textContent=(cfg?.tarjeta_miembro_label||'Dopilover')+' #'+String(c.id).padStart(4,'0');
+    document.getElementById('card-num').textContent=(cfg?.tarjeta_miembro_label||'Dopilover')+' #'+String(c.numero_negocio||c.id).padStart(4,'0');
     const redesEl=document.getElementById('card-redes');
     if(redesEl){
       try{
@@ -374,7 +379,7 @@ async function init(){
       doRenderSellos();
     }
 
-    genQR(`DOPI-${c.id}`);
+    genQR(`DOPI-${c.uuid||c.id}`);
     document.getElementById('chip-visitas').textContent=visitas+' visita'+(visitas!==1?'s':'');
     document.getElementById('chip-sellos').textContent=sellos+'/'+sellosMax+' sellos';
     if(sellos>=sellosMax)document.getElementById('chip-gratis').style.display='flex';
