@@ -74,35 +74,24 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 .gold-corner{position:absolute;top:0;left:0;z-index:5;width:38%;height:20%;background:#F5C842;clip-path:ellipse(100% 100% at 0% 0%);display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:5% 5% 0 5%}
 .logo-txt{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:clamp(16px,6vw,24px);color:#5c3317;line-height:1}
 .logo-sub{font-size:clamp(6px,2vw,9px);color:#7a4a1a;font-weight:600;margin-top:1px}
-/* Contenido bottom — Dopilover + Nombre + QR */
+/* Contenido bottom — solo Dopilover + Nombre */
 .front-bottom{
   position:absolute;bottom:0;left:0;right:0;z-index:4;
-  padding:0 7% 4%;
+  padding:0 7% 6%;
   display:flex;flex-direction:column;align-items:center;
   text-align:center;
 }
 .dopilover-lbl{
   font-size:clamp(9px,3vw,13px);color:rgba(255,220,150,.85);
   font-weight:700;letter-spacing:1px;text-transform:uppercase;
-  margin-bottom:2px;
+  margin-bottom:3px;
 }
 .cliente-nom{
   font-family:'Baloo 2',sans-serif;
-  font-size:clamp(20px,8vw,32px);
+  font-size:clamp(22px,9vw,36px);
   font-weight:800;color:white;
-  line-height:1;margin-bottom:5%;
-  text-shadow:0 2px 8px rgba(0,0,0,.5);
-}
-/* QR en el anverso */
-.front-qr-wrap{
-  background:white;border-radius:12px;
-  padding:8px;
-  box-shadow:0 4px 24px rgba(0,0,0,.4);
-  margin-bottom:4%;
-}
-.front-redes{
-  font-size:clamp(7px,2.5vw,10px);color:rgba(255,220,150,.75);
-  font-weight:600;line-height:1.8;
+  line-height:1;
+  text-shadow:0 2px 12px rgba(0,0,0,.7);
 }
 .back-bg{width:100%;height:100%;position:relative;background:#f5e6c8}
 .back-img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
@@ -116,6 +105,19 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
   display:flex;gap:8px;justify-content:center;
   z-index:10;
 }
+/* Nueva zona inferior reverso: QR a la izquierda + badges a la derecha */
+.back-bottom{
+  position:absolute;bottom:3%;left:0;right:0;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:0 6%;z-index:10;
+}
+.back-qr-wrap{
+  background:white;border-radius:12px;padding:6px;
+  box-shadow:0 4px 16px rgba(0,0,0,.25);
+  display:flex;flex-direction:column;align-items:center;flex-shrink:0;
+}
+.back-qr-lbl{font-size:7px;color:#5c3317;font-weight:700;margin-top:3px;letter-spacing:.4px;text-align:center}
+.back-badges-col{display:flex;flex-direction:column;gap:6px}
 .back-nombre{position:absolute;top:2%;left:50%;transform:translateX(-50%);font-family:'Baloo 2',sans-serif;font-size:clamp(10px,3.5vw,14px);font-weight:800;color:#5c3317;white-space:nowrap;background:rgba(245,232,192,.92);border-radius:20px;padding:3px 12px;backdrop-filter:blur(4px);z-index:10;box-shadow:0 2px 8px rgba(92,51,23,.15);max-width:90%;overflow:hidden;text-overflow:ellipsis}
 .flip-hint{font-size:12px;color:rgba(92,51,23,.6);display:flex;align-items:center;gap:5px;font-weight:600;margin-top:8px;animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
@@ -155,14 +157,10 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
         <!-- Overlay gradiente en la parte inferior para legibilidad del texto -->
         <div class="front-overlay"></div>
 
-        <!-- CONTENIDO: Dopilover + Nombre + QR -->
+        <!-- CONTENIDO: solo Dopilover + Nombre -->
         <div class="front-bottom">
           <div class="dopilover-lbl" id="card-num">Dopilover #0000</div>
           <div class="cliente-nom" id="cliente-nombre">—</div>
-          <div class="front-qr-wrap">
-            <div id="qr-front"></div>
-          </div>
-          <div class="front-redes" id="card-redes">🎵 Dopamina.pee &nbsp;·&nbsp; 📱 908 922 055</div>
         </div>
 
       </div>
@@ -176,15 +174,21 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
         <div class="back-nombre" id="back-nombre">—</div>
         <!-- Sellos sobre el waffle -->
         <div class="sellos-layer" id="sellos-layer"></div>
-        <!-- Badges puntos y sellos abajo -->
-        <div class="back-badges">
-          <div class="qr-badge">
-            <div class="qr-badge-num" id="puntos-num">0</div>
-            <div class="qr-badge-lbl">PUNTOS</div>
+        <!-- QR + badges en la parte inferior -->
+        <div class="back-bottom">
+          <div class="back-qr-wrap">
+            <div id="qr-code-back"></div>
+            <div class="back-qr-lbl">📷 ESCANEAR EN LA APP</div>
           </div>
-          <div class="qr-badge verde">
-            <div class="qr-badge-num" id="sellos-num">0/10</div>
-            <div class="qr-badge-lbl">SELLOS ☕</div>
+          <div class="back-badges-col">
+            <div class="qr-badge">
+              <div class="qr-badge-num" id="puntos-num">0</div>
+              <div class="qr-badge-lbl">PUNTOS</div>
+            </div>
+            <div class="qr-badge verde">
+              <div class="qr-badge-num" id="sellos-num">0/10</div>
+              <div class="qr-badge-lbl">SELLOS ☕</div>
+            </div>
           </div>
         </div>
       </div>
@@ -220,16 +224,17 @@ const SELLO_POS=[
   {l:'18%',t:'46%'},{l:'67%',t:'46%'},
   {l:'18%',t:'59%'},{l:'33%',t:'59%'},{l:'52%',t:'59%'},{l:'67%',t:'59%'}
 ];
-// Posiciones de los sellos sobre las celdas del waffle de la imagen real
-// Imagen 806x1354, coordinadas en % de la tarjeta
-// Las celdas vacías del waffle (sin frutillas) son:
-// Fila 1: 4 celdas superiores
-// Fila 2: 2 celdas laterales (frutillas en el centro)
-// Fila 3: 4 celdas inferiores (incl. las de "5%" y "SORPRESA")
+// Posiciones calibradas sobre la imagen real (806x1354)
+// Las celdas del waffle empiezan DEBAJO del capibara
+// Fila 1: y~540px (39.9% del alto de la imagen)
+// Fila 2: y~700px (51.7%) — solo laterales, frutillas en centro
+// Fila 3: y~940px (69.4%) — fila inferior con "5%"/"SORPRESA"
 const SELLO_POS_FRENTE=[
-  {l:'19%',t:'32%'},{l:'33%',t:'32%'},{l:'67%',t:'32%'},{l:'80%',t:'32%'},
-  {l:'19%',t:'43%'},{l:'80%',t:'43%'},
-  {l:'19%',t:'65%'},{l:'33%',t:'65%'},{l:'67%',t:'65%'},{l:'80%',t:'65%'},
+  {l:'19.2%',t:'39.9%'},{l:'33.5%',t:'39.1%'},
+  {l:'65.8%',t:'39.1%'},{l:'80.0%',t:'39.9%'},
+  {l:'19.2%',t:'51.7%'},{l:'80.0%',t:'51.7%'},
+  {l:'19.2%',t:'69.4%'},{l:'33.5%',t:'69.4%'},
+  {l:'65.8%',t:'69.4%'},{l:'80.0%',t:'69.4%'},
 ];
 
 function renderSellosFrente(activos,max){
@@ -265,14 +270,13 @@ function renderSellos(activos,max){
   renderSellosFrente(activos,max);
 }
 function genQR(url){
-  // QR solo en el anverso
-  const elFront=document.getElementById('qr-front');
-  if(elFront){
-    elFront.innerHTML='';
-    const cardW=document.querySelector('.scene')?.offsetWidth||300;
-    const qrSize=Math.max(Math.min(Math.floor(cardW*0.44),148),110);
-    try{new QRCode(elFront,{text:url,width:qrSize,height:qrSize,colorDark:'#5c3317',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}
-  }
+  // QR solo en el reverso
+  const el=document.getElementById('qr-code-back');
+  if(!el)return;
+  el.innerHTML='';
+  const cardW=document.querySelector('.scene')?.offsetWidth||300;
+  const qrSize=Math.max(Math.min(Math.floor(cardW*0.5),160),130);
+  try{new QRCode(el,{text:url,width:qrSize,height:qrSize,colorDark:'#5c3317',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});}catch(e){}
 }
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-btn').style.display='flex';});
