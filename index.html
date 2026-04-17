@@ -988,7 +988,7 @@ async function mostrarCodigoActual(){
   const el=document.getElementById('totp-preview');
   if(el)el.textContent=`Código actual: ${code} (válido ${remaining}s) — si no coincide, verifica la hora de tu celular`;
 }
-let SB=null,CFG={},CU=null,PTC=null,IMP=[];
+let SB=null,CFG={},CU=null,PTC=null,IMP=[],NEGOCIO_ID=1;
 const SK='dop_sess';
 // Credenciales Supabase — hardcodeadas (anon key es pública por diseño)
 const SBURL='https://cuofpfajzeyezerubytc.supabase.co';
@@ -1128,7 +1128,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.um'))document.getEl
 
 // ===================== CONFIG =====================
 async function ldCfg(){
-  const{data}=await SB.from('config').select('*').single();
+  const{data}=await SB.from('config').select('*').eq('negocio_id',NEGOCIO_ID).single();
   if(data){
     CFG=data;
     document.getElementById('sb-nm').textContent=CFG.nombre||'Dopamina';
@@ -1278,7 +1278,12 @@ function isCumple(n){if(!n)return false;return new Date(n).getMonth()===new Date
 // ===================== DASH =====================
 async function ldDash(){
   showLo(true);
-  const[{count:tot},{data:all},{data:hist},{count:cj}]=await Promise.all([SB.from('clientes').select('*',{count:'exact',head:true}),SB.from('clientes').select('puntos,nacimiento,created_at,ultima_visita'),SB.from('historial').select('cliente_id,tipo,descripcion,created_at,clientes(nombre)').order('created_at',{ascending:false}).limit(8),SB.from('historial').select('*',{count:'exact',head:true}).eq('tipo','canje')]);
+  const[{count:tot},{data:all},{data:hist},{count:cj}]=await Promise.all([
+    SB.from('clientes').select('*',{count:'exact',head:true}).eq('negocio_id',NEGOCIO_ID),
+    SB.from('clientes').select('puntos,nacimiento,created_at,ultima_visita').eq('negocio_id',NEGOCIO_ID),
+    SB.from('historial').select('cliente_id,tipo,descripcion,created_at,clientes(nombre)').eq('negocio_id',NEGOCIO_ID).order('created_at',{ascending:false}).limit(8),
+    SB.from('historial').select('*',{count:'exact',head:true}).eq('negocio_id',NEGOCIO_ID).eq('tipo','canje')
+  ]);
   document.getElementById('st').textContent=(tot||0).toLocaleString();
   document.getElementById('sp').textContent=(all||[]).reduce((s,c)=>s+(c.puntos||0),0).toLocaleString();
   const ck=(all||[]).filter(c=>isCumple(c.nacimiento));
@@ -1294,7 +1299,7 @@ async function ldDash(){
 // ===================== CLIENTES =====================
 async function loadCL(){
   showLo(true);const seg=document.getElementById('f-s').value;
-  const{data:all}=await SB.from('clientes').select('*').order('created_at',{ascending:false});
+  const{data:all}=await SB.from('clientes').select('*').eq('negocio_id',NEGOCIO_ID).order('created_at',{ascending:false});
   let cl=(all||[]);if(seg)cl=cl.filter(c=>getSeg(c)===seg);
   document.getElementById('cl-c').textContent=cl.length+' cliente'+(cl.length!==1?'s':'');
   const tb=document.getElementById('tbl-cl');
@@ -1322,10 +1327,11 @@ async function crearCliente(){
     comentarios:document.getElementById('nc-com').value.trim()||null,
     foto_url:avatarDefault,
     puntos:pts,
+    negocio_id:NEGOCIO_ID,
     created_at:new Date().toISOString()
   }).select().single();
   if(error){showLo(false);toast2('⚠ '+(error.message.includes('unique')?'DNI ya registrado':error.message),true);return;}
-  if(pts>0)await SB.from('historial').insert({cliente_id:data.id,tipo:'bono',descripcion:'Bono bienvenida: +'+pts+'pts',puntos:pts});
+  if(pts>0)await SB.from('historial').insert({cliente_id:data.id,tipo:'bono',descripcion:'Bono bienvenida: +'+pts+'pts',puntos:pts,negocio_id:NEGOCIO_ID});
   showLo(false);closeM('m-nc');['nc-trd','nc-dni','nc-nm','nc-cel','nc-ali','nc-etq','nc-com'].forEach(id=>document.getElementById(id).value='');document.getElementById('nc-nac').value='';document.getElementById('nc-pts').value='0';document.getElementById('nc-tipo').value='cliente';document.getElementById('nc-gen').value='hombre';
   toast2('✓ '+nm+' registrado con '+pts+' pts');ldDash();if(document.getElementById('panel-clientes').classList.contains('active'))loadCL();
 }
@@ -2080,9 +2086,9 @@ async function regPuntos(){
     total_canjes_sello:nuevosCanjes,
     ultima_visita:new Date().toISOString()
   }).eq('id',PTC.id);
-  await SB.from('historial').insert({cliente_id:PTC.id,tipo:'compra',descripcion:d+' · +'+p+'pts · sello '+(ganoGratis?sellosMax:sellosAhora)+'/'+sellosMax,puntos:p,monto:m});
+  await SB.from('historial').insert({cliente_id:PTC.id,tipo:'compra',descripcion:d+' · +'+p+'pts · sello '+(ganoGratis?sellosMax:sellosAhora)+'/'+sellosMax,puntos:p,monto:m,negocio_id:NEGOCIO_ID});
   if(ganoGratis){
-    await SB.from('historial').insert({cliente_id:PTC.id,tipo:'canje',descripcion:'🎉 Tarjeta completa — consumo gratis ganado!',puntos:0});
+    await SB.from('historial').insert({cliente_id:PTC.id,tipo:'canje',descripcion:'🎉 Tarjeta completa — consumo gratis ganado!',puntos:0,negocio_id:NEGOCIO_ID});
   }
   showLo(false);
   if(ganoGratis){
@@ -2188,7 +2194,7 @@ async function ldCampHist(){const{data}=await SB.from('campanas').select('*').or
 // ===================== IMPORTAR =====================
 function hdlFile(file){if(!file)return;const r=new FileReader();r.onload=e=>{const ln=e.target.result.split('\n').filter(l=>l.trim());if(ln.length<2){toast2('⚠ Archivo vacío',true);return;}const hd=ln[0].split(',').map(h=>h.trim().toLowerCase().replace(/['"]/g,''));IMP=[];for(let i=1;i<ln.length;i++){const cs=ln[i].split(',').map(c=>c.trim().replace(/['"]/g,''));if(cs.length<2)continue;const o={};hd.forEach((h,idx)=>o[h]=cs[idx]||'');const row={dni:o.dni||'',nombre:o.nombre||'',celular:o.celular||'',puntos:parseInt(o.puntos||'0')||0,nacimiento:o.nacimiento||null};if(row.nombre)IMP.push(row);}shImpPrev();};r.readAsText(file);}
 function shImpPrev(){const p=document.getElementById('ip-prev');if(!IMP.length){p.innerHTML='<div class="tm tsm">No se pudo leer.</div>';return;}p.innerHTML=`<div style="overflow:auto;max-height:250px"><table><thead><tr><th>Nombre</th><th>DNI</th><th>Celular</th><th>Pts</th></tr></thead><tbody>${IMP.slice(0,20).map(r=>`<tr><td>${r.nombre}</td><td>${r.dni||'—'}</td><td>${r.celular||'—'}</td><td>${r.puntos}</td></tr>`).join('')}</tbody></table></div>`;document.getElementById('ip-sum').textContent=IMP.length+' clientes detectados';document.getElementById('ip-act').style.display='block';}
-async function confImp(){if(!IMP.length)return;showLo(true);let n=0,e=0;for(const row of IMP){const{error}=await SB.from('clientes').insert({dni:row.dni||null,nombre:row.nombre,celular:row.celular||null,nacimiento:row.nacimiento||null,puntos:row.puntos,created_at:new Date().toISOString()});if(error)e++;else n++;}showLo(false);IMP=[];document.getElementById('ip-prev').innerHTML='<div class="tm tsm" style="text-align:center;padding:22px">✓ Completado</div>';document.getElementById('ip-act').style.display='none';toast2(`✓ ${n} importados · ${e} errores`);ldDash();}
+async function confImp(){if(!IMP.length)return;showLo(true);let n=0,e=0;for(const row of IMP){const{error}=await SB.from('clientes').insert({dni:row.dni||null,nombre:row.nombre,celular:row.celular||null,nacimiento:row.nacimiento||null,puntos:row.puntos,negocio_id:NEGOCIO_ID,created_at:new Date().toISOString()});if(error)e++;else n++;}showLo(false);IMP=[];document.getElementById('ip-prev').innerHTML='<div class="tm tsm" style="text-align:center;padding:22px">✓ Completado</div>';document.getElementById('ip-act').style.display='none';toast2(`✓ ${n} importados · ${e} errores`);ldDash();}
 function dlTpl(){const csv='DNI,Nombre,Celular,Puntos,Nacimiento\n12345678,Ana Torres,999888777,150,1995-03-15';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='plantilla_dopamina.csv';a.click();}
 function dOv(e){e.preventDefault();document.getElementById('da').classList.add('ov');}
 function dLv(){document.getElementById('da').classList.remove('ov');}
