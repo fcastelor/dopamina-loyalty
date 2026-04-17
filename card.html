@@ -272,6 +272,34 @@ function genQR(url){
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-btn').style.display='flex';});
 function installPWA(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;document.getElementById('install-btn').style.display='none';}else alert('Menú del navegador → "Agregar a pantalla de inicio"');}
+
+// ====== DEBUG MODE ======
+function showDebugGrid() {
+  const layer = document.getElementById('front-sellos-layer');
+  if (!layer) return;
+  layer.innerHTML = '';
+  // Grilla de marcadores con % para calibración visual
+  for (let row = 1; row <= 8; row++) {
+    for (let col = 1; col <= 4; col++) {
+      const l = col * 20;
+      const t = row * 10;
+      const d = document.createElement('div');
+      d.style.cssText = `position:absolute;left:${l}%;top:${t}%;
+        transform:translate(-50%,-50%);
+        background:rgba(255,0,0,0.8);color:white;
+        font-size:9px;font-weight:900;padding:2px 4px;
+        border-radius:3px;z-index:20;pointer-events:none;
+        white-space:nowrap;line-height:1`;
+      d.textContent = `${l},${t}`;
+      layer.appendChild(d);
+    }
+  }
+}
+if (new URLSearchParams(window.location.search).get('debug') === '1') {
+  window.addEventListener('load', () => setTimeout(showDebugGrid, 2000));
+}
+// ====== FIN DEBUG ======
+
 async function init(){
   const id=getClienteId();
   if(!id){document.getElementById('loader').classList.add('hide');document.getElementById('error-view').style.display='block';return;}
