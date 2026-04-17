@@ -371,12 +371,26 @@ async function init(){
     if(backImg&&cfg?.card_reverso_url)backImg.src=cfg.card_reverso_url;
     document.getElementById('back-nombre').textContent=nombre+' · #'+String(c.id).padStart(4,'0');
     document.getElementById('puntos-num').textContent=(c.puntos||0).toLocaleString();
-    // Nuevos elementos del reverso rediseñado
     const miembroLabel=cfg?.tarjeta_miembro_label||'Dopilover';
     const sellosEl=document.getElementById('sellos-num');
     if(sellosEl)sellosEl.textContent=(c.sellos_activos||0)+'/'+sellosMax;
-    renderSellos(sellos,sellosMax);
-    // QR con código interno — solo legible por la app Dopamina
+
+    // Renderizar sellos DESPUÉS de que la imagen frontal cargue
+    // para que calcSelloPos() tenga las dimensiones reales
+    const frontImg=document.querySelector('.front-bg-img');
+    function doRenderSellos(){
+      renderSellos(sellos,sellosMax);
+    }
+    if(frontImg && frontImg.complete && frontImg.naturalWidth){
+      doRenderSellos();
+    } else if(frontImg){
+      frontImg.addEventListener('load', doRenderSellos, {once:true});
+      // Fallback: si no carga en 3s, renderizar igual
+      setTimeout(doRenderSellos, 3000);
+    } else {
+      doRenderSellos();
+    }
+
     genQR(`DOPI-${c.id}`);
     document.getElementById('chip-visitas').textContent=visitas+' visita'+(visitas!==1?'s':'');
     document.getElementById('chip-sellos').textContent=sellos+'/'+sellosMax+' sellos';
@@ -386,6 +400,8 @@ async function init(){
       document.getElementById('card-scene').style.display='block';
       document.getElementById('flip-hint').style.display='flex';
       document.getElementById('info-bar').style.display='flex';
+      // Re-calcular posiciones ahora que la tarjeta tiene dimensiones reales
+      setTimeout(()=>renderSellosFrente(sellos,sellosMax), 100);
     },700);
   }catch(e){
     console.error(e);
