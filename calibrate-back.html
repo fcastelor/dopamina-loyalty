@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Calibrar Reverso</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a1a;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px}
+h2{color:white;font-size:13px;margin-bottom:6px;text-align:center}
+p{color:#aaa;font-size:11px;text-align:center;margin-bottom:8px}
+.scene{position:relative;width:min(340px,100%);border-radius:16px;overflow:hidden;touch-action:none;flex-shrink:0}
+.scene img{width:100%;display:block;border-radius:16px;pointer-events:none}
+
+/* Elementos arrastrables */
+.drag-el{
+  position:absolute;transform:translate(-50%,-50%);
+  cursor:grab;touch-action:none;user-select:none;
+  display:flex;flex-direction:column;align-items:center;
+  z-index:20;
+}
+.drag-el.dragging{cursor:grabbing;z-index:30;}
+
+/* QR */
+#el-qr .inner{
+  background:white;border-radius:12px;padding:6px;
+  border:3px solid #4CAF7D;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+  font-size:10px;color:#5c3317;font-weight:700;text-align:center;
+}
+#el-qr .qr-box{
+  width:80px;height:80px;background:#f0f0f0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;border-radius:4px;
+}
+#el-qr .lbl{font-size:7px;margin-top:3px;letter-spacing:.5px;}
+
+/* Nombre */
+#el-nombre .inner{
+  background:rgba(245,200,66,0.92);border-radius:8px;padding:4px 12px;
+  border:2px solid #4CAF7D;
+  font-family:Georgia,serif;font-size:18px;font-weight:900;color:#5c3317;
+  white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+
+/* Número Dopilover */
+#el-numero .inner{
+  background:rgba(200,100,30,0.9);border-radius:6px;padding:3px 10px;
+  border:2px solid #4CAF7D;
+  font-size:11px;font-weight:700;color:white;letter-spacing:.5px;
+  white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+
+/* Handle indicator */
+.handle{
+  width:28px;height:6px;background:#4CAF7D;border-radius:3px;margin-bottom:4px;
+}
+
+/* Badges puntos */
+#el-pts .inner{
+  display:flex;gap:6px;
+}
+.pts-badge{
+  background:#F5C842;border-radius:8px;padding:4px 8px;text-align:center;
+  border:2px solid #4CAF7D;box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.pts-num{font-family:Georgia,serif;font-size:16px;font-weight:900;color:#5c3317;line-height:1}
+.pts-lbl{font-size:7px;color:#8B4513;font-weight:700;letter-spacing:.3px}
+.pts-badge.verde{background:#e8f7ef;}
+.pts-badge.verde .pts-num{color:#1a6b3c}
+
+#coords{
+  background:#111;color:#0f0;font-family:monospace;font-size:11px;
+  padding:10px;border-radius:8px;width:min(340px,100%);
+  margin-top:8px;white-space:pre;max-height:180px;overflow-y:auto;
+}
+#copy-btn{
+  background:#4CAF7D;color:white;border:none;padding:12px 24px;
+  border-radius:8px;font-size:14px;font-weight:700;
+  margin-top:8px;cursor:pointer;width:min(340px,100%);
+}
+.legend{
+  width:min(340px,100%);margin-top:8px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.leg-item{
+  display:flex;align-items:center;gap:8px;
+  background:#222;border-radius:6px;padding:6px 10px;
+  font-size:11px;color:#ccc;
+}
+.leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+<h2>🎯 Calibrar Reverso de Tarjeta</h2>
+<p>Arrastra cada elemento a su posición correcta</p>
+
+<div class="scene" id="scene">
+  <img id="card-img"
+    src="https://cuofpfajzeyezerubytc.supabase.co/storage/v1/object/public/fotos-clientes/card_reverso2.png"
+    draggable="false">
+
+  <!-- QR -->
+  <div class="drag-el" id="el-qr" style="left:50%;top:33%">
+    <div class="handle"></div>
+    <div class="inner">
+      <div class="qr-box">📱</div>
+      <div class="lbl">QR</div>
+    </div>
+  </div>
+
+  <!-- Número Dopilover -->
+  <div class="drag-el" id="el-numero" style="left:50%;top:63%">
+    <div class="handle"></div>
+    <div class="inner">Dopilover #0001</div>
+  </div>
+
+  <!-- Nombre cliente -->
+  <div class="drag-el" id="el-nombre" style="left:50%;top:68%">
+    <div class="handle"></div>
+    <div class="inner">FIORELLA</div>
+  </div>
+
+  <!-- Puntos + Sellos -->
+  <div class="drag-el" id="el-pts" style="left:50%;top:78%">
+    <div class="handle"></div>
+    <div class="inner">
+      <div class="pts-badge">
+        <div class="pts-num">248</div>
+        <div class="pts-lbl">PUNTOS</div>
+      </div>
+      <div class="pts-badge verde">
+        <div class="pts-num">2/12</div>
+        <div class="pts-lbl">SELLOS ☕</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:#4CAF7D"></div>Arrastra por la barra verde</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#F5C842"></div>El número y nombre van sobre la línea de firma</div>
+</div>
+
+<div id="coords">Cargando posiciones...</div>
+<button id="copy-btn" onclick="copyCoords()">📋 Copiar coordenadas</button>
+
+<script>
+const SBURL='https://cuofpfajzeyezerubytc.supabase.co';
+const SBKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1b2ZwZmFqemV5ZXplcnVieXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MzU1MTMsImV4cCI6MjA5MDExMTUxM30.5Tog6Ata3CbYflwxOhezXZegrwagiboQF2u0fVX9oZ4';
+
+const scene = document.getElementById('scene');
+let dragging = null, startX, startY, startL, startT;
+
+const elements = ['el-qr','el-numero','el-nombre','el-pts'];
+
+elements.forEach(id => {
+  const el = document.getElementById(id);
+
+  el.addEventListener('touchstart', e => {
+    e.preventDefault(); e.stopPropagation();
+    startDrag(el, e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:false});
+
+  el.addEventListener('mousedown', e => {
+    e.preventDefault();
+    startDrag(el, e.clientX, e.clientY);
+  });
+});
+
+function startDrag(el, cx, cy) {
+  dragging = el;
+  el.classList.add('dragging');
+  startX = cx; startY = cy;
+  startL = parseFloat(el.style.left);
+  startT = parseFloat(el.style.top);
+}
+
+document.addEventListener('touchmove', e => {
+  if (!dragging) return;
+  e.preventDefault();
+  moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+}, {passive:false});
+
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  moveDrag(e.clientX, e.clientY);
+});
+
+function moveDrag(cx, cy) {
+  const r = scene.getBoundingClientRect();
+  const dx = (cx - startX) / r.width * 100;
+  const dy = (cy - startY) / r.height * 100;
+  const nl = Math.max(0, Math.min(100, startL + dx));
+  const nt = Math.max(0, Math.min(100, startT + dy));
+  dragging.style.left = nl + '%';
+  dragging.style.top = nt + '%';
+  updateCoords();
+}
+
+document.addEventListener('touchend', endDrag);
+document.addEventListener('mouseup', endDrag);
+function endDrag() {
+  if (dragging) dragging.classList.remove('dragging');
+  dragging = null;
+}
+
+function getPos(id) {
+  const el = document.getElementById(id);
+  return {
+    l: parseFloat(el.style.left).toFixed(1),
+    t: parseFloat(el.style.top).toFixed(1)
+  };
+}
+
+function updateCoords() {
+  const qr = getPos('el-qr');
+  const num = getPos('el-numero');
+  const nom = getPos('el-nombre');
+  const pts = getPos('el-pts');
+  document.getElementById('coords').textContent =
+`// Pega esto en Claude:
+qr:     left:${qr.l}%  top:${qr.t}%
+numero: left:${num.l}%  top:${num.t}%
+nombre: left:${nom.l}%  top:${nom.t}%
+puntos: left:${pts.l}%  top:${pts.t}%`;
+}
+
+async function copyCoords() {
+  // Guardar en Supabase config
+  const qr = getPos('el-qr');
+  const num = getPos('el-numero');
+  const nom = getPos('el-nombre');
+  const pts = getPos('el-pts');
+
+  const posBack = { qr, numero: num, nombre: nom, puntos: pts };
+
+  try {
+    await fetch(`${SBURL}/rest/v1/config?id=eq.1`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SBKEY,
+        'Authorization': `Bearer ${SBKEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ posiciones_reverso: posBack })
+    });
+    document.getElementById('copy-btn').textContent = '✅ Guardado en Supabase!';
+  } catch(e) {
+    document.getElementById('copy-btn').textContent = '⚠ Error guardando';
+  }
+
+  // También copiar al portapapeles
+  const text = document.getElementById('coords').textContent;
+  navigator.clipboard?.writeText(text);
+  setTimeout(() => document.getElementById('copy-btn').textContent = '📋 Copiar coordenadas', 2500);
+}
+
+// Cargar posiciones guardadas si existen
+async function loadSaved() {
+  try {
+    const r = await fetch(`${SBURL}/rest/v1/config?select=posiciones_reverso&limit=1`, {
+      headers: { 'apikey': SBKEY, 'Authorization': `Bearer ${SBKEY}` }
+    });
+    const data = await r.json();
+    const pos = data[0]?.posiciones_reverso;
+    if (pos) {
+      if (pos.qr)     { document.getElementById('el-qr').style.left=pos.qr.l+'%';     document.getElementById('el-qr').style.top=pos.qr.t+'%'; }
+      if (pos.numero) { document.getElementById('el-numero').style.left=pos.numero.l+'%'; document.getElementById('el-numero').style.top=pos.numero.t+'%'; }
+      if (pos.nombre) { document.getElementById('el-nombre').style.left=pos.nombre.l+'%'; document.getElementById('el-nombre').style.top=pos.nombre.t+'%'; }
+      if (pos.puntos) { document.getElementById('el-pts').style.left=pos.puntos.l+'%';    document.getElementById('el-pts').style.top=pos.puntos.t+'%'; }
+    }
+  } catch(e) {}
+  updateCoords();
+}
+
+document.getElementById('card-img').onload = loadSaved;
+if (document.getElementById('card-img').complete) loadSaved();
+</script>
+</body>
+</html>
