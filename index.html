@@ -2553,10 +2553,18 @@ async function cargarProductos(){
 function renderProductos(prods){
   const grid=document.getElementById('prod-grid');
   if(!grid)return;
-  if(!prods||!prods.length){
-    grid.innerHTML='<div style="padding:12px;color:#999;text-align:center;grid-column:span 2">Sin productos</div>';
-    return;
+  if(!prods||!prods.length){grid.innerHTML='<p style="color:#999;padding:8px">Sin productos</p>';return;}
+  let h='';
+  for(let i=0;i<prods.length;i++){
+    const p=prods[i];
+    h+='<button class="prod-btn" data-id="'+p.id+'" data-nombre="'+p.nombre+'" data-precio="'+p.precio+'"'+
+       ' style="background:var(--gr);border:1.5px solid var(--b);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:left;width:100%;display:block">'+
+       '<div style="font-size:12.5px;font-weight:600">'+p.nombre+'</div>'+
+       '<div style="font-size:14px;font-weight:800;color:var(--gd);margin-top:4px">S/ '+parseFloat(p.precio).toFixed(2)+'</div>'+
+       '</button>';
   }
+  grid.innerHTML=h;
+}
   let html='';
   for(let i=0;i<prods.length;i++){
     const p=prods[i];
