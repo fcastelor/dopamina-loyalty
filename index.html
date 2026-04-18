@@ -459,6 +459,13 @@ textarea.fi{resize:vertical;min-height:78px}
                   <button class="btn bs bsm metodo-btn" data-m="transferencia" onclick="selMetodo(this)">🏦 Transferencia</button>
                 </div>
               </div>
+              <div class="fg" id="ticket-wrap" style="display:none">
+                <label class="fl">N° de ticket / comprobante <span style="color:var(--rd)">*</span></label>
+                <input type="text" class="fi" id="pt-ticket" placeholder="Ej: B001-00123"
+                  style="font-family:monospace;font-size:14px;font-weight:600;letter-spacing:.5px"
+                  oninput="this.value=this.value.toUpperCase()">
+                <div style="font-size:11px;color:var(--t3);margin-top:4px">⚠ No puede repetirse — debe coincidir con tu sistema de caja</div>
+              </div>
               <div class="fg" id="nota-wrap" style="display:none">
                 <label class="fl">Nota (opcional)</label>
                 <input type="text" class="fi" id="pt-nota" placeholder="Observación de la venta...">
@@ -2593,11 +2600,13 @@ function renderCarrito(){
   const notaWrap=document.getElementById('nota-wrap');
   if(!CARRITO.length){
     wrap.style.display='none';pagoWrap.style.display='none';notaWrap.style.display='none';
+  const tw=document.getElementById('ticket-wrap');if(tw)tw.style.display='none';
     document.getElementById('pt-prev').style.display='none';
     document.getElementById('btn-registrar').disabled=true;
     return;
   }
   wrap.style.display='block';pagoWrap.style.display='block';notaWrap.style.display='block';
+  const ticketWrap=document.getElementById('ticket-wrap');if(ticketWrap)ticketWrap.style.display='block';
   const total=CARRITO.reduce((s,i)=>s+i.subtotal,0);
   document.getElementById('carrito-total').textContent=total.toFixed(2);
   document.getElementById('carrito-items').innerHTML=CARRITO.map((item,idx)=>`
@@ -2678,14 +2687,13 @@ async function regPuntos(){
     ultima_visita:new Date().toISOString()
   }).eq('id',PTC.id);
 
-  // 2. Obtener número de ticket correlativo (atómico)
-  let ticketNum=1, ticketCodigo='TKT-0001';
-  try{
-    const{data:tkData}=await SB.rpc('next_ticket_number',{p_negocio_id:NEGOCIO_ID});
-    ticketNum=tkData||1;
-    const prefijo=(CFG?.ticket_prefijo||'TKT').toUpperCase();
-    ticketCodigo=prefijo+'-'+String(ticketNum).padStart(4,'0');
-  }catch(e){console.warn('ticket:',e);}
+  // 2. Número de ticket ingresado por el cajero
+  const ticketCodigo=(document.getElementById('pt-ticket')?.value||'').trim();
+  if(!ticketCodigo){toast2('⚠ Ingresa el número de ticket',true);showLo(false);return;}
+  // Validar que no esté duplicado en este negocio
+  const{data:txExist}=await SB.from('transacciones')
+    .select('id').eq('negocio_id',NEGOCIO_ID).eq('ticket_codigo',ticketCodigo).maybeSingle();
+  if(txExist){toast2('⚠ El ticket '+ticketCodigo+' ya existe — verifica el número',true);showLo(false);return;}
 
   // 3. Crear transacción
   const itemsDesc=CARRITO.map(i=>`${i.cantidad}x ${i.nombre}`).join(', ');
@@ -2737,14 +2745,15 @@ async function regPuntos(){
 
   showLo(false);
   if(ganoGratis){
-    toast2(`🎉 ${ticketCodigo} · ¡${PTC.nombre} completó su tarjeta! Consumo GRATIS ganado 🥤`);
+    toast2('🎉 '+ticketCodigo+' · ¡'+PTC.nombre+' completó su tarjeta! Consumo GRATIS ganado 🥤');
   } else {
-    toast2(`✓ ${ticketCodigo} · S/ ${total.toFixed(2)} · +${p}pts · Sello ${sellosAhora}/${sellosMax} — ${PTC.nombre}`);
+    toast2('✓ '+ticketCodigo+' · S/ '+total.toFixed(2)+' · +'+p+'pts · Sello '+sellosAhora+'/'+sellosMax+' — '+PTC.nombre);
   }
 
   // Reset carrito
   CARRITO=[];
   document.getElementById('pt-nota').value='';
+  if(document.getElementById('pt-ticket'))document.getElementById('pt-ticket').value='';
   preSel(PTC.id);
 }
 
