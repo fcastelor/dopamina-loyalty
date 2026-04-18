@@ -276,7 +276,7 @@ function renderSellosFrente(activos,max){
   const layer=document.getElementById('front-sellos-layer');
   if(!layer)return;
   layer.innerHTML='';
-  const n=Math.min(max,10);
+  const n=Math.min(max,SELLO_POS_FRENTE.length||max);
   const isDebug=new URLSearchParams(window.location.search).get('debug')==='1';
   SELLO_POS_FRENTE.slice(0,n).forEach((pos,i)=>{
     const div=document.createElement('div');
@@ -303,7 +303,7 @@ function renderSellos(activos,max){
   const layer=document.getElementById('sellos-layer');
   if(layer){
     layer.innerHTML='';
-    const n=Math.min(max,10);
+    const n=Math.min(max,SELLO_POS.length||max);
     SELLO_POS.slice(0,n).forEach((pos,i)=>{
       const div=document.createElement('div');
       div.className='sello-pos '+(i<activos?'activo':'vacio');
