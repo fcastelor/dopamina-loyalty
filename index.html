@@ -1499,7 +1499,7 @@ async function crearCliente(){
 }
 
 async function verPerf(id){
-  showLo(true);const[{data:c},{data:h},{data:rw}]=await Promise.all([SB.from('clientes').select('*').eq('id',id).single(),SB.from('historial').select('*').eq('cliente_id',id).order('created_at',{ascending:false}).limit(10),SB.from('recompensas').select('*').eq('activo',true)]);
+  showLo(true);const[{data:c},{data:h},{data:rw}]=await Promise.all([SB.from('clientes').select('*').eq('id',id).single(),SB.from('historial').select('*').eq('cliente_id',id).order('created_at',{ascending:false}).limit(20),SB.from('recompensas').select('*').eq('activo',true)]);
   showLo(false);if(!c)return;
   const s=getSeg(c);const bc=s==='VIP'?'bv':s==='Regular'?'br':s==='Dormido'?'bd':'bn';
   const dsp=(rw||[]).filter(r=>r.puntos_requeridos<=(c.puntos||0));
@@ -1537,32 +1537,63 @@ async function verPerf(id){
 </div>
 ${c.comentarios?`<div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:9px 12px;font-size:12.5px;margin-bottom:14px;color:#7a5900">💬 ${c.comentarios}</div>`:''}
 ${(()=>{
-  const meta=10;
+  const meta=CFG?.sellos_meta||10;
   const sellos=c.sellos_activos||0;
+  const tarjetasCompletas=c.total_canjes_sello||0;
   const stamps=Array.from({length:meta},(_,i)=>
-    `<div style="width:34px;height:34px;border-radius:50%;border:2px solid ${i<sellos?'#4CAF7D':'#e8e8e2'};background:${i<sellos?'#4CAF7D':'#f9f9f7'};display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s">
+    `<div style="width:30px;height:30px;border-radius:50%;border:2px solid ${i<sellos?'var(--g)':'#e8e8e2'};background:${i<sellos?'var(--g)':'#f9f9f7'};display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s">
       ${i<sellos?'☕':''}
     </div>`
   ).join('');
   const pct=Math.round((sellos/meta)*100);
+  const completa=sellos>=meta;
   return `<div style="border:1.5px solid #e8e8e2;border-radius:12px;padding:14px 16px;margin-bottom:14px;background:#fafaf8">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px">Tarjeta de sellos</div>
-      <div style="font-size:11px;color:var(--t2)">${sellos}/${meta} sellos · 🏆 ${c.total_canjes_sello||0} tarjeta${(c.total_canjes_sello||0)!==1?'s':''} completa${(c.total_canjes_sello||0)!==1?'s':''}</div>
+      <div style="font-size:11px;color:var(--t2)">${sellos}/${meta} sellos</div>
     </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">${stamps}</div>
-    <div style="background:#e8e8e2;border-radius:20px;height:5px;overflow:hidden">
-      <div style="background:#4CAF7D;height:100%;width:${pct}%;border-radius:20px;transition:width .4s"></div>
+    ${tarjetasCompletas>0?`<div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:6px 10px;font-size:11.5px;color:#854d0e;margin-bottom:10px;display:flex;align-items:center;gap:6px">🏆 <strong>${tarjetasCompletas}</strong> tarjeta${tarjetasCompletas!==1?'s':''} completa${tarjetasCompletas!==1?'s':''} — historial de fidelidad</div>`:''}
+    <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">${stamps}</div>
+    <div style="background:#e8e8e2;border-radius:20px;height:5px;overflow:hidden;margin-bottom:10px">
+      <div style="background:var(--g);height:100%;width:${Math.min(pct,100)}%;border-radius:20px;transition:width .4s"></div>
     </div>
-    ${sellos===0?`<div style="text-align:center;font-size:11.5px;color:var(--t3);margin-top:7px">Primera visita registrada = primer sello 🎯</div>`:''}
-    ${sellos>=meta-1&&sellos<meta?`<div style="text-align:center;font-size:11.5px;color:#e67e22;font-weight:500;margin-top:7px">¡Un sello más y gana su consumo gratis! 🔥</div>`:''}
+    ${completa?`<button class="btn bp" style="width:100%;justify-content:center" onclick="canjearTarjeta(${c.id})">🎁 Canjear consumo gratis — Tarjeta completa</button>`:''}
+    ${!completa&&sellos===meta-1?`<div style="text-align:center;font-size:11.5px;color:#e67e22;font-weight:600;margin-top:4px">🔥 ¡Un sello más y gana su consumo gratis!</div>`:''}
+    ${!completa&&sellos===0?`<div style="text-align:center;font-size:11.5px;color:var(--t3);margin-top:4px">Primera visita = primer sello 🎯</div>`:''}
   </div>`;
 })()}
 ${dsp.length>0?`<div style="background:var(--gb);border-radius:9px;padding:12px 14px;margin-bottom:14px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--gd);margin-bottom:7px">Recompensas disponibles</div><div style="display:flex;flex-wrap:wrap;gap:6px">${dsp.map(r=>`<button class="btn bsm" style="background:white;border:1px solid var(--g);color:var(--gd)" onclick="cjPf(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.nombre} (${r.puntos_requeridos}pts)</button>`).join('')}</div></div>`:''}
 <div class="st" style="font-size:12.5px">Historial</div>
-${(h||[]).length===0?'<div class="tm tsm">Sin actividad</div>':(h||[]).map(x=>`<div class="hi"><div class="hd ${x.tipo==='compra'?'hc':x.tipo==='canje'?'hj':'hb'}"></div><div style="flex:1;font-size:12.5px">${x.descripcion||''}</div><div class="tm tsm">${fmtD(x.created_at)}</div></div>`).join('')}
+${(h||[]).length===0?'<div class="tm tsm" style="padding:8px 0">Sin actividad registrada aún</div>':(h||[]).map(x=>{
+  const ico=x.tipo==='compra'?'hc':x.tipo==='canje'?'hj':x.tipo==='visita'?'hv':'hb';
+  const monto=x.monto?`<span style="font-size:10.5px;color:var(--t3);margin-left:4px">S/ ${parseFloat(x.monto).toFixed(2)}</span>`:'';
+  const pts=x.puntos&&x.puntos!==0?`<span style="font-size:10.5px;font-weight:600;color:${x.puntos>0?'#16a34a':'#dc2626'}">${x.puntos>0?'+':''}${x.puntos}pts</span>`:'';
+  return `<div class="hi"><div class="hd ${ico}"></div><div style="flex:1"><div style="font-size:12.5px">${x.descripcion||''}</div><div style="display:flex;gap:6px;align-items:center;margin-top:1px">${pts}${monto}</div></div><div class="tm tsm">${fmtD(x.created_at)}</div></div>`;
+}).join('')}
 <div style="display:flex;gap:7px;margin-top:16px;flex-wrap:wrap"><button class="btn bp bsm" onclick="closeM('m-pf');nav('puntos');setTimeout(()=>preSel(${c.id}),150)">+ Puntos</button><button class="btn bs bsm" onclick="editarCliente(${c.id})">✏️ Editar</button><button class="btn bs bsm" onclick="verTarjeta(${c.id})">🃏 Tarjeta</button><button class="btn bs bsm" onclick="waC(${c.id})">WhatsApp</button><button class="btn bdr bsm" onclick="delCl(${c.id})">Eliminar</button></div>`;
   openM('m-pf');
+}
+
+async function canjearTarjeta(clienteId){
+  const sellosMax=CFG?.sellos_meta||10;
+  const{data:c}=await SB.from('clientes').select('*').eq('id',clienteId).single();
+  if(!c||(c.sellos_activos||0)<sellosMax){toast2('⚠ La tarjeta no está completa',true);return;}
+  if(!confirm(`¿Confirmar canje de consumo gratis para ${c.nombre}?`))return;
+  showLo(true);
+  const totalTarjetas=(c.total_canjes_sello||0)+1;
+  await SB.from('clientes').update({
+    sellos_activos:0,
+    total_canjes_sello:totalTarjetas
+  }).eq('id',clienteId);
+  await SB.from('historial').insert([
+    {cliente_id:clienteId,tipo:'canje',negocio_id:NEGOCIO_ID,
+     descripcion:`🎉 Tarjeta #${totalTarjetas} canjeada — consumo gratis`,puntos:0},
+    {cliente_id:clienteId,tipo:'bono',negocio_id:NEGOCIO_ID,
+     descripcion:`🃏 Tarjeta #${totalTarjetas+1} iniciada`,puntos:0}
+  ]);
+  showLo(false);
+  toast2(`✅ Canje registrado — Tarjeta #${totalTarjetas} completada para ${c.nombre}`);
+  verPerf(clienteId);
 }
 
 async function waC(id){const{data:c}=await SB.from('clientes').select('nombre,celular,puntos').eq('id',id).single();if(!c?.celular){toast2('⚠ Sin celular',true);return;}const msg=encodeURIComponent(`Hola ${c.nombre}! Te escribimos desde Dopamina 🌿\nTienes ${c.puntos||0} puntos. ¡Gracias!`);const n=c.celular.replace(/\D/g,'');window.open('https://wa.me/'+(n.startsWith('51')?n:'51'+n)+'?text='+msg,'_blank');}
