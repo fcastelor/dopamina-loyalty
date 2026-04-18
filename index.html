@@ -404,19 +404,87 @@ textarea.fi{resize:vertical;min-height:78px}
       <div class="panel" id="panel-puntos">
         <div class="st">Registrar venta</div>
         <div class="g2">
+
+          <!-- COLUMNA IZQUIERDA: Cliente + Productos -->
           <div class="cv">
-            <div class="fg"><label class="fl">Buscar cliente</label><input type="text" class="fi" id="pt-s" placeholder="DNI o nombre..." oninput="buscarPts(this.value)"></div>
+            <!-- Buscar cliente -->
+            <div class="fg">
+              <label class="fl">Buscar cliente</label>
+              <input type="text" class="fi" id="pt-s" placeholder="DNI o nombre..." oninput="buscarPts(this.value)">
+            </div>
             <div id="pt-res"></div>
+
+            <!-- Cliente seleccionado -->
             <div id="pt-sel" style="display:none">
-              <hr class="dv">
-              <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px" id="pt-si"></div>
-              <div class="fg"><label class="fl">Monto (S/)</label><input type="number" class="fi" id="pt-m" placeholder="0.00" oninput="calcPts()" min="0" step="0.5"></div>
-              <div class="fg"><label class="fl">Descripción (opcional)</label><input type="text" class="fi" id="pt-d" placeholder="Waffle + Frappé"></div>
-              <div class="pr" id="pt-prev" style="display:none"><div><div class="tsm tm">A sumar</div><div class="pb2" id="pt-c">+0</div></div><div style="margin:0 auto"><div class="tsm tm">Sello</div><div style="font-size:13px;font-weight:500;color:var(--t2)" id="pt-sello">1/10</div></div><div style="margin-left:auto"><div class="tsm tm">Total</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--gd)" id="pt-tp">0</div></div></div>
-              <button class="btn bp" style="width:100%;justify-content:center;margin-top:12px" onclick="regPuntos()">Registrar venta</button>
+              <div style="display:flex;align-items:center;gap:9px;padding:10px;background:var(--gb);border-radius:10px;margin-bottom:12px">
+                <div id="pt-si"></div>
+                <button class="btn bs bsm" style="margin-left:auto" onclick="limpiarVenta()">✕ Cambiar</button>
+              </div>
+
+              <!-- PRODUCTOS DEL CATÁLOGO -->
+              <div class="st" style="font-size:13px;margin-bottom:8px">Agregar productos</div>
+              <!-- Filtro por categoría -->
+              <div id="cat-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+              <!-- Grid de productos -->
+              <div id="prod-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px"></div>
+
+              <!-- Producto libre -->
+              <details style="margin-bottom:12px">
+                <summary style="font-size:12px;color:var(--t2);cursor:pointer;padding:6px 0">+ Agregar producto libre</summary>
+                <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;margin-top:8px;align-items:end">
+                  <input type="text" class="fi" id="libre-nom" placeholder="Nombre del producto">
+                  <input type="number" class="fi" id="libre-precio" placeholder="S/" style="width:70px" min="0" step="0.5">
+                  <button class="btn bp bsm" onclick="agregarLibre()">+ Agregar</button>
+                </div>
+              </details>
+
+              <!-- CARRITO -->
+              <div id="carrito-wrap" style="display:none">
+                <div class="st" style="font-size:13px;margin-bottom:8px">🛒 Carrito</div>
+                <div id="carrito-items"></div>
+                <div style="border-top:1.5px solid var(--b);margin:10px 0;padding-top:10px;display:flex;justify-content:space-between;align-items:center">
+                  <div style="font-size:13px;color:var(--t2)">Total</div>
+                  <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--gd)">S/ <span id="carrito-total">0.00</span></div>
+                </div>
+              </div>
+
+              <!-- MÉTODO DE PAGO -->
+              <div class="fg" style="display:none" id="pago-wrap">
+                <label class="fl">Método de pago</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <button class="btn bs bsm metodo-btn active" data-m="efectivo" onclick="selMetodo(this)">💵 Efectivo</button>
+                  <button class="btn bs bsm metodo-btn" data-m="yape" onclick="selMetodo(this)">📱 Yape</button>
+                  <button class="btn bs bsm metodo-btn" data-m="plin" onclick="selMetodo(this)">💜 Plin</button>
+                  <button class="btn bs bsm metodo-btn" data-m="tarjeta" onclick="selMetodo(this)">💳 Tarjeta</button>
+                  <button class="btn bs bsm metodo-btn" data-m="transferencia" onclick="selMetodo(this)">🏦 Transferencia</button>
+                </div>
+              </div>
+              <div class="fg" id="nota-wrap" style="display:none">
+                <label class="fl">Nota (opcional)</label>
+                <input type="text" class="fi" id="pt-nota" placeholder="Observación de la venta...">
+              </div>
+
+              <!-- PREVIEW PUNTOS + BOTÓN -->
+              <div class="pr" id="pt-prev" style="display:none">
+                <div><div class="tsm tm">Puntos a sumar</div><div class="pb2" id="pt-c">+0</div></div>
+                <div style="margin:0 auto"><div class="tsm tm">Sello</div><div style="font-size:13px;font-weight:500;color:var(--t2)" id="pt-sello">1/12</div></div>
+                <div style="margin-left:auto"><div class="tsm tm">Total cliente</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--gd)" id="pt-tp">0</div></div>
+              </div>
+              <button class="btn bp" style="width:100%;justify-content:center;margin-top:12px" id="btn-registrar" onclick="regPuntos()" disabled>
+                Registrar venta
+              </button>
             </div>
           </div>
-          <div class="cv"><div class="st">Reglas</div><div id="r-disp"></div><hr class="dv"><div class="st">Canjear recompensa</div><div id="cj-s" style="display:none"><div id="rw-disp"></div></div><div id="cj-e" class="tm tsm">Selecciona un cliente para ver recompensas.</div></div>
+
+          <!-- COLUMNA DERECHA: Reglas + Canje -->
+          <div class="cv">
+            <div class="st">Reglas de puntos</div>
+            <div id="r-disp"></div>
+            <hr class="dv">
+            <div class="st">Canjear recompensa</div>
+            <div id="cj-s" style="display:none"><div id="rw-disp"></div></div>
+            <div id="cj-e" class="tm tsm">Selecciona un cliente para ver recompensas.</div>
+          </div>
         </div>
       </div>
 
@@ -2388,72 +2456,282 @@ async function guardarEdicion(){
 async function cjPf(cId,rId,nm,pts){showLo(true);const{data:c}=await SB.from('clientes').select('puntos').eq('id',cId).single();if(!c||(c.puntos||0)<pts){showLo(false);toast2('⚠ Puntos insuficientes',true);return;}await SB.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await SB.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:'Canje: '+nm+' (-'+pts+'pts)',puntos:-pts});showLo(false);toast2('✓ Canje: '+nm);verPerf(cId);}
 
 // ===================== PUNTOS =====================
-async function buscarPts(q){document.getElementById('pt-sel').style.display='none';PTC=null;const r=document.getElementById('pt-res');if(!q||q.length<2){r.innerHTML='';return;}const{data}=await SB.from('clientes').select('id,nombre,dni,puntos').or(`nombre.ilike.%${q}%,dni.ilike.%${q}%`).limit(5);if(!data?.length){r.innerHTML='<div class="tm tsm" style="padding:7px 0">Sin resultados</div>';return;}r.innerHTML=data.map(c=>`<div onclick="preSel(${c.id})" style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer;border:1px solid var(--b);margin-bottom:4px" onmouseover="this.style.background='var(--gr)'" onmouseout="this.style.background=''"><div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div><div style="font-weight:500">${c.nombre}</div><div class="tm tsm">DNI:${c.dni||'—'} · ${c.puntos||0}pts</div></div></div>`).join('');}
+// ===================== MÓDULO DE VENTAS =====================
+let CARRITO=[], PRODUCTOS_CACHE=[], METODO_PAGO='efectivo';
 
-async function preSel(id){const{data:c}=await SB.from('clientes').select('*').eq('id',id).single();if(!c)return;PTC=c;document.getElementById('pt-res').innerHTML='';document.getElementById('pt-s').value=c.nombre;document.getElementById('pt-si').innerHTML=`<div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div><div><div style="font-weight:500">${c.nombre}</div><div class="tm tsm">${c.puntos||0}pts actuales</div></div>`;document.getElementById('pt-sel').style.display='block';document.getElementById('pt-m').value='';document.getElementById('pt-prev').style.display='none';
-  const{data:rw}=await SB.from('recompensas').select('*').eq('activo',true);const dsp=(rw||[]).filter(r=>r.puntos_requeridos<=(c.puntos||0));
-  if(dsp.length){document.getElementById('cj-s').style.display='block';document.getElementById('cj-e').style.display='none';document.getElementById('rw-disp').innerHTML=dsp.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gr)"><div><div style="font-weight:500;font-size:12.5px">${r.nombre}</div><div class="tm tsm">${r.descripcion||''}</div></div><button class="btn bsm" style="background:#fdf7dc;border:none;color:#7a6200" onclick="cjPts(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.puntos_requeridos}pts</button></div>`).join('');}
-  else{document.getElementById('cj-s').style.display='none';document.getElementById('cj-e').style.display='block';document.getElementById('cj-e').textContent='Sin recompensas para '+c.nombre+'.';}
+async function buscarPts(q){
+  document.getElementById('pt-sel').style.display='none';
+  PTC=null;
+  const r=document.getElementById('pt-res');
+  if(!q||q.length<2){r.innerHTML='';return;}
+  const{data}=await SB.from('clientes').select('id,nombre,dni,puntos,sellos_activos,visitas,negocio_id')
+    .eq('negocio_id',NEGOCIO_ID).or(`nombre.ilike.%${q}%,dni.ilike.%${q}%`).limit(6);
+  if(!data?.length){r.innerHTML='<div class="tm tsm" style="padding:7px 0">Sin resultados</div>';return;}
+  r.innerHTML=data.map(c=>`
+    <div onclick="preSel(${c.id})" style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer;border:1px solid var(--b);margin-bottom:4px"
+      onmouseover="this.style.background='var(--gr)'" onmouseout="this.style.background=''">
+      <div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div>
+      <div>
+        <div style="font-weight:500">${c.nombre}</div>
+        <div class="tm tsm">DNI:${c.dni||'—'} · ${c.puntos||0}pts · Visita #${(c.visitas||0)+1}</div>
+      </div>
+    </div>`).join('');
 }
-function calcPts(){
-  if(!PTC)return;
-  const m=parseFloat(document.getElementById('pt-m').value)||0;
-  const p=Math.floor(m*(CFG.pts_por_sol||1));
-  const sellosMax=CFG.sellos_meta||10;
-  const sellosAhora=(PTC.sellos_activos||0)+1;
-  if(m>0){
-    document.getElementById('pt-prev').style.display='flex';
-    document.getElementById('pt-c').textContent='+'+p;
-    document.getElementById('pt-tp').textContent=((PTC.puntos||0)+p).toLocaleString()+' pts';
-    const selloEl=document.getElementById('pt-sello');
-    if(selloEl){
-      if(sellosAhora>=sellosMax){
-        selloEl.textContent='🎉 ¡Tarjeta completa! Consumo gratis';
-        selloEl.style.color='var(--g)';selloEl.style.fontWeight='600';
-      } else {
-        selloEl.textContent='Sello '+sellosAhora+'/'+sellosMax;
-        selloEl.style.color='var(--t2)';selloEl.style.fontWeight='400';
-      }
-    }
+
+async function preSel(id){
+  const{data:c}=await SB.from('clientes').select('*').eq('id',id).single();
+  if(!c)return;
+  PTC=c;
+  CARRITO=[];
+  document.getElementById('pt-res').innerHTML='';
+  document.getElementById('pt-s').value=c.nombre;
+  document.getElementById('pt-si').innerHTML=`
+    <div class="av" style="background:${aC(c.nombre)}">${ini(c.nombre)}</div>
+    <div>
+      <div style="font-weight:500">${c.nombre}</div>
+      <div class="tm tsm">${c.puntos||0} pts · Visita #${(c.visitas||0)+1} · Sello ${c.sellos_activos||0}/${CFG.sellos_meta||12}</div>
+    </div>`;
+  document.getElementById('pt-sel').style.display='block';
+  document.getElementById('pt-prev').style.display='none';
+  document.getElementById('btn-registrar').disabled=true;
+
+  // Cargar productos del catálogo
+  await cargarProductos();
+
+  // Recompensas canjeables
+  const{data:rw}=await SB.from('recompensas').select('*').eq('activo',true).eq('negocio_id',NEGOCIO_ID);
+  const dsp=(rw||[]).filter(r=>r.puntos_requeridos<=(c.puntos||0));
+  if(dsp.length){
+    document.getElementById('cj-s').style.display='block';
+    document.getElementById('cj-e').style.display='none';
+    document.getElementById('rw-disp').innerHTML=dsp.map(r=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--gr)">
+        <div><div style="font-weight:500;font-size:12.5px">${r.nombre}</div><div class="tm tsm">${r.descripcion||''}</div></div>
+        <button class="btn bsm" style="background:#fdf7dc;border:none;color:#7a6200" onclick="cjPts(${c.id},${r.id},'${r.nombre}',${r.puntos_requeridos})">${r.puntos_requeridos}pts</button>
+      </div>`).join('');
   } else {
-    document.getElementById('pt-prev').style.display='none';
+    document.getElementById('cj-s').style.display='none';
+    document.getElementById('cj-e').style.display='block';
+    document.getElementById('cj-e').textContent='Sin recompensas para '+c.nombre+'.';
   }
 }
+
+async function cargarProductos(){
+  if(!PRODUCTOS_CACHE.length){
+    const{data}=await SB.from('productos').select('*').eq('negocio_id',NEGOCIO_ID).eq('activo',true).order('categoria');
+    PRODUCTOS_CACHE=data||[];
+  }
+  const cats=[...new Set(PRODUCTOS_CACHE.map(p=>p.categoria||'Otros'))];
+  // Tabs de categoría
+  const catTabs=document.getElementById('cat-tabs');
+  catTabs.innerHTML=`<button class="btn bs bsm cat-tab active" onclick="filtrarCat(this,'__all__')">Todos</button>`+
+    cats.map(c=>`<button class="btn bs bsm cat-tab" onclick="filtrarCat(this,'${c}')">${c}</button>`).join('');
+  renderProductos(PRODUCTOS_CACHE);
+}
+
+function filtrarCat(btn, cat){
+  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered=cat==='__all__'?PRODUCTOS_CACHE:PRODUCTOS_CACHE.filter(p=>(p.categoria||'Otros')===cat);
+  renderProductos(filtered);
+}
+
+function renderProductos(prods){
+  document.getElementById('prod-grid').innerHTML=prods.map(p=>`
+    <button onclick="agregarProducto(${p.id},'${p.nombre.replace(/'/g,"\\'")}',${p.precio})"
+      style="background:var(--gr);border:1.5px solid var(--b);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:left;transition:all .15s"
+      onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--b)'">
+      <div style="font-size:12.5px;font-weight:600;color:var(--t1)">${p.nombre}</div>
+      <div style="font-size:13px;font-weight:800;color:var(--gd);margin-top:3px">S/ ${parseFloat(p.precio).toFixed(2)}</div>
+    </button>`).join('');
+}
+
+function agregarProducto(id, nombre, precio){
+  const existing=CARRITO.find(i=>i.producto_id===id);
+  if(existing){ existing.cantidad++; existing.subtotal=existing.cantidad*existing.precio_unit; }
+  else { CARRITO.push({producto_id:id, nombre, cantidad:1, precio_unit:precio, subtotal:precio}); }
+  renderCarrito();
+}
+
+function agregarLibre(){
+  const nom=document.getElementById('libre-nom').value.trim();
+  const precio=parseFloat(document.getElementById('libre-precio').value)||0;
+  if(!nom){toast2('⚠ Escribe el nombre del producto',true);return;}
+  if(precio<=0){toast2('⚠ Precio requerido',true);return;}
+  CARRITO.push({producto_id:null, nombre:nom, cantidad:1, precio_unit:precio, subtotal:precio});
+  document.getElementById('libre-nom').value='';
+  document.getElementById('libre-precio').value='';
+  renderCarrito();
+}
+
+function renderCarrito(){
+  const wrap=document.getElementById('carrito-wrap');
+  const pagoWrap=document.getElementById('pago-wrap');
+  const notaWrap=document.getElementById('nota-wrap');
+  if(!CARRITO.length){
+    wrap.style.display='none';pagoWrap.style.display='none';notaWrap.style.display='none';
+    document.getElementById('pt-prev').style.display='none';
+    document.getElementById('btn-registrar').disabled=true;
+    return;
+  }
+  wrap.style.display='block';pagoWrap.style.display='block';notaWrap.style.display='block';
+  const total=CARRITO.reduce((s,i)=>s+i.subtotal,0);
+  document.getElementById('carrito-total').textContent=total.toFixed(2);
+  document.getElementById('carrito-items').innerHTML=CARRITO.map((item,idx)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--gr)">
+      <div style="flex:1">
+        <div style="font-size:12.5px;font-weight:500">${item.nombre}</div>
+        <div style="font-size:11px;color:var(--t3)">S/ ${item.precio_unit.toFixed(2)} c/u</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <button onclick="cambiarCant(${idx},-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--b);background:var(--gr);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">−</button>
+        <span style="font-weight:700;min-width:20px;text-align:center">${item.cantidad}</span>
+        <button onclick="cambiarCant(${idx},1)" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--b);background:var(--gr);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">+</button>
+      </div>
+      <div style="font-weight:700;min-width:55px;text-align:right">S/ ${item.subtotal.toFixed(2)}</div>
+      <button onclick="quitarItem(${idx})" style="color:var(--rd);background:none;border:none;cursor:pointer;font-size:16px">✕</button>
+    </div>`).join('');
+  // Preview puntos
+  const p=Math.floor(total*(CFG.pts_por_sol||1));
+  const sellosMax=CFG.sellos_meta||12;
+  const sellosAhora=(PTC.sellos_activos||0)+1;
+  document.getElementById('pt-prev').style.display='flex';
+  document.getElementById('pt-c').textContent='+'+p;
+  document.getElementById('pt-tp').textContent=((PTC.puntos||0)+p).toLocaleString()+' pts';
+  const selloEl=document.getElementById('pt-sello');
+  if(sellosAhora>=sellosMax){
+    selloEl.textContent='🎉 ¡Tarjeta completa!';selloEl.style.color='var(--g)';
+  } else {
+    selloEl.textContent='Sello '+sellosAhora+'/'+sellosMax;selloEl.style.color='var(--t2)';
+  }
+  document.getElementById('btn-registrar').disabled=false;
+}
+
+function cambiarCant(idx, delta){
+  CARRITO[idx].cantidad+=delta;
+  if(CARRITO[idx].cantidad<=0){CARRITO.splice(idx,1);}
+  else{CARRITO[idx].subtotal=CARRITO[idx].cantidad*CARRITO[idx].precio_unit;}
+  renderCarrito();
+}
+function quitarItem(idx){CARRITO.splice(idx,1);renderCarrito();}
+function selMetodo(btn){
+  document.querySelectorAll('.metodo-btn').forEach(b=>b.classList.remove('active','bp'));
+  btn.classList.add('active');
+  METODO_PAGO=btn.dataset.m;
+}
+function limpiarVenta(){
+  CARRITO=[];PTC=null;
+  document.getElementById('pt-s').value='';
+  document.getElementById('pt-res').innerHTML='';
+  document.getElementById('pt-sel').style.display='none';
+}
+
 async function regPuntos(){
-  if(!PTC)return;
-  const m=parseFloat(document.getElementById('pt-m').value)||0;
-  if(m<=0){toast2('⚠ Monto requerido',true);return;}
-  const p=Math.floor(m*(CFG.pts_por_sol||1));
-  const d=document.getElementById('pt-d').value||'Compra S/ '+m.toFixed(2);
-  const sellosMax=CFG.sellos_meta||10;
+  if(!PTC||!CARRITO.length)return;
+  const total=CARRITO.reduce((s,i)=>s+i.subtotal,0);
+  const p=Math.floor(total*(CFG.pts_por_sol||1));
+  const sellosMax=CFG.sellos_meta||12;
   const sellosAhora=(PTC.sellos_activos||0)+1;
   const ganoGratis=sellosAhora>=sellosMax;
   const nuevosSellos=ganoGratis?0:sellosAhora;
   const nuevosCanjes=(PTC.total_canjes_sello||0)+(ganoGratis?1:0);
+  const nota=document.getElementById('pt-nota')?.value||'';
+  const nuevaVisita=(PTC.visitas||0)+1;
   showLo(true);
+
+  // 1. Actualizar cliente
   await SB.from('clientes').update({
     puntos:(PTC.puntos||0)+p,
-    visitas:(PTC.visitas||0)+1,
+    visitas:nuevaVisita,
     sellos_activos:nuevosSellos,
     total_canjes_sello:nuevosCanjes,
     ultima_visita:new Date().toISOString()
   }).eq('id',PTC.id);
-  await SB.from('historial').insert({cliente_id:PTC.id,tipo:'compra',descripcion:d+' · +'+p+'pts · sello '+(ganoGratis?sellosMax:sellosAhora)+'/'+sellosMax,puntos:p,monto:m,negocio_id:NEGOCIO_ID});
-  if(ganoGratis){
-    await SB.from('historial').insert({cliente_id:PTC.id,tipo:'canje',descripcion:'🎉 Tarjeta completa — consumo gratis ganado!',puntos:0,negocio_id:NEGOCIO_ID});
+
+  // 2. Crear transacción
+  const itemsDesc=CARRITO.map(i=>`${i.cantidad}x ${i.nombre}`).join(', ');
+  const{data:tx}=await SB.from('transacciones').insert({
+    negocio_id:NEGOCIO_ID,
+    cliente_id:PTC.id,
+    usuario_id:CU?.id||null,
+    usuario_nombre:CU?.nombre||CU?.email||'Admin',
+    numero_visita:nuevaVisita,
+    monto_total:total,
+    metodo_pago:METODO_PAGO,
+    puntos_ganados:p,
+    sellos_ganados:1,
+    comentario:nota||null
+  }).select().single();
+
+  // 3. Insertar items de la transacción
+  if(tx){
+    await SB.from('transaccion_items').insert(
+      CARRITO.map(i=>({
+        transaccion_id:tx.id,
+        producto_id:i.producto_id||null,
+        nombre:i.nombre,
+        cantidad:i.cantidad,
+        precio_unit:i.precio_unit,
+        subtotal:i.subtotal
+      }))
+    );
   }
+
+  // 4. Registrar en historial
+  await SB.from('historial').insert({
+    cliente_id:PTC.id,tipo:'compra',negocio_id:NEGOCIO_ID,
+    descripcion:`Visita #${nuevaVisita} · ${itemsDesc} · +${p}pts · Sello ${ganoGratis?sellosMax:sellosAhora}/${sellosMax}`,
+    puntos:p, monto:total,
+    usuario_id:CU?.id||null, usuario_nombre:CU?.nombre||CU?.email||'Admin',
+    transaccion_id:tx?.id||null
+  });
+
+  if(ganoGratis){
+    await SB.from('historial').insert({
+      cliente_id:PTC.id,tipo:'canje',negocio_id:NEGOCIO_ID,
+      descripcion:'🎉 Tarjeta completa — consumo gratis ganado!',puntos:0,
+      usuario_nombre:CU?.nombre||'Admin'
+    });
+  }
+
   showLo(false);
   if(ganoGratis){
-    toast2('🎉 ¡'+PTC.nombre+' completó su tarjeta! Consumo GRATIS ganado 🥤');
+    toast2(`🎉 ¡${PTC.nombre} completó su tarjeta! Consumo GRATIS ganado 🥤`);
   } else {
-    toast2('✓ +'+p+' pts · Sello '+(sellosAhora)+'/'+sellosMax+' para '+PTC.nombre);
+    toast2(`✓ Venta S/ ${total.toFixed(2)} · +${p}pts · Sello ${sellosAhora}/${sellosMax} — ${PTC.nombre}`);
   }
-  document.getElementById('pt-m').value='';
-  document.getElementById('pt-d').value='';
+
+  // Reset carrito
+  CARRITO=[];
+  document.getElementById('pt-nota').value='';
   preSel(PTC.id);
 }
-async function cjPts(cId,rId,nm,pts){showLo(true);const{data:c}=await SB.from('clientes').select('puntos').eq('id',cId).single();if(!c||(c.puntos||0)<pts){showLo(false);toast2('⚠ Puntos insuficientes',true);return;}await SB.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);await SB.from('historial').insert({cliente_id:cId,tipo:'canje',descripcion:'Canje: '+nm+' (-'+pts+'pts)',puntos:-pts});showLo(false);toast2('✓ Canje: '+nm);preSel(cId);}
-function rdReglas(){document.getElementById('r-disp').innerHTML=`<div style="display:grid;gap:3px"><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Por S/ 1</span><strong>${CFG.pts_por_sol||1} pto(s)</strong></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Bono bienvenida</span><strong>+${CFG.pts_bienvenida||20} pts</strong></div><div style="display:flex;justify-content:space-between;padding:8px 0"><span class="tm">Bono cumpleaños</span><strong>+${CFG.pts_cumple||50} pts</strong></div></div>`;}
+
+function calcPts(){} // legacy — ya no se usa
+
+async function cjPts(cId,rId,nm,pts){
+  showLo(true);
+  const{data:c}=await SB.from('clientes').select('puntos').eq('id',cId).single();
+  if(!c||(c.puntos||0)<pts){showLo(false);toast2('⚠ Puntos insuficientes',true);return;}
+  await SB.from('clientes').update({puntos:c.puntos-pts}).eq('id',cId);
+  await SB.from('historial').insert({
+    cliente_id:cId,tipo:'canje',negocio_id:NEGOCIO_ID,
+    descripcion:'Canje: '+nm+' (-'+pts+'pts)',puntos:-pts,
+    usuario_nombre:CU?.nombre||'Admin'
+  });
+  showLo(false);toast2('✓ Canje: '+nm);preSel(cId);
+}
+
+function rdReglas(){
+  document.getElementById('r-disp').innerHTML=`
+    <div style="display:grid;gap:3px">
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Por S/ 1</span><strong>${CFG.pts_por_sol||1} pto(s)</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Sellos para premio</span><strong>${CFG.sellos_meta||12} sellos</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gr)"><span class="tm">Bono bienvenida</span><strong>+${CFG.pts_bienvenida||20} pts</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0"><span class="tm">Bono cumpleaños</span><strong>+${CFG.pts_cumple||50} pts</strong></div>
+    </div>`;
+}
+
 
 // ===================== CAMPAÑAS =====================
 const PLANT={
