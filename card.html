@@ -383,14 +383,15 @@ async function init(){
     const visitas=c.visitas||0;
     const nombre=c.nombre?.split(' ')[0]||c.nombre||'Cliente';
 
-    // Cargar posiciones de sellos desde config (si están guardadas)
+    // Cargar posiciones de sellos desde config (soporta cualquier cantidad)
     if(cfg?.sello_posiciones){
       try{
         const pos=typeof cfg.sello_posiciones==='string'
           ?JSON.parse(cfg.sello_posiciones):cfg.sello_posiciones;
-        if(Array.isArray(pos)&&pos.length===10){
-          // Sobreescribir las posiciones por defecto con las calibradas
-          for(let i=0;i<10;i++) SELLO_POS_FRENTE[i]=pos[i];
+        if(Array.isArray(pos)&&pos.length>0){
+          // Reemplazar el array completo con las posiciones calibradas del negocio
+          SELLO_POS_FRENTE.length=0;
+          pos.forEach(p=>SELLO_POS_FRENTE.push(p));
         }
       }catch(e){}
     }
