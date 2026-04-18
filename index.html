@@ -2666,6 +2666,14 @@ function limpiarVenta(){
 }
 
 async function regPuntos(){
+  // Garantizar que el loader se apague siempre
+  try { await _regPuntosInner(); } catch(e) {
+    console.error('regPuntos error:', e);
+    showLo(false);
+    toast2('⚠ Error al registrar: '+e.message, true);
+  }
+}
+async function _regPuntosInner(){
   if(!PTC||!CARRITO.length)return;
   const total=CARRITO.reduce((s,i)=>s+i.subtotal,0);
   const p=Math.floor(total*(CFG.pts_por_sol||1));
@@ -2691,9 +2699,9 @@ async function regPuntos(){
   const ticketCodigo=(document.getElementById('pt-ticket')?.value||'').trim();
   if(!ticketCodigo){toast2('⚠ Ingresa el número de ticket',true);showLo(false);return;}
   // Validar que no esté duplicado en este negocio
-  const{data:txExist}=await SB.from('transacciones')
-    .select('id').eq('negocio_id',NEGOCIO_ID).eq('ticket_codigo',ticketCodigo).maybeSingle();
-  if(txExist){toast2('⚠ El ticket '+ticketCodigo+' ya existe — verifica el número',true);showLo(false);return;}
+  const{data:txExistArr}=await SB.from('transacciones')
+    .select('id').eq('negocio_id',NEGOCIO_ID).eq('ticket_codigo',ticketCodigo).limit(1);
+  if(txExistArr&&txExistArr.length>0){showLo(false);toast2('⚠ El ticket '+ticketCodigo+' ya existe — verifica el número',true);return;}
 
   // 3. Crear transacción
   const itemsDesc=CARRITO.map(i=>`${i.cantidad}x ${i.nombre}`).join(', ');
@@ -2755,7 +2763,7 @@ async function regPuntos(){
   document.getElementById('pt-nota').value='';
   if(document.getElementById('pt-ticket'))document.getElementById('pt-ticket').value='';
   preSel(PTC.id);
-}
+} // fin _regPuntosInner
 
 function calcPts(){} // legacy — ya no se usa
 
