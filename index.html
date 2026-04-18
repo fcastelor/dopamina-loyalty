@@ -2524,26 +2524,41 @@ async function cargarProductos(){
   const cats=[...new Set(PRODUCTOS_CACHE.map(p=>p.categoria||'Otros'))];
   // Tabs de categoría
   const catTabs=document.getElementById('cat-tabs');
-  catTabs.innerHTML=`<button class="btn bs bsm cat-tab active" onclick="filtrarCat(this,'__all__')">Todos</button>`+
-    cats.map(c=>`<button class="btn bs bsm cat-tab" onclick="filtrarCat(this,'${c}')">${c}</button>`).join('');
+  catTabs.innerHTML=`<button class="btn bs bsm cat-tab active" data-cat="__all__">Todos</button>`+
+    cats.map(c=>`<button class="btn bs bsm cat-tab" data-cat="${c}">${c}</button>`).join('');
+  catTabs.querySelectorAll('.cat-tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      catTabs.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat=btn.dataset.cat;
+      const filtered=cat==='__all__'?PRODUCTOS_CACHE:PRODUCTOS_CACHE.filter(p=>(p.categoria||'Otros')===cat);
+      renderProductos(filtered);
+    });
+  });
   renderProductos(PRODUCTOS_CACHE);
 }
 
-function filtrarCat(btn, cat){
-  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const filtered=cat==='__all__'?PRODUCTOS_CACHE:PRODUCTOS_CACHE.filter(p=>(p.categoria||'Otros')===cat);
-  renderProductos(filtered);
-}
+
 
 function renderProductos(prods){
-  document.getElementById('prod-grid').innerHTML=prods.map(p=>`
-    <button onclick="agregarProducto(${p.id},'${p.nombre.replace(/'/g,"\\'")}',${p.precio})"
-      style="background:var(--gr);border:1.5px solid var(--b);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:left;transition:all .15s"
-      onmouseover="this.style.borderColor='var(--g)'" onmouseout="this.style.borderColor='var(--b)'">
+  const grid=document.getElementById('prod-grid');
+  grid.innerHTML=prods.map(p=>`
+    <button class="prod-btn"
+      data-id="${p.id}" data-nombre="${p.nombre.replace(/"/g,'&quot;')}" data-precio="${p.precio}"
+      style="background:var(--gr);border:1.5px solid var(--b);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:left;transition:all .15s">
       <div style="font-size:12.5px;font-weight:600;color:var(--t1)">${p.nombre}</div>
       <div style="font-size:13px;font-weight:800;color:var(--gd);margin-top:3px">S/ ${parseFloat(p.precio).toFixed(2)}</div>
     </button>`).join('');
+  // Event listeners via delegación
+  grid.querySelectorAll('.prod-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      agregarProducto(parseInt(btn.dataset.id), btn.dataset.nombre, parseFloat(btn.dataset.precio));
+      btn.style.borderColor='var(--g)';
+      setTimeout(()=>btn.style.borderColor='var(--b)',300);
+    });
+    btn.addEventListener('mouseenter',()=>btn.style.borderColor='var(--g)');
+    btn.addEventListener('mouseleave',()=>btn.style.borderColor='var(--b)');
+  });
 }
 
 function agregarProducto(id, nombre, precio){
@@ -2615,8 +2630,15 @@ function cambiarCant(idx, delta){
 }
 function quitarItem(idx){CARRITO.splice(idx,1);renderCarrito();}
 function selMetodo(btn){
-  document.querySelectorAll('.metodo-btn').forEach(b=>b.classList.remove('active','bp'));
-  btn.classList.add('active');
+  document.querySelectorAll('.metodo-btn').forEach(b=>{
+    b.classList.remove('bp');
+    b.style.background='';
+    b.style.color='';
+    b.style.borderColor='';
+  });
+  btn.style.background='var(--g)';
+  btn.style.color='white';
+  btn.style.borderColor='var(--g)';
   METODO_PAGO=btn.dataset.m;
 }
 function limpiarVenta(){
