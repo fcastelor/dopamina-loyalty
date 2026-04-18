@@ -2526,15 +2526,16 @@ async function cargarProductos(){
   const catTabs=document.getElementById('cat-tabs');
   catTabs.innerHTML=`<button class="btn bs bsm cat-tab active" data-cat="__all__">Todos</button>`+
     cats.map(c=>`<button class="btn bs bsm cat-tab" data-cat="${c}">${c}</button>`).join('');
-  catTabs.querySelectorAll('.cat-tab').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      catTabs.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const cat=btn.dataset.cat;
-      const filtered=cat==='__all__'?PRODUCTOS_CACHE:PRODUCTOS_CACHE.filter(p=>(p.categoria||'Otros')===cat);
-      renderProductos(filtered);
-    });
-  });
+  // Delegación en el contenedor — sobrevive a rerenders
+  catTabs.onclick=(e)=>{
+    const btn=e.target.closest('.cat-tab');
+    if(!btn)return;
+    catTabs.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat=btn.dataset.cat;
+    const filtered=cat==='__all__'?PRODUCTOS_CACHE:PRODUCTOS_CACHE.filter(p=>(p.categoria||'Otros')===cat);
+    renderProductos(filtered);
+  };
   renderProductos(PRODUCTOS_CACHE);
 }
 
@@ -2550,15 +2551,14 @@ function renderProductos(prods){
       <div style="font-size:13px;font-weight:800;color:var(--gd);margin-top:3px">S/ ${parseFloat(p.precio).toFixed(2)}</div>
     </button>`).join('');
   // Event listeners via delegación
-  grid.querySelectorAll('.prod-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      agregarProducto(parseInt(btn.dataset.id), btn.dataset.nombre, parseFloat(btn.dataset.precio));
-      btn.style.borderColor='var(--g)';
-      setTimeout(()=>btn.style.borderColor='var(--b)',300);
-    });
-    btn.addEventListener('mouseenter',()=>btn.style.borderColor='var(--g)');
-    btn.addEventListener('mouseleave',()=>btn.style.borderColor='var(--b)');
-  });
+  // Delegación en el grid — no se pierde al hacer innerHTML
+  grid.onclick=(e)=>{
+    const btn=e.target.closest('.prod-btn');
+    if(!btn)return;
+    agregarProducto(parseInt(btn.dataset.id), btn.dataset.nombre, parseFloat(btn.dataset.precio));
+    btn.style.borderColor='var(--g)';
+    setTimeout(()=>btn.style.borderColor='var(--b)',400);
+  };
 }
 
 function agregarProducto(id, nombre, precio){
