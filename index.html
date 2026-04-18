@@ -2565,19 +2565,6 @@ function renderProductos(prods){
   }
   grid.innerHTML=h;
 }
-  let html='';
-  for(let i=0;i<prods.length;i++){
-    const p=prods[i];
-    const nom=String(p.nombre||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-    const precio=parseFloat(p.precio||0).toFixed(2);
-    html+='<button class="prod-btn" data-id="'+p.id+'" data-nombre="'+nom+'" data-precio="'+p.precio+'"'+
-      ' style="background:var(--gr);border:1.5px solid var(--b);border-radius:10px;padding:10px 8px;cursor:pointer;text-align:left;width:100%">'+
-      '<div style="font-size:12.5px;font-weight:600;color:var(--t1)">'+String(p.nombre||'')+'</div>'+
-      '<div style="font-size:14px;font-weight:800;color:var(--gd);margin-top:4px">S/ '+precio+'</div>'+
-      '</button>';
-  }
-  grid.innerHTML=html;
-}
 
 function agregarProducto(id, nombre, precio){
   const existing=CARRITO.find(i=>i.producto_id===id);
@@ -3055,7 +3042,7 @@ async function ldAnalytics(){
   renderChartVentas(compras, start, end);
 
   // ── PRODUCTOS MÁS VENDIDOS ──
-  renderProductos(compras);
+  renderProductosAnalytics(compras);
 
   // ── HORAS PICO ──
   renderHorasPico(hist||[]);
@@ -3116,7 +3103,7 @@ function renderChartVentas(compras, start, end){
   });
 }
 
-function renderProductos(compras){
+function renderProductosAnalytics(compras){
   const el=document.getElementById('an-productos');
   if(!compras.length){el.innerHTML='<div class="tm tsm" style="padding:20px 0;text-align:center">Sin ventas en este período</div>';return;}
 
