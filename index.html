@@ -874,6 +874,7 @@ textarea.fi{resize:vertical;min-height:78px}
             <div class="cv">
               <div class="st" style="font-size:13.5px">Tarjeta de sellos ☕</div>
               <div class="fg"><label class="fl">Visitas para premio</label><input type="number" class="fi" id="cp-sellos" min="2" max="20"></div>
+              <div class="fg"><label class="fl">Prefijo de tickets (ej: DOC, VTA, TKT)</label><input type="text" class="fi" id="cp-tkpfx" placeholder="TKT" maxlength="5" style="text-transform:uppercase"></div>
               <div style="font-size:11.5px;color:var(--t3);margin-bottom:16px">Cada visita = 1 sello. Al completar → consumo gratis</div>
             </div>
           </div>
@@ -1324,6 +1325,7 @@ function rdCfg(){
   document.getElementById('cp-vip').value=CFG.vip_min||500;
   document.getElementById('cp-dorm').value=CFG.dormido_dias||30;
   document.getElementById('cp-sellos').value=CFG.sellos_meta||10;
+  if(document.getElementById('cp-tkpfx'))document.getElementById('cp-tkpfx').value=CFG.ticket_prefijo||'TKT';
   // Negocio — leer de CFG._negocio si existe
   const neg=CFG._negocio||{};
   document.getElementById('cp-nm').value=neg.nombre||CFG.nombre||'';
@@ -1465,6 +1467,7 @@ async function saveCfg(){
     vip_min:parseInt(document.getElementById('cp-vip').value)||500,
     dormido_dias:parseInt(document.getElementById('cp-dorm').value)||30,
     sellos_meta:parseInt(document.getElementById('cp-sellos').value)||10,
+    ticket_prefijo:(document.getElementById('cp-tkpfx')?.value||'TKT').toUpperCase(),
     // Tarjeta
     tarjeta_miembro_label:document.getElementById('cp-mlbl').value||'Dopilover',
     tarjeta_frase_frente:document.getElementById('cp-ff').value,
@@ -2675,7 +2678,16 @@ async function regPuntos(){
     ultima_visita:new Date().toISOString()
   }).eq('id',PTC.id);
 
-  // 2. Crear transacción
+  // 2. Obtener número de ticket correlativo (atómico)
+  let ticketNum=1, ticketCodigo='TKT-0001';
+  try{
+    const{data:tkData}=await SB.rpc('next_ticket_number',{p_negocio_id:NEGOCIO_ID});
+    ticketNum=tkData||1;
+    const prefijo=(CFG?.ticket_prefijo||'TKT').toUpperCase();
+    ticketCodigo=prefijo+'-'+String(ticketNum).padStart(4,'0');
+  }catch(e){console.warn('ticket:',e);}
+
+  // 3. Crear transacción
   const itemsDesc=CARRITO.map(i=>`${i.cantidad}x ${i.nombre}`).join(', ');
   const{data:tx}=await SB.from('transacciones').insert({
     negocio_id:NEGOCIO_ID,
@@ -2687,7 +2699,9 @@ async function regPuntos(){
     metodo_pago:METODO_PAGO,
     puntos_ganados:p,
     sellos_ganados:1,
-    comentario:nota||null
+    comentario:nota||null,
+    numero_ticket:ticketNum,
+    ticket_codigo:ticketCodigo
   }).select().single();
 
   // 3. Insertar items de la transacción
@@ -2723,9 +2737,9 @@ async function regPuntos(){
 
   showLo(false);
   if(ganoGratis){
-    toast2(`🎉 ¡${PTC.nombre} completó su tarjeta! Consumo GRATIS ganado 🥤`);
+    toast2(`🎉 ${ticketCodigo} · ¡${PTC.nombre} completó su tarjeta! Consumo GRATIS ganado 🥤`);
   } else {
-    toast2(`✓ Venta S/ ${total.toFixed(2)} · +${p}pts · Sello ${sellosAhora}/${sellosMax} — ${PTC.nombre}`);
+    toast2(`✓ ${ticketCodigo} · S/ ${total.toFixed(2)} · +${p}pts · Sello ${sellosAhora}/${sellosMax} — ${PTC.nombre}`);
   }
 
   // Reset carrito
