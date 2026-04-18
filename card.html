@@ -236,6 +236,7 @@ body{background:linear-gradient(160deg,#f5e0b0 0%,#e8cc90 100%);min-height:100vh
 <div class="info-bar" id="info-bar" style="display:none">
   <div class="chip">📅 <span id="chip-visitas">0 visitas</span></div>
   <div class="chip">☕ <span id="chip-sellos">0/10 sellos</span></div>
+  <div class="chip" id="chip-tarjetas" style="display:none">🏆 <span id="chip-tarjetas-num">0</span> tarjeta completa</div>
   <div class="chip win" id="chip-gratis" style="display:none">🎁 ¡Consumo gratis!</div>
 </div>
 <button class="install-btn" id="install-btn" style="display:none" onclick="installPWA()">
@@ -474,6 +475,17 @@ async function init(){
     genQR(`DOPI-${c.uuid||c.id}`);
     document.getElementById('chip-visitas').textContent=visitas+' visita'+(visitas!==1?'s':'');
     document.getElementById('chip-sellos').textContent=sellos+'/'+sellosMax+' sellos';
+    // Mostrar tarjetas completas si tiene al menos 1
+    const tarjetasCompletas=c.total_canjes_sello||0;
+    if(tarjetasCompletas>0){
+      const chipT=document.getElementById('chip-tarjetas');
+      if(chipT){
+        chipT.style.display='flex';
+        document.getElementById('chip-tarjetas-num').textContent=tarjetasCompletas;
+        chipT.querySelector('span').nextSibling && (chipT.lastChild.textContent=
+          ` tarjeta${tarjetasCompletas!==1?'s':''} completa${tarjetasCompletas!==1?'s':''}`);
+      }
+    }
     if(sellos>=sellosMax)document.getElementById('chip-gratis').style.display='flex';
     setTimeout(()=>{
       document.getElementById('loader').classList.add('hide');
