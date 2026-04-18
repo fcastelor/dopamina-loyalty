@@ -2716,8 +2716,7 @@ async function _regPuntosInner(){
     puntos_ganados:p,
     sellos_ganados:1,
     comentario:nota||null,
-    numero_ticket:ticketNum,
-    ticket_codigo:ticketCodigo
+    ...(ticketCodigo?{ticket_codigo:ticketCodigo}:{})
   }).select().single();
 
   // 3. Insertar items de la transacción
@@ -2762,7 +2761,10 @@ async function _regPuntosInner(){
   CARRITO=[];
   document.getElementById('pt-nota').value='';
   if(document.getElementById('pt-ticket'))document.getElementById('pt-ticket').value='';
-  preSel(PTC.id);
+  showLo(false);
+  // Recargar perfil del cliente sin bloquear
+  const ptcId=PTC.id;
+  setTimeout(()=>preSel(ptcId), 300);
 } // fin _regPuntosInner
 
 function calcPts(){} // legacy — ya no se usa
