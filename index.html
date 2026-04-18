@@ -1548,7 +1548,7 @@ ${(()=>{
   return `<div style="border:1.5px solid #e8e8e2;border-radius:12px;padding:14px 16px;margin-bottom:14px;background:#fafaf8">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px">Tarjeta de sellos</div>
-      <div style="font-size:11px;color:var(--t2)">${sellos}/${meta} · ${c.total_canjes_sello||0} gratis ganados</div>
+      <div style="font-size:11px;color:var(--t2)">${sellos}/${meta} sellos · 🏆 ${c.total_canjes_sello||0} tarjeta${(c.total_canjes_sello||0)!==1?'s':''} completa${(c.total_canjes_sello||0)!==1?'s':''}</div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px">${stamps}</div>
     <div style="background:#e8e8e2;border-radius:20px;height:5px;overflow:hidden">
@@ -1799,16 +1799,33 @@ async function registrarSoloVisita(clienteId){
     ultima_visita:new Date().toISOString()
   }).eq('id',clienteId);
 
+  const totalTarjetas=(c.total_canjes_sello||0)+(ganoGratis?1:0);
+
+  // Registrar visita en historial
   await SB.from('historial').insert({
-    cliente_id:clienteId,tipo:'visita',
+    cliente_id:clienteId,tipo:'visita',negocio_id:NEGOCIO_ID,
     descripcion:`Visita QR · Sello ${ganoGratis?sellosMax:sellosAhora}/${sellosMax}`,
     puntos:0
   });
 
+  // Si completó tarjeta — registrar canje + nueva tarjeta
+  if(ganoGratis){
+    await SB.from('historial').insert({
+      cliente_id:clienteId,tipo:'canje',negocio_id:NEGOCIO_ID,
+      descripcion:`🎉 Tarjeta #${totalTarjetas} completada — consumo gratis ganado!`,
+      puntos:0
+    });
+    await SB.from('historial').insert({
+      cliente_id:clienteId,tipo:'bono',negocio_id:NEGOCIO_ID,
+      descripcion:`🃏 Tarjeta #${totalTarjetas+1} iniciada`,
+      puntos:0
+    });
+  }
+
   showLo(false);
 
   if(ganoGratis){
-    toast2('🎉 ¡'+c.nombre+' completó su tarjeta! Consumo GRATIS ganado');
+    toast2(`🎉 ¡${c.nombre} completó su Tarjeta #${totalTarjetas}! Consumo GRATIS ganado 🎁`);
   } else {
     toast2('☕ Visita registrada — Sello '+sellosAhora+'/'+sellosMax+' para '+c.nombre);
   }
